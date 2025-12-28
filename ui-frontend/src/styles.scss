@@ -1,0 +1,32 @@
+/* You can add global styles to this file, and also import other style files */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+/* Ensure Material Icons are loaded */
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+
+html, body { 
+  height: 100%; 
+}
+
+body { 
+  margin: 0; 
+  font-family: Roboto, "Helvetica Neue", sans-serif; 
+}
+
+.mat-card {
+  margin: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+/* Ensure Angular Material dialogs appear above app header */
+.cdk-overlay-container, .cdk-global-overlay-wrapper {
+  z-index: 20000 !important;
+}
