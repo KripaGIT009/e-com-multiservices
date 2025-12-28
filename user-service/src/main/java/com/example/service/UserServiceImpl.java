@@ -25,7 +25,15 @@ public class UserServiceImpl implements IUserService {
     }
 
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByUsername(email);
+        return userRepository.findByEmail(email);
+    }
+
+    public Optional<User> getUser(Long id) {
+        return getUserById(id);
+    }
+
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
     }
 
     public List<User> getAllUsers() {
@@ -43,8 +51,11 @@ public class UserServiceImpl implements IUserService {
         }).orElse(null);
     }
 
-    public void deleteUser(Long id) {
+    public boolean deleteUser(Long id) {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
+            return true;
         }
+        return false;
+    }
 }
