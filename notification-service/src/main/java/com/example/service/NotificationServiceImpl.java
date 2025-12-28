@@ -76,6 +76,10 @@ public class NotificationServiceImpl implements INotificationService {
         return preferences.save(pref);
     }
 
+    public java.util.List<NotificationEvent> getNotificationsByUser(Long userId) {
+        return events.findByUserId(userId);
+    }
+
     public NotificationEvent recordFromSaga(SagaEvent event) {
         String payload = event.data();
         if (payload == null) {
