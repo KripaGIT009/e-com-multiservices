@@ -1,0 +1,46 @@
+@import 'bootstrap/dist/css/bootstrap.min.css';
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+html, body { 
+  height: 100%; 
+  margin: 0;
+}
+
+body { 
+  font-family: Roboto, "Helvetica Neue", sans-serif; 
+  background-color: #f5f5f5;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.mat-toolbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.checkout-container {
+  max-width: 800px;
+  margin: 2rem auto;
+  background: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.form-section {
+  padding: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.order-summary {
+  background: #f9f9f9;
+  padding: 1.5rem;
+  border-radius: 4px;
+  margin-bottom: 2rem;
+}
+
+.total-amount {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #2196F3;
+}
