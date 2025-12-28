@@ -3,7 +3,7 @@ package com.example.controller;
 import com.example.dto.CreateOrderRequest;
 import com.example.dto.OrderDTO;
 import com.example.entity.OrderStatus;
-import com.example.service.OrderService;
+import com.example.service.IOrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class OrderController {
 
-    private final OrderService orderService;
+    private final IOrderService orderService;
 
     /**
      * Create a new order

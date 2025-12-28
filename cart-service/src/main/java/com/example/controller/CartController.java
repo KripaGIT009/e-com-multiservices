@@ -3,7 +3,7 @@ package com.example.controller;
 import com.example.dto.CartItemRequest;
 import com.example.entity.Cart;
 import com.example.entity.CartItem;
-import com.example.service.CartService;
+import com.example.service.ICartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import java.util.Optional;
 public class CartController {
 
     @Autowired
-    private CartService cartService;
+    private ICartService cartService;
 
     @PostMapping
     public ResponseEntity<Cart> createCart(@RequestParam Long userId) {

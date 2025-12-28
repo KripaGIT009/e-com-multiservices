@@ -1,16 +1,16 @@
 package com.example;
 
 import com.example.common.SagaEvent;
-import com.example.service.ShipmentService;
+import com.example.service.IShipmentService;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ShipmentListener {
 
-    private final ShipmentService shipmentService;
+    private final IShipmentService shipmentService;
 
-    public ShipmentListener(ShipmentService shipmentService) {
+    public ShipmentListener(IShipmentService shipmentService) {
         this.shipmentService = shipmentService;
     }
 

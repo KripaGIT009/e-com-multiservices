@@ -1,0 +1,8 @@
+com\example\common\SagaEvent.class
+com\example\dto\PreferenceRequest.class
+com\example\entity\NotificationEvent.class
+com\example\NotificationListener.class
+com\example\dto\SendNotificationRequest.class
+com\example\entity\NotificationPreference.class
+com\example\repository\NotificationEventRepository.class
+com\example\service\INotificationService.class

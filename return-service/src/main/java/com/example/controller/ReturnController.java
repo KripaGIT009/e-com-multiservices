@@ -2,7 +2,7 @@ package com.example.controller;
 
 import com.example.entity.Return;
 import com.example.dto.ReturnRequest;
-import com.example.service.ReturnService;
+import com.example.service.IReturnService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,7 @@ import java.util.List;
 public class ReturnController {
 
     @Autowired
-    private ReturnService returnService;
+    private IReturnService returnService;
 
     @PostMapping
     public ResponseEntity<Return> createReturn(@RequestBody ReturnRequest request) {

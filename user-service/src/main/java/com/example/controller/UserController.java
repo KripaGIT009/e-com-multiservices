@@ -2,7 +2,7 @@ package com.example.controller;
 
 import com.example.dto.UserRequest;
 import com.example.entity.User;
-import com.example.service.UserService;
+import com.example.service.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.Optional;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private IUserService userService;
 
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody UserRequest request) {

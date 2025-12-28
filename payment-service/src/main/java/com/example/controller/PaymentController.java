@@ -3,7 +3,7 @@ package com.example.controller;
 import com.example.dto.PaymentDTO;
 import com.example.dto.ProcessPaymentRequest;
 import com.example.entity.PaymentStatus;
-import com.example.service.PaymentService;
+import com.example.service.IPaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentController {
 
-    private final PaymentService paymentService;
+    private final IPaymentService paymentService;
 
     @PostMapping
     public ResponseEntity<PaymentDTO> processPayment(@RequestBody ProcessPaymentRequest request) {

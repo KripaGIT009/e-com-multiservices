@@ -2,7 +2,7 @@ package com.example;
 
 import com.example.common.SagaEvent;
 import org.springframework.kafka.annotation.KafkaListener;
-import com.example.service.InventoryService;
+import com.example.service.IInventoryService;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
@@ -10,9 +10,9 @@ import org.springframework.stereotype.Service;
 public class InventoryListener {
 
     private final KafkaTemplate<String, SagaEvent> kafka;
-    private final InventoryService inventoryService;
+    private final IInventoryService inventoryService;
 
-    public InventoryListener(KafkaTemplate<String, SagaEvent> kafka, InventoryService inventoryService) {
+    public InventoryListener(KafkaTemplate<String, SagaEvent> kafka, IInventoryService inventoryService) {
         this.kafka = kafka;
         this.inventoryService = inventoryService;
     }

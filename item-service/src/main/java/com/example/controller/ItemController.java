@@ -2,7 +2,7 @@ package com.example.controller;
 
 import com.example.dto.ItemRequest;
 import com.example.entity.Item;
-import com.example.service.ItemService;
+import com.example.service.IItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.Optional;
 public class ItemController {
 
     @Autowired
-    private ItemService itemService;
+    private IItemService itemService;
 
     @PostMapping
     public ResponseEntity<Item> createItem(@RequestBody ItemRequest request) {

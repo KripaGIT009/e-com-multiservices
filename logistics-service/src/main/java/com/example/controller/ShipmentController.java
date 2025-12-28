@@ -4,7 +4,7 @@ import com.example.dto.CreateShipmentRequest;
 import com.example.dto.UpdateShipmentStatusRequest;
 import com.example.entity.Shipment;
 import com.example.entity.ShipmentEvent;
-import com.example.service.ShipmentService;
+import com.example.service.IShipmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,9 +15,9 @@ import java.util.Optional;
 @RequestMapping("/api/shipments")
 public class ShipmentController {
 
-    private final ShipmentService shipmentService;
+    private final IShipmentService shipmentService;
 
-    public ShipmentController(ShipmentService shipmentService) {
+    public ShipmentController(IShipmentService shipmentService) {
         this.shipmentService = shipmentService;
     }
 

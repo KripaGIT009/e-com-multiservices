@@ -2,7 +2,7 @@ package com.example.controller;
 
 import com.example.dto.CheckoutRequest;
 import com.example.entity.Checkout;
-import com.example.service.CheckoutService;
+import com.example.service.ICheckoutService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import java.util.Optional;
 public class CheckoutController {
 
     @Autowired
-    private CheckoutService checkoutService;
+    private ICheckoutService checkoutService;
 
     @PostMapping
     public ResponseEntity<Checkout> createCheckout(@RequestBody CheckoutRequest request) {

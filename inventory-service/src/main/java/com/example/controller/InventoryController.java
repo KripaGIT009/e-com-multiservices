@@ -5,7 +5,7 @@ import com.example.dto.InventoryReservationRequest;
 import com.example.common.SagaEvent;
 import org.springframework.kafka.core.KafkaTemplate;
 import com.example.entity.InventoryItem;
-import com.example.service.InventoryService;
+import com.example.service.IInventoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +15,10 @@ import java.util.Optional;
 @RequestMapping("/inventory")
 public class InventoryController {
 
-    private final InventoryService service;
+    private final IInventoryService service;
     private final KafkaTemplate<String, SagaEvent> kafka;
 
-    public InventoryController(InventoryService service, KafkaTemplate<String, SagaEvent> kafka) {
+    public InventoryController(IInventoryService service, KafkaTemplate<String, SagaEvent> kafka) {
         this.service = service;
         this.kafka = kafka;
     }

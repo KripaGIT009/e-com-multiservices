@@ -4,7 +4,7 @@ import com.example.dto.PreferenceRequest;
 import com.example.dto.SendNotificationRequest;
 import com.example.entity.NotificationEvent;
 import com.example.entity.NotificationPreference;
-import com.example.service.NotificationService;
+import com.example.service.INotificationService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api")
 public class NotificationController {
 
-    private final NotificationService notificationService;
+    private final INotificationService notificationService;
 
-    public NotificationController(NotificationService notificationService) {
+    public NotificationController(INotificationService notificationService) {
         this.notificationService = notificationService;
     }
 
