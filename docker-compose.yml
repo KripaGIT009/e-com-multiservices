@@ -328,6 +328,93 @@ services:
       timeout: 5s
       retries: 5
 
+  admin-service:
+    image: event-sourcing-saga-multiservice-admin-service:1.0.0
+    build:
+      context: ./admin-service
+      dockerfile: Dockerfile
+    ports:
+      - "8011:8011"
+    depends_on:
+      kafka:
+        condition: service_started
+      admin_postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://admin_postgres:5432/admin_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin123
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SERVICE_URLS_ORDER: http://order-service:8080
+      SERVICE_URLS_PAYMENT: http://payment-service:8080
+      SERVICE_URLS_INVENTORY: http://inventory-service:8080
+      SERVICE_URLS_USER: http://user-service:8080
+      SERVICE_URLS_ITEM: http://item-service:8080
+      SERVICE_URLS_CART: http://cart-service:8080
+      SERVICE_URLS_CHECKOUT: http://checkout-service:8080
+      SERVICE_URLS_RETURN: http://return-service:8080
+      SERVICE_URLS_LOGISTICS: http://logistics-service:8080
+      SERVICE_URLS_NOTIFICATION: http://notification-service:8080
+
+  admin_postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: admin_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5442:5432"
+    volumes:
+      - admin_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ui-backend-service:
+    image: event-sourcing-saga-multiservice-ui-backend:1.0.0
+    build:
+      context: ./ui-backend-service
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    depends_on:
+      - admin-service
+      - order-service
+      - payment-service
+      - inventory-service
+      - user-service
+      - item-service
+      - cart-service
+      - checkout-service
+      - return-service
+      - logistics-service
+      - notification-service
+    environment:
+      ADMIN_SERVICE_URL: http://admin-service:8011
+      ORDER_SERVICE_URL: http://order-service:8080
+      PAYMENT_SERVICE_URL: http://payment-service:8080
+      INVENTORY_SERVICE_URL: http://inventory-service:8080
+      USER_SERVICE_URL: http://user-service:8080
+      ITEM_SERVICE_URL: http://item-service:8080
+      CART_SERVICE_URL: http://cart-service:8080
+      CHECKOUT_SERVICE_URL: http://checkout-service:8080
+      RETURN_SERVICE_URL: http://return-service:8080
+      LOGISTICS_SERVICE_URL: http://logistics-service:8080
+      NOTIFICATION_SERVICE_URL: http://notification-service:8080
+      JWT_SECRET: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+
+  ui-frontend:
+    image: event-sourcing-saga-multiservice-ui-frontend:1.0.0
+    build:
+      context: ./ui-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - ui-backend-service
+
 volumes:
   order_postgres_data:
     driver: local
@@ -348,4 +435,6 @@ volumes:
   logistics_postgres_data:
     driver: local
   notification_postgres_data:
+    driver: local
+  admin_postgres_data:
     driver: local

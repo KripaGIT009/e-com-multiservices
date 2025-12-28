@@ -1,0 +1,68 @@
+server:
+  port: 8011
+
+spring:
+  application:
+    name: admin-service
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5442/admin_db
+    username: admin
+    password: admin123
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: admin-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+# Service URLs
+service:
+  urls:
+    order: http://order-service:8080
+    payment: http://payment-service:8080
+    inventory: http://inventory-service:8080
+    user: http://user-service:8080
+    item: http://item-service:8080
+    cart: http://cart-service:8080
+    checkout: http://checkout-service:8080
+    return: http://return-service:8080
+    logistics: http://logistics-service:8080
+    notification: http://notification-service:8080
+
+# JWT Configuration
+jwt:
+  secret: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+  expiration: 86400000 # 24 hours
+
+# Management
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.example: DEBUG
+    org.springframework.web: INFO

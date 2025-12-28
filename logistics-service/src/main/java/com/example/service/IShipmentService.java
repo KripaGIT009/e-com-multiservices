@@ -15,7 +15,7 @@ public interface IShipmentService {
     Shipment createFromOrderEvent(SagaEvent event);
     Optional<Shipment> getShipment(Long id);
     Optional<Shipment> getShipmentByOrder(String orderId);
-    List<Shipment> getShipmentsByShipmentNumber(String shipmentNumber);
+    Optional<Shipment> getShipmentByShipmentNumber(String shipmentNumber);
     Shipment updateStatus(Long id, UpdateShipmentStatusRequest request);
     Shipment updateEstimatedDelivery(Long id, LocalDateTime estimatedDelivery);
     List<ShipmentEvent> history(Long shipmentId);
