@@ -90,6 +90,11 @@ public class ShipmentServiceImpl implements IShipmentService {
         return shipments.findByOrderId(orderId);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Shipment> getShipmentByShipmentNumber(String shipmentNumber) {
+        return shipments.findByShipmentNumber(shipmentNumber);
+    }
+
     public Shipment updateStatus(Long id, UpdateShipmentStatusRequest request) {
         Shipment shipment = shipments.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Shipment not found: " + id));
@@ -105,6 +110,16 @@ public class ShipmentServiceImpl implements IShipmentService {
         Shipment saved = shipments.save(shipment);
         recordEvent(saved.getId(), "ShipmentStatusUpdated", "Status set to " + saved.getStatus());
         publishShipmentEvent(saved, "ShipmentStatusUpdated");
+        return saved;
+    }
+
+    public Shipment updateEstimatedDelivery(Long id, LocalDateTime estimatedDelivery) {
+        Shipment shipment = shipments.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("Shipment not found: " + id));
+        shipment.setEstimatedDelivery(estimatedDelivery);
+        Shipment saved = shipments.save(shipment);
+        recordEvent(saved.getId(), "ShipmentEtaUpdated", "ETA set to " + estimatedDelivery);
+        publishShipmentEvent(saved, "ShipmentEtaUpdated");
         return saved;
     }
 
