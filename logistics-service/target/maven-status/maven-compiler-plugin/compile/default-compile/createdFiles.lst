@@ -1,9 +1,11 @@
 com\example\ShipmentListener.class
 com\example\repository\ShipmentEventRepository.class
 com\example\entity\ShipmentEvent.class
+com\example\service\ShipmentServiceImpl.class
 com\example\dto\UpdateShipmentStatusRequest.class
 com\example\common\SagaEvent.class
 com\example\domain\ShipmentStatus.class
+com\example\LogisticsServiceApplication.class
 com\example\repository\ShipmentRepository.class
 com\example\controller\ShipmentController.class
 com\example\config\KafkaConfig.class
