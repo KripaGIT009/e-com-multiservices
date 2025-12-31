@@ -20,5 +20,3 @@ COPY --from=angular-build /app/dist ./dist
 EXPOSE 4202
 
 CMD ["node", "server.js"]
-
-CMD ["node", "server.js"]

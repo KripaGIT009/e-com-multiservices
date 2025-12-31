@@ -36,20 +36,20 @@ spring:
 # Service URLs
 service:
   urls:
-    order: http://localhost:8001
-    payment: http://localhost:8002
-    inventory: http://localhost:8003
-    user: http://localhost:8004
-    item: http://localhost:8005
-    cart: http://localhost:8006
-    checkout: http://localhost:8007
-    return: http://localhost:8008
-    logistics: http://localhost:8009
-    notification: http://localhost:8010
+    order: http://order-service:8080
+    payment: http://payment-service:8080
+    inventory: http://inventory-service:8080
+    user: http://user-service:8080
+    item: http://item-service:8080
+    cart: http://cart-service:8080
+    checkout: http://checkout-service:8080
+    return: http://return-service:8080
+    logistics: http://logistics-service:8080
+    notification: http://notification-service:8080
 
 # JWT Configuration
 jwt:
-  secret: adminSecretKeyForJWTTokenGenerationAndValidation2025
+  secret: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
   expiration: 86400000 # 24 hours
 
 # Management

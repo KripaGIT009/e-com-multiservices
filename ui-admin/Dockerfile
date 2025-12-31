@@ -17,4 +17,4 @@ COPY routes ./routes
 COPY .env* ./
 COPY --from=angular-build /app/dist/ui-admin/browser ./dist/ui-admin/browser
 EXPOSE 3000
-CMD ["npm", "start"]
+CMD ["node", "server.js"]

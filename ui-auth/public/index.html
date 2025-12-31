@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - E-Commerce Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .login-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        input[type="tel"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-register {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-register:hover {
+            background: #e0e0e0;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .success-message {
+            color: #27ae60;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .form-group.error input {
+            border-color: #e74c3c;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .guest-login {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .guest-login a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .guest-login a:hover {
+            text-decoration: underline;
+        }
+
+        .toggle-form {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+
+        .toggle-form a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toggle-form a:hover {
+            text-decoration: underline;
+        }
+
+        .redirect-message {
+            text-align: center;
+            color: #667eea;
+            margin: 20px 0;
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+
+            .login-header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>🛍️ E-Commerce</h1>
+            <p>Centralized Login</p>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div class="form-section active" id="loginForm">
+            <h2 style="font-size: 20px; color: #333; margin-bottom: 25px;">Sign In</h2>
+            
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label for="loginUsername">Email or Username</label>
+                    <input type="text" id="loginUsername" name="username" placeholder="Enter your email or username" required>
+                    <div class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
+                    <div class="error-message"></div>
+                </div>
+
+                <button type="submit" class="btn-login" style="width: 100%; margin: 25px 0;">Sign In</button>
+
+                <div class="error-message" id="loginErrorMessage" style="display: none; text-align: center; color: #e74c3c;"></div>
+            </form>
+
+            <div class="toggle-form">
+                Don't have an account? <a onclick="toggleForms()">Create one</a>
+            </div>
+
+            <div class="guest-login">
+                <p style="margin-bottom: 10px;">Just browsing?</p>
+                <a href="#" onclick="guestLogin()">Continue as Guest</a>
+            </div>
+        </div>
+
+        <!-- REGISTER FORM -->
+        <div class="form-section" id="registerForm">
+            <h2 style="font-size: 20px; color: #333; margin-bottom: 25px;">Create Account</h2>
+            
+            <form id="registerFormElement">
+                <div class="form-group">
+                    <label for="regUsername">Username</label>
+                    <input type="text" id="regUsername" name="username" placeholder="Choose a username" required>
+                    <div class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regEmail">Email</label>
+                    <input type="email" id="regEmail" name="email" placeholder="Enter your email" required>
+                    <div class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regFirstName">First Name</label>
+                    <input type="text" id="regFirstName" name="firstName" placeholder="Your first name" required>
+                    <div class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="regLastName">Last Name</label>
+                    <input type="text" id="regLastName" name="lastName" placeholder="Your last name" required>
+                    <div class="error-message"></div>
+                </div>
+
+                <button type="submit" class="btn-login" style="width: 100%; margin: 25px 0;">Create Account</button>
+
+                <div class="error-message" id="registerErrorMessage" style="display: none; text-align: center; color: #e74c3c;"></div>
+            </form>
+
+            <div class="toggle-form">
+                Already have an account? <a onclick="toggleForms()">Sign in</a>
+            </div>
+        </div>
+
+        <!-- LOADING STATE -->
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Processing...</p>
+        </div>
+
+        <!-- REDIRECT MESSAGE -->
+        <div class="redirect-message" id="redirectMessage">
+            <p>Redirecting you to your dashboard...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = window.location.origin;
+        const AUTH_API = `${API_BASE_URL}/api/auth`;
+
+        function toggleForms() {
+            document.getElementById('loginForm').classList.toggle('active');
+            document.getElementById('registerForm').classList.toggle('active');
+            clearErrors();
+        }
+
+        function clearErrors() {
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.style.display = 'none';
+                el.textContent = '';
+            });
+            document.querySelectorAll('input').forEach(el => {
+                el.parentElement.classList.remove('error');
+            });
+        }
+
+        function showError(message, formType = 'login') {
+            const errorEl = document.getElementById(`${formType}ErrorMessage`);
+            if (errorEl) {
+                errorEl.textContent = message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function showLoading(show = true) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        function redirect(url) {
+            document.getElementById('redirectMessage').style.display = 'block';
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1000);
+        }
+
+        // Login form submission
+        document.getElementById('loginFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+            showLoading(true);
+
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${AUTH_API}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+
+                // Store token
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect based on role
+                if (data.redirectUrl) {
+                    redirect(data.redirectUrl);
+                } else {
+                    redirect('/');
+                }
+            } catch (error) {
+                showLoading(false);
+                showError(error.message, 'login');
+            }
+        });
+
+        // Register form submission
+        document.getElementById('registerFormElement').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearErrors();
+            showLoading(true);
+
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const firstName = document.getElementById('regFirstName').value;
+            const lastName = document.getElementById('regLastName').value;
+
+            try {
+                const response = await fetch(`${AUTH_API}/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, firstName, lastName, role: 'CUSTOMER' })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+
+                // Store token
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect based on role
+                if (data.redirectUrl) {
+                    redirect(data.redirectUrl);
+                } else {
+                    redirect('/');
+                }
+            } catch (error) {
+                showLoading(false);
+                showError(error.message, 'register');
+            }
+        });
+
+        function guestLogin() {
+            const storefront = 'http://localhost:4201'; // UI_STOREFRONT_URL
+            window.location.href = storefront;
+        }
+
+        // Check if user is already logged in
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('token');
+            if (token) {
+                // Show logout option instead of auto-redirect
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const loginForm = document.getElementById('loginForm');
+                loginForm.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <h2 style="color: #667eea; margin-bottom: 20px;">Already Logged In</h2>
+                        <p style="color: #666; margin-bottom: 10px;">You are logged in as:</p>
+                        <p style="font-weight: bold; color: #333; margin-bottom: 20px;">${user.email || user.username}</p>
+                        <p style="color: #666; margin-bottom: 20px;">Role: <strong>${user.role}</strong></p>
+                        <button onclick="continueToDashboard()" class="btn-login" style="width: 100%; margin-bottom: 10px;">
+                            Continue to Dashboard
+                        </button>
+                        <button onclick="logout()" class="btn-register" style="width: 100%;">
+                            Logout & Login as Different User
+                        </button>
+                    </div>
+                `;
+            }
+        });
+
+        function continueToDashboard() {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            const role = user.role;
+            fetch(`${AUTH_API}/redirect-url/${role}`)
+                .then(r => r.json())
+                .then(d => redirect(d.redirectUrl))
+                .catch(() => logout());
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

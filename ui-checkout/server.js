@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -16,8 +17,13 @@ const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || 'http://localhost:8081';
 app.use(cors());
 app.use(bodyParser.json());
 
-// Serve static files from Angular app
-app.use(express.static(path.join(__dirname, 'dist/ui-checkout/browser')));
+// Serve static files from Angular app (support both browser and browser/browser)
+const checkoutDistCandidates = [
+  path.join(__dirname, 'dist/ui-checkout/browser'),
+  path.join(__dirname, 'dist/ui-checkout/browser/browser')
+];
+const checkoutStaticRoot = checkoutDistCandidates.find(p => fs.existsSync(path.join(p, 'index.html'))) || checkoutDistCandidates[0];
+app.use(express.static(checkoutStaticRoot));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -120,7 +126,7 @@ app.get('/api/orders/:orderId', async (req, res) => {
 
 // Serve Angular app for all other routes (must be last)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/ui-checkout/browser/index.html'));
+  res.sendFile(path.join(checkoutStaticRoot, 'index.html'));
 });
 
 // Start server

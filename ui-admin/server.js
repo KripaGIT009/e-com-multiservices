@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const adminRoutes = require('./routes/admin');
@@ -26,8 +27,13 @@ app.use(morgan('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files from Angular app
-app.use(express.static(path.join(__dirname, 'dist/ui-admin/browser')));
+// Serve static files from Angular app (support both browser and browser/browser)
+const adminDistCandidates = [
+    path.join(__dirname, 'dist/ui-admin/browser'),
+    path.join(__dirname, 'dist/ui-admin/browser/browser')
+];
+const adminStaticRoot = adminDistCandidates.find(p => fs.existsSync(path.join(p, 'index.html'))) || adminDistCandidates[0];
+app.use(express.static(adminStaticRoot));
 
 // Routes
 app.use('/api/admin', adminRoutes);
@@ -45,10 +51,6 @@ app.get('/health', (req, res) => {
     res.json({ status: 'UP', service: 'ui-admin' });
 });
 
-// Catch-all route for Angular routing
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'dist/ui-admin/browser', 'index.html'));
-});
 
 // Error handling
 app.use((err, req, res, next) => {
@@ -56,9 +58,9 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!', message: err.message });
 });
 
-// Serve Angular app for all other routes (must be last)
+// Catch-all route for Angular routing (must be last)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../ui-frontend/dist/ui-frontend/browser/index.html'));
+    res.sendFile(path.join(adminStaticRoot, 'index.html'));
 });
 
 app.listen(PORT, () => {
