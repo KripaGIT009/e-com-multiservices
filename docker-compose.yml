@@ -372,48 +372,110 @@ services:
       timeout: 5s
       retries: 5
 
-  ui-backend-service:
-    image: event-sourcing-saga-multiservice-ui-backend:1.0.0
+  ui-storefront:
+    image: event-sourcing-saga-multiservice-ui-storefront:1.1.0
     build:
-      context: ./ui-backend-service
+      context: ./ui-storefront
+      dockerfile: Dockerfile
+    ports:
+      - "4201:4201"
+    depends_on:
+      - item-service
+      - cart-service
+      - inventory-service
+    environment:
+      PORT: 4201
+      ITEM_SERVICE_URL: http://item-service:8080
+      CART_SERVICE_URL: http://cart-service:8080
+      INVENTORY_SERVICE_URL: http://inventory-service:8084
+
+  ui-admin:
+    image: event-sourcing-saga-multiservice-ui-admin:1.1.0
+    build:
+      context: ./ui-admin
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     depends_on:
-      - admin-service
+      - user-service
+      - item-service
       - order-service
       - payment-service
       - inventory-service
-      - user-service
-      - item-service
       - cart-service
       - checkout-service
       - return-service
       - logistics-service
       - notification-service
     environment:
+      PORT: 3000
       ADMIN_SERVICE_URL: http://admin-service:8011
-      ORDER_SERVICE_URL: http://order-service:8080
-      PAYMENT_SERVICE_URL: http://payment-service:8080
-      INVENTORY_SERVICE_URL: http://inventory-service:8080
       USER_SERVICE_URL: http://user-service:8080
-      ITEM_SERVICE_URL: http://item-service:8080
+      ITEM_SERVICE_URL: http://item-service:8082
+      ORDER_SERVICE_URL: http://order-service:8081
+      PAYMENT_SERVICE_URL: http://payment-service:8083
+      INVENTORY_SERVICE_URL: http://inventory-service:8084
       CART_SERVICE_URL: http://cart-service:8080
-      CHECKOUT_SERVICE_URL: http://checkout-service:8080
-      RETURN_SERVICE_URL: http://return-service:8080
-      LOGISTICS_SERVICE_URL: http://logistics-service:8080
-      NOTIFICATION_SERVICE_URL: http://notification-service:8080
+      CHECKOUT_SERVICE_URL: http://checkout-service:8086
+      RETURN_SERVICE_URL: http://return-service:8087
+      LOGISTICS_SERVICE_URL: http://logistics-service:8088
+      NOTIFICATION_SERVICE_URL: http://notification-service:8089
       JWT_SECRET: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
 
-  ui-frontend:
-    image: event-sourcing-saga-multiservice-ui-frontend:1.0.0
+  ui-checkout:
+    image: event-sourcing-saga-multiservice-ui-checkout:1.1.0
     build:
-      context: ./ui-frontend
+      context: ./ui-checkout
       dockerfile: Dockerfile
     ports:
-      - "4200:80"
+      - "4202:4202"
     depends_on:
-      - ui-backend-service
+      - checkout-service
+      - payment-service
+      - order-service
+    environment:
+      PORT: 4202
+      CHECKOUT_SERVICE_URL: http://checkout-service:8086
+      PAYMENT_SERVICE_URL: http://payment-service:8083
+      ORDER_SERVICE_URL: http://order-service:8081
+
+  ui-account:
+    image: event-sourcing-saga-multiservice-ui-account:1.1.0
+    build:
+      context: ./ui-account
+      dockerfile: Dockerfile
+    ports:
+      - "4203:4203"
+    depends_on:
+      - user-service
+      - order-service
+      - return-service
+      - ui-auth
+    environment:
+      PORT: 4203
+      USER_SERVICE_URL: http://user-service:8080
+      ORDER_SERVICE_URL: http://order-service:8081
+      RETURN_SERVICE_URL: http://return-service:8087
+      AUTH_SERVICE_URL: http://ui-auth:4200
+      JWT_SECRET: userAccountSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+
+  ui-auth:
+    image: event-sourcing-saga-multiservice-ui-auth:1.1.0
+    build:
+      context: ./ui-auth
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    depends_on:
+      - user-service
+    environment:
+      PORT: 4200
+      USER_SERVICE_URL: http://user-service:8080
+      JWT_SECRET: centralizedAuthSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+      UI_ADMIN_URL: http://localhost:3000
+      UI_ACCOUNT_URL: http://localhost:4203
+      UI_CHECKOUT_URL: http://localhost:4202
+      UI_STOREFRONT_URL: http://localhost:4201
 
 volumes:
   order_postgres_data:

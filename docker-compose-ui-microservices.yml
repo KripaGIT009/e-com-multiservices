@@ -138,31 +138,91 @@ services:
     ports:
       - "3002:3002"
     environment:
-      - PORT=3002
-      - CHECKOUT_SERVICE_URL=http://checkout-service:8086
-      - PAYMENT_SERVICE_URL=http://payment-service:8083
-      - ORDER_SERVICE_URL=http://order-service:8081
-    depends_on:
-      - checkout-service
-      - payment-service
-      - order-service
-    networks:
-      - microservices-net
+    # ============ UI MICROSERVICES (Angular + Express BFF) ============
 
-  account-bff:
-    build: ./account-bff
-    container_name: account-bff
-    ports:
-      - "3003:3003"
-    environment:
-      - PORT=3003
-      - JWT_SECRET=your-super-secret-key-change-in-production
-      - USER_SERVICE_URL=http://user-service:8080
-      - ORDER_SERVICE_URL=http://order-service:8081
-      - RETURN_SERVICE_URL=http://return-service:8087
-    depends_on:
-      - user-service
-      - order-service
+    ui-storefront:
+      build: ./ui-storefront
+      container_name: ui-storefront
+      ports:
+        - "4201:4201"
+      environment:
+        PORT: 4201
+        ITEM_SERVICE_URL: http://item-service:8082
+        CART_SERVICE_URL: http://cart-service:8085
+        INVENTORY_SERVICE_URL: http://inventory-service:8084
+      depends_on:
+        - item-service
+        - cart-service
+        - inventory-service
+      networks:
+        - microservices-net
+
+    ui-admin:
+      build: ./ui-admin
+      container_name: ui-admin
+      ports:
+        - "3000:3000"
+      environment:
+        PORT: 3000
+        USER_SERVICE_URL: http://user-service:8080
+        ITEM_SERVICE_URL: http://item-service:8082
+        ORDER_SERVICE_URL: http://order-service:8081
+        PAYMENT_SERVICE_URL: http://payment-service:8083
+        INVENTORY_SERVICE_URL: http://inventory-service:8084
+        CART_SERVICE_URL: http://cart-service:8085
+        CHECKOUT_SERVICE_URL: http://checkout-service:8086
+        RETURN_SERVICE_URL: http://return-service:8087
+        LOGISTICS_SERVICE_URL: http://logistics-service:8088
+        NOTIFICATION_SERVICE_URL: http://notification-service:8089
+        JWT_SECRET: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+      depends_on:
+        - user-service
+        - item-service
+        - order-service
+        - payment-service
+        - inventory-service
+        - cart-service
+        - checkout-service
+        - return-service
+        - logistics-service
+        - notification-service
+      networks:
+        - microservices-net
+
+    ui-checkout:
+      build: ./ui-checkout
+      container_name: ui-checkout
+      ports:
+        - "4202:4202"
+      environment:
+        PORT: 4202
+        CHECKOUT_SERVICE_URL: http://checkout-service:8086
+        PAYMENT_SERVICE_URL: http://payment-service:8083
+        ORDER_SERVICE_URL: http://order-service:8081
+      depends_on:
+        - checkout-service
+        - payment-service
+        - order-service
+      networks:
+        - microservices-net
+
+    ui-account:
+      build: ./ui-account
+      container_name: ui-account
+      ports:
+        - "4203:4203"
+      environment:
+        PORT: 4203
+        USER_SERVICE_URL: http://user-service:8080
+        ORDER_SERVICE_URL: http://order-service:8081
+        RETURN_SERVICE_URL: http://return-service:8087
+        JWT_SECRET: userAccountSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+      depends_on:
+        - user-service
+        - order-service
+        - return-service
+      networks:
+        - microservices-net
       - return-service
     networks:
       - microservices-net

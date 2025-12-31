@@ -27,6 +27,9 @@ public class Item {
     @Column(nullable = false)
     private Integer quantity;
 
+    @Column(nullable = true)
+    private String itemType;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -41,6 +44,15 @@ public class Item {
         this.description = description;
         this.price = price;
         this.quantity = quantity;
+    }
+
+    public Item(String sku, String name, String description, BigDecimal price, Integer quantity, String itemType) {
+        this.sku = sku;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+        this.itemType = itemType;
     }
 
     @PrePersist
@@ -71,6 +83,9 @@ public class Item {
 
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+
+    public String getItemType() { return itemType; }
+    public void setItemType(String itemType) { this.itemType = itemType; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

@@ -13,4 +13,5 @@ public interface IUserService {
     List<User> getAllUsers();
     User updateUser(Long id, User user);
     boolean deleteUser(Long id);
+    boolean authenticateUser(String email, String password);
 }

@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -9,6 +9,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { UserService } from '../../services/user.service';
 import { UserDialogComponent } from '../user-dialog/user-dialog.component';
 
@@ -25,23 +26,28 @@ import { UserDialogComponent } from '../user-dialog/user-dialog.component';
     MatDialogModule,
     ReactiveFormsModule,
     MatFormFieldModule,
-    MatInputModule
+    MatInputModule,
+    MatSelectModule
   ],
   template: `
     <div class="container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>User Management</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-          <button mat-raised-button color="primary" class="mb-3" (click)="openAddDialog()">
-            <mat-icon>add</mat-icon> Add New User
-          </button>
+      <div class="page-header">
+        <h1><mat-icon>people</mat-icon> User Management</h1>
+        <p class="subtitle">Manage user accounts and permissions</p>
+      </div>
 
-          <div *ngIf="showInlineForm" class="mb-3">
-            <mat-card class="mat-elevation-z2">
-              <mat-card-content>
-                <form [formGroup]="inlineForm" (ngSubmit)="saveInline()">
+      <button mat-raised-button color="primary" class="add-button" (click)="openAddDialog()">
+        <mat-icon>add_circle</mat-icon> Add New User
+      </button>
+
+      <div *ngIf="showInlineForm" class="form-container">
+        <mat-card class="add-form-card">
+          <div class="form-header">
+            <mat-icon>person_add</mat-icon>
+            <h2>Create New User</h2>
+          </div>
+          <mat-card-content>
+            <form [formGroup]="inlineForm" (ngSubmit)="saveInline()">
                   <div class="row">
                     <div class="col">
                       <mat-form-field class="full-width">
@@ -59,6 +65,24 @@ import { UserDialogComponent } from '../user-dialog/user-dialog.component';
                   <div class="row">
                     <div class="col">
                       <mat-form-field class="full-width">
+                        <mat-label>Password</mat-label>
+                        <input matInput type="password" formControlName="password" required>
+                      </mat-form-field>
+                    </div>
+                    <div class="col">
+                      <mat-form-field class="full-width">
+                        <mat-label>Role</mat-label>
+                        <mat-select formControlName="role" required>
+                          <mat-option value="ADMIN">Admin</mat-option>
+                          <mat-option value="CUSTOMER">Customer</mat-option>
+                          <mat-option value="GUEST">Guest</mat-option>
+                        </mat-select>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="col">
+                      <mat-form-field class="full-width">
                         <mat-label>First Name</mat-label>
                         <input matInput formControlName="firstName">
                       </mat-form-field>
@@ -70,16 +94,21 @@ import { UserDialogComponent } from '../user-dialog/user-dialog.component';
                       </mat-form-field>
                     </div>
                   </div>
-                  <div class="mt-2" style="text-align:right;">
-                    <button mat-button type="button" (click)="cancelInline()">Cancel</button>
-                    <button mat-raised-button color="primary" type="submit" [disabled]="!inlineForm.valid">Save</button>
+                  <div class="form-actions">
+                    <button mat-stroked-button type="button" (click)="cancelInline()" class="cancel-btn">
+                      <mat-icon>close</mat-icon> Cancel
+                    </button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="!inlineForm.valid" class="save-btn">
+                      <mat-icon>save</mat-icon> Save User
+                    </button>
                   </div>
                 </form>
               </mat-card-content>
             </mat-card>
           </div>
-          
-          <table mat-table [dataSource]="users" class="mat-elevation-z8 full-width">
+
+          <mat-card class="table-card">
+            <table mat-table [dataSource]="users" class="mat-elevation-z2 full-width">
             <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef>ID</th>
               <td mat-cell *matCellDef="let user">{{user.id}}</td>
@@ -115,13 +144,210 @@ import { UserDialogComponent } from '../user-dialog/user-dialog.component';
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
-        </mat-card-content>
-      </mat-card>
+        </mat-card>
     </div>
   `,
   styles: [`
+    .container {
+      padding: 24px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: calc(100vh - 64px);
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 32px;
+      animation: fadeIn 0.6s ease-in;
+    }
+
+    .page-header h1 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      font-size: 2rem;
+      font-weight: 600;
+      color: #2c3e50;
+      margin: 0 0 8px 0;
+    }
+
+    .page-header h1 mat-icon {
+      font-size: 2rem;
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: #7f8c8d;
+      margin: 0;
+    }
+
+    .add-button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px !important;
+      font-size: 1rem !important;
+      font-weight: 500 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3) !important;
+      transition: all 0.3s ease !important;
+      margin-bottom: 24px;
+    }
+
+    .add-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(63, 81, 181, 0.4) !important;
+    }
+
+    .add-button mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .form-container {
+      margin-bottom: 24px;
+      animation: slideDown 0.4s ease-out;
+    }
+
+    .add-form-card {
+      background: white;
+      border-radius: 12px !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+      overflow: hidden;
+    }
+
+    .form-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .form-header mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+    }
+
+    .form-header h2 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 500;
+    }
+
+    .add-form-card mat-card-content {
+      padding: 24px !important;
+    }
+
+    .table-card {
+      background: white;
+      border-radius: 12px !important;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+    }
+
     table {
       width: 100%;
+      background: white;
+    }
+
+    .full-width {
+      width: 100%;
+    }
+
+    .row {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .col {
+      flex: 1;
+    }
+
+    mat-form-field {
+      width: 100%;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .cancel-btn {
+      padding: 8px 20px !important;
+      border-radius: 8px !important;
+    }
+
+    .save-btn {
+      padding: 8px 20px !important;
+      border-radius: 8px !important;
+      box-shadow: 0 2px 8px rgba(63, 81, 181, 0.3) !important;
+    }
+
+    .save-btn:hover:not([disabled]) {
+      box-shadow: 0 4px 12px rgba(63, 81, 181, 0.4) !important;
+    }
+
+    .save-btn mat-icon,
+    .cancel-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      margin-right: 4px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+        max-height: 0;
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 1000px;
+      }
+    }
+
+    ::ng-deep .mat-mdc-form-field {
+      margin-bottom: 8px;
+    }
+
+    ::ng-deep .mat-mdc-text-field-wrapper {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    mat-header-cell {
+      font-weight: 600 !important;
+      color: #2c3e50 !important;
+      background: #f8f9fa;
+    }
+
+    mat-row:hover {
+      background-color: #f8f9fa;
+      transition: background-color 0.2s ease;
     }
   `]
 })
@@ -130,16 +356,21 @@ export class UserListComponent implements OnInit {
   displayedColumns: string[] = ['id', 'username', 'fullName', 'email', 'actions'];
   showInlineForm = false;
   inlineForm: FormGroup;
+  private isBrowser: boolean;
 
   constructor(
     private userService: UserService,
     private snackBar: MatSnackBar,
     private dialog: MatDialog,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    @Inject(PLATFORM_ID) platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(platformId);
     this.inlineForm = this.fb.group({
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
+      password: ['', Validators.required],
+      role: ['CUSTOMER', Validators.required],
       firstName: [''],
       lastName: ['']
     });
@@ -168,42 +399,9 @@ export class UserListComponent implements OnInit {
   }
 
   openAddDialog(): void {
-    console.log('Opening add user dialog...');
-    alert('Opening Add User dialog');
-    try {
-      const dialogRef = this.dialog.open(UserDialogComponent, {
-        width: '500px',
-        data: { user: null }
-      });
-      console.log('Dialog opened successfully');
-      this.snackBar.open('Dialog opened', 'Close', { duration: 2000 });
-
-      dialogRef.afterClosed().subscribe(result => {
-        console.log('Dialog closed with result:', result);
-        if (result) {
-          console.log('Creating user with data:', result);
-          this.userService.createUser(result).subscribe({
-            next: (response) => {
-              console.log('User created successfully:', response);
-              this.snackBar.open('User created successfully', 'Close', { duration: 3000 });
-              this.loadUsers();
-            },
-            error: (error) => {
-              console.error('Error creating user:', error);
-              this.snackBar.open(`Error creating user: ${error.message || 'Unknown error'}`, 'Close', { duration: 5000 });
-            }
-          });
-        } else {
-          // Fallback to inline form
-          this.showInlineForm = true;
-          this.snackBar.open('Using inline form fallback', 'Close', { duration: 2000 });
-        }
-      });
-    } catch (error) {
-      console.error('Error opening dialog:', error);
-      this.snackBar.open('Error opening dialog', 'Close', { duration: 3000 });
-      this.showInlineForm = true;
-    }
+    // Show inline form
+    this.showInlineForm = true;
+    this.inlineForm.reset();
   }
 
   saveInline(): void {
@@ -229,6 +427,10 @@ export class UserListComponent implements OnInit {
   }
 
   openEditDialog(user: any): void {
+    if (!this.isBrowser) {
+      return;
+    }
+    
     const dialogRef = this.dialog.open(UserDialogComponent, {
       width: '500px',
       data: { user: user }
@@ -263,3 +465,4 @@ export class UserListComponent implements OnInit {
     }
   }
 }
+
