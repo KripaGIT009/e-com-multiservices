@@ -8,6 +8,7 @@ public class ItemRequest {
     private String description;
     private BigDecimal price;
     private Integer quantity;
+    private String itemType;
 
     public ItemRequest() {}
 
@@ -17,6 +18,15 @@ public class ItemRequest {
         this.description = description;
         this.price = price;
         this.quantity = quantity;
+    }
+
+    public ItemRequest(String sku, String name, String description, BigDecimal price, Integer quantity, String itemType) {
+        this.sku = sku;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+        this.itemType = itemType;
     }
 
     public String getSku() { return sku; }
@@ -33,4 +43,7 @@ public class ItemRequest {
 
     public Integer getQuantity() { return quantity; }
     public void setQuantity(Integer quantity) { this.quantity = quantity; }
+
+    public String getItemType() { return itemType; }
+    public void setItemType(String itemType) { this.itemType = itemType; }
 }

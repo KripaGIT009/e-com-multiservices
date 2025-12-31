@@ -6,7 +6,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatRippleModule } from '@angular/material/core';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { ItemService } from '../../services/item.service';
+import { CartService } from '../../services/cart.service';
+import { AuthComponent } from '../auth/auth.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -18,15 +22,16 @@ import { ItemService } from '../../services/item.service';
     MatButtonModule,
     MatIconModule,
     MatGridListModule,
-    MatRippleModule
+    MatRippleModule,
+    MatSnackBarModule
   ],
   template: `
     <div class="storefront">
       <!-- Hero Section -->
       <section class="hero">
         <div class="hero-content">
-          <h1>Welcome to ShopHub</h1>
-          <p>Discover amazing products at unbeatable prices</p>
+          <h1>Welcome to My Indian Store</h1>
+          <p>Discover amazing Indian products at unbeatable prices</p>
           <button mat-raised-button color="accent" class="hero-btn" routerLink="/products">
             <mat-icon>shopping_bag</mat-icon> Shop Now
           </button>
@@ -66,10 +71,11 @@ import { ItemService } from '../../services/item.service';
             <mat-card-content>
               <h3>{{ item.name }}</h3>
               <p class="sku">SKU: {{ item.sku }}</p>
+              <p class="type" *ngIf="item.itemType">Type: <strong>{{ item.itemType }}</strong></p>
               <p class="description">{{ item.description || 'Premium quality product' }}</p>
               <div class="product-footer">
                 <span class="price">₹{{ item.price | number: '1.2-2' }}</span>
-                <button mat-icon-button color="primary" title="Add to cart">
+                <button mat-icon-button color="primary" title="Add to cart" (click)="addToCart(item)">
                   <mat-icon>add_shopping_cart</mat-icon>
                 </button>
               </div>
@@ -308,6 +314,17 @@ import { ItemService } from '../../services/item.service';
       margin: 0 0 8px 0;
     }
 
+    .type {
+      font-size: 0.85rem;
+      color: #667eea;
+      margin: 0 0 8px 0;
+      font-weight: 500;
+      padding: 4px 8px;
+      background: rgba(102, 126, 234, 0.1);
+      border-left: 3px solid #667eea;
+      border-radius: 2px;
+    }
+
     .description {
       font-size: 0.9rem;
       color: #7f8c8d;
@@ -433,7 +450,12 @@ export class DashboardComponent implements OnInit {
     }
   ];
 
-  constructor(private itemService: ItemService) {}
+  constructor(
+    private itemService: ItemService,
+    private cartService: CartService,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
+  ) {}
 
   ngOnInit(): void {
     this.loadFeaturedItems();
@@ -483,5 +505,116 @@ export class DashboardComponent implements OnInit {
         ];
       }
     });
+  }
+
+  addToCart(item: any): void {
+    const userId = localStorage.getItem('userId') || 'guest-user';
+    
+    // Directly add to localStorage for guest users (don't wait for API)
+    if (userId === 'guest-user') {
+      const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+      const existingItem = guestCart.find((cartItem: any) => cartItem.itemId === item.id);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        guestCart.push({ 
+          itemId: item.id, 
+          quantity: 1, 
+          name: item.name,
+          price: item.price,
+          addedAt: new Date().toISOString() 
+        });
+      }
+      localStorage.setItem('guestCart', JSON.stringify(guestCart));
+      
+      // Trigger custom event to update cart count
+      window.dispatchEvent(new CustomEvent('cartUpdated'));
+      
+      // Show notification
+      const snackBarRef = this.snackBar.open(
+        `🎉 ${item.name} added to cart! Please sign in to checkout.`,
+        'Sign In',
+        {
+          duration: 6000,
+          horizontalPosition: 'center',
+          verticalPosition: 'top',
+          panelClass: ['cart-snackbar']
+        }
+      );
+      
+      snackBarRef.onAction().subscribe(() => {
+        this.openLoginDialog();
+      });
+    } else {
+      // For logged-in users, call the API
+      this.cartService.addToCart(userId, item.id, 1).subscribe({
+        next: () => {
+          // Update localStorage for logged-in users too
+          const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+          const existingItem = cart.find((cartItem: any) => cartItem.itemId === item.id);
+          if (existingItem) {
+            existingItem.quantity += 1;
+          } else {
+            cart.push({ 
+              itemId: item.id, 
+              quantity: 1, 
+              name: item.name,
+              price: item.price,
+              addedAt: new Date().toISOString() 
+            });
+          }
+          localStorage.setItem('cart', JSON.stringify(cart));
+          window.dispatchEvent(new CustomEvent('cartUpdated'));
+          
+          this.snackBar.open(`${item.name} added to cart!`, 'Close', {
+            duration: 3000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top'
+          });
+        },
+        error: (err) => {
+          console.error('Failed to add to cart:', err);
+          this.snackBar.open('Failed to add item to cart. Please try again.', 'Close', {
+            duration: 3000,
+            horizontalPosition: 'end',
+            verticalPosition: 'top'
+          });
+        }
+      });
+    }
+  }
+  
+  openLoginDialog(): void {
+    const dialogRef = this.dialog.open(AuthComponent, {
+      width: '400px',
+      disableClose: false
+    });
+    
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.success) {
+        // User logged in successfully, migrate guest cart
+        this.migrateGuestCart(result.userId);
+      }
+    });
+  }
+  
+  migrateGuestCart(userId: string): void {
+    const guestCart = JSON.parse(localStorage.getItem('guestCart') || '[]');
+    
+    if (guestCart.length > 0) {
+      // Add all guest cart items to user's cart
+      guestCart.forEach((cartItem: any) => {
+        this.cartService.addToCart(userId, cartItem.itemId, cartItem.quantity).subscribe();
+      });
+      
+      // Clear guest cart
+      localStorage.removeItem('guestCart');
+      
+      this.snackBar.open('Your cart items have been saved!', 'Close', {
+        duration: 3000,
+        horizontalPosition: 'end',
+        verticalPosition: 'top'
+      });
+    }
   }
 }

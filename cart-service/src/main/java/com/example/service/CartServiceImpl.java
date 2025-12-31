@@ -49,20 +49,40 @@ public class CartServiceImpl implements ICartService {
     }
 
     public boolean removeItemFromCart(Long cartId, Long itemId) {
-        List<CartItem> items = cartItemRepository.findByCartId(cartId);
-        for (CartItem item : items) {
-            if (item.getItemId().equals(itemId)) {
-                cartItemRepository.delete(item);
-                Cart cart = cartRepository.findById(cartId).orElse(null);
-                if (cart != null) {
-                    cart.setItemCount(Math.max(0, cart.getItemCount() - 1));
-                    cart.setUpdatedAt(LocalDateTime.now());
-                    cartRepository.save(cart);
-                }
-                return true;
+        // itemId here is the CartItem's database ID (from the cart_items table)
+        Optional<CartItem> cartItem = cartItemRepository.findById(itemId);
+        if (cartItem.isPresent() && cartItem.get().getCartId().equals(cartId)) {
+            cartItemRepository.deleteById(itemId);
+            Cart cart = cartRepository.findById(cartId).orElse(null);
+            if (cart != null) {
+                cart.setItemCount(Math.max(0, cart.getItemCount() - 1));
+                cart.setUpdatedAt(LocalDateTime.now());
+                cartRepository.save(cart);
             }
+            return true;
         }
         return false;
+    }
+
+    public CartItem updateItemQuantity(Long cartId, Long cartItemId, Integer newQuantity) {
+        Optional<CartItem> cartItem = cartItemRepository.findById(cartItemId);
+        if (cartItem.isPresent() && cartItem.get().getCartId().equals(cartId)) {
+            CartItem item = cartItem.get();
+            if (newQuantity <= 0) {
+                removeItemFromCart(cartId, cartItemId);
+                return null;
+            }
+            item.setQuantity(newQuantity);
+            CartItem updated = cartItemRepository.save(item);
+            
+            Cart cart = cartRepository.findById(cartId).orElse(null);
+            if (cart != null) {
+                cart.setUpdatedAt(LocalDateTime.now());
+                cartRepository.save(cart);
+            }
+            return updated;
+        }
+        return null;
     }
 
     public List<CartItem> getCartItems(Long cartId) {

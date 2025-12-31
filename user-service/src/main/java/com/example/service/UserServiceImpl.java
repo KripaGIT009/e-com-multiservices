@@ -44,6 +44,9 @@ public class UserServiceImpl implements IUserService {
         return userRepository.findById(id).map(user -> {
             user.setUsername(userDetails.getUsername());
             user.setEmail(userDetails.getEmail());
+            if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+                user.setPassword(userDetails.getPassword());
+            }
             user.setFirstName(userDetails.getFirstName());
             user.setLastName(userDetails.getLastName());
             user.setUpdatedAt(LocalDateTime.now());
@@ -55,6 +58,15 @@ public class UserServiceImpl implements IUserService {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
             return true;
+        }
+        return false;
+    }
+
+    public boolean authenticateUser(String email, String password) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            // Simple password comparison - in production, use BCrypt or similar
+            return user.get().getPassword() != null && user.get().getPassword().equals(password);
         }
         return false;
     }

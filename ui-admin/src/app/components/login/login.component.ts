@@ -53,16 +53,22 @@ import { AuthService } from '../../services/auth.service';
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
     
     .login-card {
       width: 400px;
       padding: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      border-radius: 12px;
+      background: #fff;
     }
     
-    mat-form-field {
+    .full-width { width: 100%; }
+
+    mat-form-field.full-width {
+      width: 100%;
       margin-bottom: 20px;
     }
   `]

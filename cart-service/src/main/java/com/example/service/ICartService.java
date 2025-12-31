@@ -13,5 +13,6 @@ public interface ICartService {
     CartItem addItemToCart(Long cartId, Long itemId, String itemName, Integer quantity, BigDecimal price);
     List<CartItem> getCartItems(Long cartId);
     boolean removeItemFromCart(Long cartId, Long itemId);
+    CartItem updateItemQuantity(Long cartId, Long cartItemId, Integer newQuantity);
     void clearCart(Long cartId);
 }

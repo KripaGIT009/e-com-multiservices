@@ -64,3 +64,91 @@ app-root {
   border-radius: 4px;
   margin: 1rem 0;
 }
+
+/* Cart Snackbar Styles */
+// Override CDK overlay positioning for cart snackbar
+.cdk-overlay-container {
+  .cdk-overlay-pane {
+    &:has(.cart-snackbar) {
+      position: fixed !important;
+      top: 80px !important;
+      bottom: auto !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      right: auto !important;
+    }
+  }
+  
+  .cdk-global-overlay-wrapper {
+    &:has(.cart-snackbar) {
+      justify-content: center !important;
+      align-items: flex-start !important;
+    }
+  }
+}
+
+.mat-mdc-snack-bar-container.cart-snackbar {
+  --mdc-snackbar-container-color: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 0 !important;
+  
+  .mdc-snackbar__surface {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    box-shadow: 0 8px 32px rgba(102, 126, 234, 0.5) !important;
+    border-radius: 12px !important;
+    min-width: 600px !important;
+    max-width: 800px !important;
+    padding: 18px 28px !important;
+  }
+
+  .mdc-snackbar__label {
+    color: white !important;
+    font-size: 1.05rem !important;
+    font-weight: 500 !important;
+    padding: 0 !important;
+    line-height: 1.5 !important;
+    text-align: left !important;
+  }
+
+  .mat-mdc-snack-bar-action {
+    margin-left: 20px !important;
+    
+    .mat-mdc-button {
+      background: white !important;
+      color: #667eea !important;
+      font-weight: 700 !important;
+      border-radius: 8px !important;
+      padding: 10px 28px !important;
+      border: none !important;
+      font-size: 0.9rem !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.8px !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+      
+      &:hover {
+        background: #f0f0f0 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  ::ng-deep .cart-snackbar .mdc-snackbar__surface {
+    min-width: calc(100vw - 32px) !important;
+    margin: 0 16px !important;
+  }
+}
+
+/* Ensure overlays stack above page content and position correctly */
+.cdk-overlay-container {
+  position: fixed !important;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.cdk-overlay-pane {
+  position: absolute !important;
+  pointer-events: auto;
+}

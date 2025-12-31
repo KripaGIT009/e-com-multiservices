@@ -72,6 +72,16 @@ public class OrderController {
     }
 
     /**
+     * Get orders by user ID (Alias for frontend compatibility)
+     */
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@PathVariable String userId) {
+        log.info("GET /api/v1/orders/user/{} - Fetching orders by user", userId);
+        List<OrderDTO> orders = orderService.getOrdersByCustomer(userId);
+        return ResponseEntity.ok(orders);
+    }
+
+    /**
      * Get orders by status
      */
     @GetMapping("/status/{status}")

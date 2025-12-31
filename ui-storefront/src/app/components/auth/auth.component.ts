@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,7 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -21,15 +24,19 @@ import { HttpClient } from '@angular/common/http';
     MatButtonModule,
     MatTabsModule,
     MatIconModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatDividerModule,
+    MatCheckboxModule
   ],
   template: `
     <div class="auth-container">
       <div class="auth-card">
         <div class="auth-header">
-          <mat-icon class="header-icon">shopping_bag</mat-icon>
-          <h1>ShopHub</h1>
-          <p>Your trusted shopping destination</p>
+          <div class="icon-container">
+            <mat-icon class="header-icon">shopping_cart</mat-icon>
+          </div>
+          <h1>Welcome Back!</h1>
+          <p>Sign in to save your cart and access exclusive deals</p>
         </div>
 
         <mat-tab-group
@@ -181,46 +188,89 @@ import { HttpClient } from '@angular/common/http';
 
     .auth-card {
       background: white;
-      border-radius: 16px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      max-width: 450px;
+      border-radius: 20px;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      max-width: 480px;
       width: 100%;
       animation: slideUp 0.5s ease-out;
       overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .auth-header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 40px 20px;
+      padding: 48px 24px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+    }
+
+    .icon-container {
+      background: rgba(255, 255, 255, 0.2);
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+      position: relative;
+      z-index: 1;
     }
 
     .header-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      margin-bottom: 12px;
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+      color: white;
     }
 
     .auth-header h1 {
-      margin: 0 0 8px 0;
-      font-size: 2rem;
+      margin: 0 0 12px 0;
+      font-size: 2.2rem;
       font-weight: 700;
+      position: relative;
+      z-index: 1;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .auth-header p {
       margin: 0;
-      opacity: 0.9;
-      font-size: 0.95rem;
+      opacity: 0.95;
+      font-size: 1rem;
+      position: relative;
+      z-index: 1;
+      max-width: 300px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-10px, -10px) scale(1.1); }
     }
 
     .auth-tabs {
-      padding: 32px 24px;
+      padding: 40px 32px 32px;
     }
 
     .tab-content {
       animation: fadeIn 0.4s ease-out;
+      padding-top: 24px;
     }
 
     form {
@@ -231,18 +281,43 @@ import { HttpClient } from '@angular/common/http';
 
     .form-field {
       width: 100%;
+      margin: 0 !important;
     }
 
-    mat-form-field {
-      width: 100%;
+    ::ng-deep .auth-tabs mat-form-field {
+      width: 100% !important;
+      display: block !important;
+    }
+
+    ::ng-deep .mat-mdc-text-field-wrapper {
+      background-color: #f8f9fa !important;
+    }
+
+    ::ng-deep .mat-mdc-form-field-focus-overlay {
+      background-color: rgba(102, 126, 234, 0.05) !important;
     }
 
     .submit-btn {
-      padding: 12px 24px !important;
-      font-size: 1rem !important;
-      border-radius: 8px !important;
+      padding: 16px 32px !important;
+      font-size: 1.05rem !important;
+      border-radius: 12px !important;
       font-weight: 600;
-      margin-top: 12px;
+      margin-top: 16px;
+      height: 56px !important;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35) !important;
+      transition: all 0.3s ease !important;
+      letter-spacing: 0.5px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.45) !important;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     .submit-btn mat-icon {
@@ -252,7 +327,7 @@ import { HttpClient } from '@angular/common/http';
     .divider {
       position: relative;
       text-align: center;
-      margin: 24px 0;
+      margin: 28px 0;
     }
 
     .divider::before {
@@ -262,23 +337,34 @@ import { HttpClient } from '@angular/common/http';
       top: 50%;
       width: 100%;
       height: 1px;
-      background: #ecf0f1;
+      background: #e0e0e0;
     }
 
     .divider span {
       background: white;
-      padding: 0 12px;
-      color: #7f8c8d;
+      padding: 0 16px;
+      color: #95a5a6;
       font-size: 0.9rem;
       position: relative;
+      font-weight: 500;
     }
 
     .guest-btn {
-      padding: 12px 24px !important;
-      border: 2px solid #ecf0f1 !important;
+      width: 100%;
+      padding: 14px 24px !important;
+      height: 52px !important;
+      border: 2px solid #667eea !important;
       color: #667eea !important;
       font-weight: 600;
-      border-radius: 8px !important;
+      border-radius: 12px !important;
+      transition: all 0.3s ease !important;
+      letter-spacing: 0.3px;
+    }
+
+    .guest-btn:hover {
+      background: rgba(102, 126, 234, 0.08) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
     }
 
     .guest-btn mat-icon {
@@ -286,34 +372,46 @@ import { HttpClient } from '@angular/common/http';
     }
 
     .demo-users {
-      background: #f8f9fa;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      color: #2c3e50;
-      margin-top: 16px;
-      line-height: 1.6;
-      border-left: 3px solid #667eea;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-size: 0.875rem;
+      color: #495057;
+      margin-top: 20px;
+      line-height: 1.8;
+      border-left: 4px solid #667eea;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .demo-users strong {
       color: #667eea;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 8px;
     }
 
     .terms {
-      font-size: 0.85rem;
-      color: #7f8c8d;
+      font-size: 0.875rem;
+      color: #95a5a6;
       text-align: center;
-      margin-top: 16px;
-      line-height: 1.5;
+      margin-top: 20px;
+      line-height: 1.6;
+      padding: 0 8px;
     }
 
     .back-home {
       width: 100%;
-      border-top: 1px solid #ecf0f1;
+      padding: 16px !important;
+      border-top: 1px solid #e9ecef;
       margin-top: 0;
       color: #667eea !important;
       border-radius: 0 !important;
+      font-weight: 600;
+      transition: all 0.3s ease !important;
+    }
+
+    .back-home:hover {
+      background: rgba(102, 126, 234, 0.05) !important;
     }
 
     @keyframes slideUp {
@@ -363,6 +461,19 @@ import { HttpClient } from '@angular/common/http';
       .auth-tabs {
         padding: 24px 16px;
       }
+
+      .form-field {
+        margin-bottom: 8px !important;
+      }
+
+      form {
+        gap: 16px;
+      }
+    }
+
+    /* Ensure proper alignment across all screen sizes */
+    ::ng-deep .mat-mdc-form-field-infix {
+      padding: 12px 0 !important;
     }
   `]
 })
@@ -378,7 +489,8 @@ export class AuthComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private http: HttpClient,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authService: AuthService
   ) {
     this.initializeForms();
   }
@@ -434,14 +546,34 @@ export class AuthComponent implements OnInit {
     this.loading = true;
     const { email, password } = this.loginForm.value;
 
-    // Mock login - in real app, call auth service
-    setTimeout(() => {
-      this.loading = false;
-      // Store auth info
-      localStorage.setItem('user', JSON.stringify({ email, role: 'CUSTOMER' }));
-      this.snackBar.open('Login successful! Welcome back.', 'Close', { duration: 3000 });
-      this.router.navigate(['/']);
-    }, 1000);
+    this.authService.login(email, password).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.snackBar.open(`✅ Welcome ${response.username || email}!`, 'Close', { 
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        
+        // Notify other components about login
+        window.dispatchEvent(new CustomEvent('userLoggedIn', {
+          detail: { userId: response.userId || email, username: response.username }
+        }));
+        
+        // Redirect to home
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 500);
+      },
+      error: (error) => {
+        this.loading = false;
+        const errorMessage = error.error?.message || error.message || 'Login failed. Please check your credentials.';
+        this.snackBar.open(`❌ ${errorMessage}`, 'Close', { 
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+        console.error('Login error:', error);
+      }
+    });
   }
 
   onSignup(): void {
@@ -452,14 +584,34 @@ export class AuthComponent implements OnInit {
     this.loading = true;
     const { username, email, password } = this.signupForm.value;
 
-    // Mock signup - in real app, call auth service
-    setTimeout(() => {
-      this.loading = false;
-      // Store auth info
-      localStorage.setItem('user', JSON.stringify({ username, email, role: 'CUSTOMER' }));
-      this.snackBar.open('Account created successfully! Welcome to ShopHub.', 'Close', { duration: 3000 });
-      this.router.navigate(['/']);
-    }, 1000);
+    this.authService.signup(username, email, password).subscribe({
+      next: (response) => {
+        this.loading = false;
+        this.snackBar.open(`🎉 Account created! Welcome to My Indian Store.`, 'Close', { 
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+        
+        // Notify other components about login
+        window.dispatchEvent(new CustomEvent('userLoggedIn', {
+          detail: { userId: response.id || email, username: response.username }
+        }));
+        
+        // Redirect to home
+        setTimeout(() => {
+          this.router.navigate(['/']);
+        }, 500);
+      },
+      error: (error) => {
+        this.loading = false;
+        const errorMessage = error.error?.message || error.message || 'Signup failed. Please try again.';
+        this.snackBar.open(`❌ ${errorMessage}`, 'Close', { 
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+        console.error('Signup error:', error);
+      }
+    });
   }
 
   goHome(): void {
