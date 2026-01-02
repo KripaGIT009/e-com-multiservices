@@ -70,37 +70,6 @@ import { Subscription } from 'rxjs';
 
           <div class="divider"></div>
 
-          <!-- Digital Content and Devices -->
-          <div class="menu-section">
-            <div class="section-header">Digital Content and Devices</div>
-            <div class="menu-item with-arrow" (click)="navigateAndClose('/products', {category: 'electronics'})">
-              <span>Echo & Alexa</span>
-              <mat-icon class="arrow-icon">chevron_right</mat-icon>
-            </div>
-            <div class="menu-item with-arrow" (click)="navigateAndClose('/products', {category: 'electronics'})">
-              <span>Fire TV</span>
-              <mat-icon class="arrow-icon">chevron_right</mat-icon>
-            </div>
-            <div class="menu-item with-arrow" (click)="navigateAndClose('/products', {category: 'books'})">
-              <span>Kindle E-Readers & eBooks</span>
-              <mat-icon class="arrow-icon">chevron_right</mat-icon>
-            </div>
-            <div class="menu-item with-arrow" (click)="navigateAndClose('/products', {category: 'books'})">
-              <span>Audible Audiobooks</span>
-              <mat-icon class="arrow-icon">chevron_right</mat-icon>
-            </div>
-            <div class="menu-item with-arrow" (click)="navigateAndClose('/products', {category: 'books'})">
-              <span>MyIndianStore Prime Video</span>
-              <mat-icon class="arrow-icon">chevron_right</mat-icon>
-            </div>
-            <div class="menu-item with-arrow" (click)="navigateAndClose('/products', {category: 'books'})">
-              <span>MyIndianStore Prime Music</span>
-              <mat-icon class="arrow-icon">chevron_right</mat-icon>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
           <!-- Shop by Category -->
           <div class="menu-section">
             <div class="section-header">Shop by Category</div>
@@ -261,15 +230,10 @@ import { Subscription } from 'rxjs';
                       <button mat-menu-item routerLink="/profile">Your Account</button>
                       <button mat-menu-item routerLink="/orders">Your Orders</button>
                       <button mat-menu-item routerLink="/wishlist">Your Wish List</button>
-                      <button mat-menu-item routerLink="/products">Keep shopping for</button>
                       <button mat-menu-item routerLink="/products">Your Recommendations</button>
                       <button mat-menu-item routerLink="/subscriptions">Your Prime Membership</button>
-                      <button mat-menu-item routerLink="/subscriptions">Your Prime Video</button>
-                      <button mat-menu-item routerLink="/subscriptions">Your Subscribe & Save Items</button>
-                      <button mat-menu-item routerLink="/subscriptions">Memberships & Subscriptions</button>
                       <button mat-menu-item routerLink="/profile">Your Seller Account</button>
                       <button mat-menu-item routerLink="/profile">Manage Your Content and Devices</button>
-                      <button mat-menu-item routerLink="/profile">Register for a free Business Account</button>
                     </div>
                   </div>
                   <mat-divider></mat-divider>
