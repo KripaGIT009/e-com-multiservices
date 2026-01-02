@@ -669,17 +669,11 @@ import { Subscription } from 'rxjs';
       box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
       border: 1px solid #ddd !important;
       border-radius: 4px !important;
-      margin-top: 8px !important;
-    }
-
-    ::ng-deep .cdk-overlay-pane:has(.mat-mdc-menu-panel.account-menu) {
-      right: auto !important;
-      left: auto !important;
+      margin-top: 2px !important;
     }
 
     ::ng-deep .cdk-overlay-pane {
       z-index: 9999 !important;
-      position: fixed !important;
     }
 
     ::ng-deep .cdk-overlay-backdrop {
