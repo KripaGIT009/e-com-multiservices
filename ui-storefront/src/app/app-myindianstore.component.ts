@@ -210,7 +210,7 @@ import { Subscription } from 'rxjs';
                 </div>
               </button>
 
-              <mat-menu #accountMenu="matMenu" class="account-menu" yPosition="below" xPosition="before">
+              <mat-menu #accountMenu="matMenu" class="account-menu" yPosition="below" xPosition="after">
                 <div *ngIf="!isLoggedIn" class="menu-signin">
                   <button mat-raised-button color="primary" routerLink="/auth" class="signin-btn">Sign in</button>
                   <p class="new-customer">New customer? <a routerLink="/auth?mode=signup">Start here.</a></p>
