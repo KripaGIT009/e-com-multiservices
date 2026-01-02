@@ -670,9 +670,15 @@ import { Subscription } from 'rxjs';
       border: 1px solid #ddd !important;
       border-radius: 4px !important;
       margin-top: 2px !important;
+      position: relative !important;
+    }
+
+    ::ng-deep .cdk-overlay-connected-position-bounding-box {
+      position: absolute !important;
     }
 
     ::ng-deep .cdk-overlay-pane {
+      position: absolute !important;
       z-index: 9999 !important;
     }
 
