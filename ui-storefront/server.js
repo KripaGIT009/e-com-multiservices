@@ -3,6 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const axios = require('axios');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -17,7 +18,13 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Serve static files from Angular app
-app.use(express.static(path.join(__dirname, 'dist/ui-storefront/browser')));
+// Serve static files from Angular app (support both browser and browser/browser)
+const storefrontDistCandidates = [
+  path.join(__dirname, 'dist/ui-storefront/browser'),
+  path.join(__dirname, 'dist/ui-storefront/browser/browser')
+];
+const storefrontStaticRoot = storefrontDistCandidates.find(p => fs.existsSync(path.join(p, 'index.html'))) || storefrontDistCandidates[0];
+app.use(express.static(storefrontStaticRoot));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -66,9 +73,24 @@ app.get('/api/items/search', async (req, res) => {
 });
 
 // ============ CART API ============
+// Get or create cart for user
 app.get('/api/cart/:userId', async (req, res) => {
   try {
-    const response = await axios.get(`${CART_SERVICE}/cart/${req.params.userId}`);
+    const userId = req.params.userId === 'guest-user' ? 999999 : parseInt(req.params.userId);
+    
+    // Try to get existing cart
+    let response;
+    try {
+      response = await axios.get(`${CART_SERVICE}/carts/user/${userId}`);
+    } catch (err) {
+      // If cart doesn't exist, create it
+      if (err.response?.status === 404) {
+        response = await axios.post(`${CART_SERVICE}/carts?userId=${userId}`);
+      } else {
+        throw err;
+      }
+    }
+    
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching cart:', error.message);
@@ -79,9 +101,37 @@ app.get('/api/cart/:userId', async (req, res) => {
   }
 });
 
+// Add item to cart
 app.post('/api/cart/:userId/items', async (req, res) => {
   try {
-    const response = await axios.post(`${CART_SERVICE}/cart/${req.params.userId}/items`, req.body);
+    const userId = req.params.userId === 'guest-user' ? 999999 : parseInt(req.params.userId);
+    
+    // Get or create cart first
+    let cart;
+    try {
+      const cartResponse = await axios.get(`${CART_SERVICE}/carts/user/${userId}`);
+      cart = cartResponse.data;
+    } catch (err) {
+      if (err.response?.status === 404) {
+        const createResponse = await axios.post(`${CART_SERVICE}/carts?userId=${userId}`);
+        cart = createResponse.data;
+      } else {
+        throw err;
+      }
+    }
+    
+    // Fetch item details to get name and price
+    const itemResponse = await axios.get(`${ITEM_SERVICE}/items/${req.body.itemId}`);
+    const item = itemResponse.data;
+    
+    // Add item to cart
+    const response = await axios.post(`${CART_SERVICE}/carts/${cart.id}/items`, {
+      itemId: item.id,
+      itemName: item.name,
+      quantity: req.body.quantity || 1,
+      price: item.price
+    });
+    
     res.json(response.data);
   } catch (error) {
     console.error('Error adding to cart:', error.message);
@@ -139,7 +189,7 @@ app.get('/api/inventory/:itemId', async (req, res) => {
 
 // Serve Angular app for all other routes (must be last)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/storefront-ui/browser/index.html'));
+  res.sendFile(path.join(storefrontStaticRoot, 'index.html'));
 });
 
 // Start server
