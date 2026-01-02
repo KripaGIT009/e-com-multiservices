@@ -196,52 +196,54 @@ import { Subscription } from 'rxjs';
               </button>
 
               <!-- Account & Lists -->
-              <button mat-button class="nav-item account-btn" [matMenuTriggerFor]="accountMenu" [matMenuTriggerData]="{}" *ngIf="!isLoggedIn">
-                <div class="nav-text">
-                  <span class="label">Hello, sign in</span>
-                  <span class="value">Account & Lists <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon></span>
-                </div>
-              </button>
-
-              <button mat-button class="nav-item account-btn" [matMenuTriggerFor]="accountMenu" [matMenuTriggerData]="{}" *ngIf="isLoggedIn">
-                <div class="nav-text">
-                  <span class="label">Hello, {{username}}</span>
-                  <span class="value">Account & Lists <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon></span>
-                </div>
-              </button>
-
-              <mat-menu #accountMenu="matMenu" class="account-menu" [overlapTrigger]="false">
-                <div *ngIf="!isLoggedIn" class="menu-signin">
-                  <button mat-raised-button color="primary" routerLink="/auth" class="signin-btn">Sign in</button>
-                  <p class="new-customer">New customer? <a routerLink="/auth?mode=signup">Start here.</a></p>
-                </div>
-                <div *ngIf="isLoggedIn" class="account-menu-content">
-                  <div class="account-columns">
-                    <div class="menu-column">
-                      <h3 class="menu-column-title">Your Lists</h3>
-                      <button mat-menu-item routerLink="/wishlist">Create a Wish List</button>
-                      <button mat-menu-item routerLink="/wishlist">Wish from Any Website</button>
-                      <button mat-menu-item routerLink="/wishlist">Baby Wishlist</button>
-                      <button mat-menu-item routerLink="/wishlist">Discover Your Style</button>
-                      <button mat-menu-item routerLink="/wishlist">Explore Showroom</button>
-                    </div>
-                    <div class="menu-column">
-                      <h3 class="menu-column-title">Your Account</h3>
-                      <button mat-menu-item routerLink="/profile">Your Account</button>
-                      <button mat-menu-item routerLink="/orders">Your Orders</button>
-                      <button mat-menu-item routerLink="/wishlist">Your Wish List</button>
-                      <button mat-menu-item routerLink="/products">Your Recommendations</button>
-                      <button mat-menu-item routerLink="/subscriptions">Your Prime Membership</button>
-                      <button mat-menu-item routerLink="/profile">Your Seller Account</button>
-                      <button mat-menu-item routerLink="/profile">Manage Your Content and Devices</button>
-                    </div>
+              <div class="account-menu-wrapper" (mouseenter)="showAccountMenu()" (mouseleave)="hideAccountMenu()">
+                <button mat-button class="nav-item account-btn" *ngIf="!isLoggedIn">
+                  <div class="nav-text">
+                    <span class="label">Hello, sign in</span>
+                    <span class="value">Account & Lists <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon></span>
                   </div>
-                  <mat-divider></mat-divider>
-                  <button mat-menu-item (click)="logout()" class="signout-item">
-                    <mat-icon>logout</mat-icon> Sign Out
-                  </button>
+                </button>
+
+                <button mat-button class="nav-item account-btn" *ngIf="isLoggedIn">
+                  <div class="nav-text">
+                    <span class="label">Hello, {{username}}</span>
+                    <span class="value">Account & Lists <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon></span>
+                  </div>
+                </button>
+
+                <div class="custom-account-menu" *ngIf="accountMenuOpen">
+                  <div *ngIf="!isLoggedIn" class="menu-signin">
+                    <button mat-raised-button color="primary" routerLink="/auth" class="signin-btn">Sign in</button>
+                    <p class="new-customer">New customer? <a routerLink="/auth?mode=signup">Start here.</a></p>
+                  </div>
+                  <div *ngIf="isLoggedIn" class="account-menu-content">
+                    <div class="account-columns">
+                      <div class="menu-column">
+                        <h3 class="menu-column-title">Your Lists</h3>
+                        <button mat-button routerLink="/wishlist" class="menu-item-btn">Create a Wish List</button>
+                        <button mat-button routerLink="/wishlist" class="menu-item-btn">Wish from Any Website</button>
+                        <button mat-button routerLink="/wishlist" class="menu-item-btn">Baby Wishlist</button>
+                        <button mat-button routerLink="/wishlist" class="menu-item-btn">Discover Your Style</button>
+                        <button mat-button routerLink="/wishlist" class="menu-item-btn">Explore Showroom</button>
+                      </div>
+                      <div class="menu-column">
+                        <h3 class="menu-column-title">Your Account</h3>
+                        <button mat-button routerLink="/profile" class="menu-item-btn">Your Account</button>
+                        <button mat-button routerLink="/orders" class="menu-item-btn">Your Orders</button>
+                        <button mat-button routerLink="/wishlist" class="menu-item-btn">Your Wish List</button>
+                        <button mat-button routerLink="/products" class="menu-item-btn">Your Recommendations</button>
+                        <button mat-button routerLink="/subscriptions" class="menu-item-btn">Your Prime Membership</button>
+                        <button mat-button routerLink="/profile" class="menu-item-btn">Your Seller Account</button>
+                        <button mat-button routerLink="/profile" class="menu-item-btn">Manage Your Content and Devices</button>
+                      </div>
+                    </div>
+                    <mat-divider></mat-divider>
+                    <button mat-button (click)="logout()" class="signout-item menu-item-btn">
+                      <mat-icon>logout</mat-icon> Sign Out
+                    </button>
+                  </div>
                 </div>
-              </mat-menu>
+              </div>
 
               <!-- Returns & Orders -->
               <button mat-button class="nav-item" routerLink="/orders">
@@ -507,6 +509,119 @@ import { Subscription } from 'rxjs';
       border-color: white;
     }
 
+    .account-menu-wrapper {
+      position: relative;
+    }
+
+    .custom-account-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      min-width: 480px;
+      z-index: 10001;
+      margin-top: 2px;
+    }
+
+    .menu-signin {
+      padding: 24px;
+      text-align: center;
+    }
+
+    .signin-btn {
+      width: 100%;
+      height: 36px;
+      margin-bottom: 16px;
+      background: linear-gradient(to bottom, #f7dfa5, #f0c14b);
+      border: 1px solid #a88734;
+      color: #111;
+      font-weight: 400;
+    }
+
+    .new-customer {
+      margin: 12px 0 0;
+      font-size: 12px;
+      color: #565959;
+    }
+
+    .new-customer a {
+      color: #007185;
+      text-decoration: none;
+    }
+
+    .new-customer a:hover {
+      color: #C7511F;
+      text-decoration: underline;
+    }
+
+    .account-menu-content {
+      padding: 0;
+    }
+
+    .account-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      padding: 16px 0;
+    }
+
+    .menu-column {
+      padding: 0 20px;
+      border-right: 1px solid #e3e6e6;
+    }
+
+    .menu-column:last-child {
+      border-right: none;
+    }
+
+    .menu-column-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #111;
+      margin: 0 0 12px 0;
+      padding: 0;
+    }
+
+    .menu-item-btn {
+      width: 100%;
+      justify-content: flex-start;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #333;
+      text-align: left;
+      min-height: auto;
+      height: auto;
+      line-height: 1.5;
+      font-weight: 400;
+      text-transform: none;
+      border: none;
+      background: transparent;
+    }
+
+    .menu-item-btn:hover {
+      background: #f3f3f3;
+      color: #C7511F;
+    }
+
+    .signout-item {
+      border-top: 1px solid #e3e6e6;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      justify-content: flex-start;
+    }
+
+    .signout-item mat-icon {
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+
     .flag-btn {
       display: flex;
       align-items: center;
@@ -657,163 +772,6 @@ import { Subscription } from 'rxjs';
       font-size: 20px;
       width: 20px;
       height: 20px;
-    }
-
-    /* Account Menu */
-    ::ng-deep .cdk-overlay-container {
-      position: fixed !important;
-      top: 0 !important;
-      left: 0 !important;
-      height: 100% !important;
-      width: 100% !important;
-      z-index: 10000 !important;
-      pointer-events: none !important;
-    }
-
-    ::ng-deep .cdk-overlay-connected-position-bounding-box {
-      pointer-events: auto !important;
-    }
-
-    ::ng-deep .cdk-overlay-pane {
-      pointer-events: auto !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu {
-      min-width: 480px !important;
-      max-width: 520px !important;
-      max-height: 80vh !important;
-      overflow-y: auto !important;
-      background: #ffffff !important;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
-      border: 1px solid #ddd !important;
-      border-radius: 4px !important;
-      margin-top: 8px !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .account-menu-content {
-      padding: 0 !important;
-      background: #ffffff !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .account-columns {
-      display: flex !important;
-      gap: 0 !important;
-      padding: 20px 0 !important;
-      background: #ffffff !important;
-      border-bottom: 1px solid #e7e7e7 !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .menu-column {
-      flex: 1 !important;
-      padding: 0 !important;
-      background: #ffffff !important;
-      color: #0f1111 !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .menu-column:first-child {
-      border-right: 1px solid #e7e7e7 !important;
-      padding-right: 16px !important;
-      margin-right: 16px !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .menu-column-title {
-      font-size: 14px !important;
-      font-weight: 700 !important;
-      color: #0f1111 !important;
-      margin: 0 0 12px 0 !important;
-      padding: 0 20px !important;
-      text-transform: none !important;
-      background: #ffffff !important;
-      letter-spacing: 0.3px !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .mat-mdc-menu-item {
-      font-size: 14px !important;
-      line-height: 1.4 !important;
-      min-height: 32px !important;
-      height: auto !important;
-      padding: 6px 20px !important;
-      color: #0f1111 !important;
-      background: #ffffff !important;
-      white-space: normal !important;
-      transition: background-color 0.15s ease !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .mat-mdc-menu-item:hover {
-      background-color: #f0f2f2 !important;
-      color: #0f1111 !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .menu-signin {
-      padding: 24px 20px !important;
-      text-align: center !important;
-      background: #ffffff !important;
-      color: #0f1111 !important;
-      border-bottom: 1px solid #e7e7e7 !important;
-    }
-
-    .signin-btn {
-      width: 100% !important;
-      max-width: 280px !important;
-      background: linear-gradient(to bottom, #f7dfa5, #f0c14b) !important;
-      color: #0f1111 !important;
-      border: 1px solid #a88734 !important;
-      border-radius: 3px !important;
-      height: 36px !important;
-      font-size: 13px !important;
-      font-weight: 400 !important;
-      cursor: pointer !important;
-      box-shadow: 0 1px 0 rgba(255,255,255,.4) inset !important;
-    }
-
-    .signin-btn:hover {
-      background: linear-gradient(to bottom, #f5d78e, #edb933) !important;
-      border-color: #a88734 !important;
-    }
-
-    .new-customer {
-      margin-top: 16px !important;
-      font-size: 12px !important;
-      color: #0f1111 !important;
-      line-height: 1.5 !important;
-    }
-
-    .new-customer a {
-      color: #007185 !important;
-      text-decoration: none !important;
-      font-weight: 400 !important;
-    }
-
-    .new-customer a:hover {
-      color: #c7511f !important;
-      text-decoration: underline !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .signout-item {
-      margin: 0 !important;
-      padding: 12px 20px !important;
-      color: #0f1111 !important;
-      background: #ffffff !important;
-      font-size: 14px !important;
-      border-top: 1px solid #e7e7e7 !important;
-      display: flex !important;
-      align-items: center !important;
-      gap: 8px !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .signout-item:hover {
-      background-color: #f0f2f2 !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .signout-item mat-icon {
-      margin: 0 !important;
-      font-size: 20px !important;
-      width: 20px !important;
-      height: 20px !important;
-    }
-
-    ::ng-deep .mat-mdc-menu-panel.account-menu .mat-divider {
-      display: none !important;
     }
 
     /* Main Content */
@@ -1043,6 +1001,7 @@ export class AppMyindianstoreComponent implements OnInit, OnDestroy {
   username = '';
   cartCount = 0;
   sidebarOpen = false;
+  accountMenuOpen = false;
   private subscriptions: Subscription[] = [];
   private isBrowser: boolean;
 
@@ -1108,6 +1067,14 @@ export class AppMyindianstoreComponent implements OnInit, OnDestroy {
   navigateAndClose(path: string, queryParams?: any): void {
     this.router.navigate([path], { queryParams });
     this.closeSidebar();
+  }
+
+  showAccountMenu(): void {
+    this.accountMenuOpen = true;
+  }
+
+  hideAccountMenu(): void {
+    this.accountMenuOpen = false;
   }
 
   openSidebar(): void {
