@@ -661,14 +661,15 @@ import { Subscription } from 'rxjs';
 
     /* Account Menu */
     ::ng-deep .mat-mdc-menu-panel.account-menu {
-      min-width: 520px !important;
-      max-width: 600px !important;
+      min-width: 480px !important;
+      max-width: 520px !important;
       max-height: 80vh !important;
       overflow-y: auto !important;
       background: #ffffff !important;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
-      right: auto !important;
-      left: auto !important;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+      border: 1px solid #ddd !important;
+      border-radius: 4px !important;
+      margin-top: 8px !important;
     }
 
     ::ng-deep .cdk-overlay-pane:has(.mat-mdc-menu-panel.account-menu) {
@@ -685,91 +686,130 @@ import { Subscription } from 'rxjs';
       z-index: 9998 !important;
     }
 
+    ::ng-deep .mat-mdc-menu-panel.account-menu .account-menu-content {
+      padding: 0 !important;
+      background: #ffffff !important;
+    }
+
     ::ng-deep .mat-mdc-menu-panel.account-menu .account-columns {
       display: flex !important;
       gap: 0 !important;
-      padding: 16px 0 !important;
+      padding: 20px 0 !important;
       background: #ffffff !important;
+      border-bottom: 1px solid #e7e7e7 !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .menu-column {
       flex: 1 !important;
-      padding: 0 16px !important;
+      padding: 0 !important;
       background: #ffffff !important;
-      color: #333 !important;
+      color: #0f1111 !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .menu-column:first-child {
-      border-right: 1px solid #e3e6e6 !important;
+      border-right: 1px solid #e7e7e7 !important;
+      padding-right: 16px !important;
+      margin-right: 16px !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .menu-column-title {
-      font-size: 12px !important;
+      font-size: 14px !important;
       font-weight: 700 !important;
-      color: #555 !important;
-      margin: 0 0 8px 0 !important;
-      padding: 0 16px !important;
-      text-transform: uppercase !important;
+      color: #0f1111 !important;
+      margin: 0 0 12px 0 !important;
+      padding: 0 20px !important;
+      text-transform: none !important;
       background: #ffffff !important;
+      letter-spacing: 0.3px !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .mat-mdc-menu-item {
-      font-size: 13px !important;
-      min-height: 36px !important;
-      padding: 4px 16px !important;
-      color: #333 !important;
+      font-size: 14px !important;
+      line-height: 1.4 !important;
+      min-height: 32px !important;
+      height: auto !important;
+      padding: 6px 20px !important;
+      color: #0f1111 !important;
       background: #ffffff !important;
+      white-space: normal !important;
+      transition: background-color 0.15s ease !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .mat-mdc-menu-item:hover {
       background-color: #f0f2f2 !important;
-      color: #333 !important;
+      color: #0f1111 !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .menu-signin {
-      padding: 16px !important;
+      padding: 24px 20px !important;
       text-align: center !important;
       background: #ffffff !important;
-      color: #333 !important;
+      color: #0f1111 !important;
+      border-bottom: 1px solid #e7e7e7 !important;
     }
 
     .signin-btn {
-      width: 100%;
+      width: 100% !important;
+      max-width: 280px !important;
       background: linear-gradient(to bottom, #f7dfa5, #f0c14b) !important;
-      color: #111 !important;
-      border: 1px solid #a88734;
-      height: 40px;
+      color: #0f1111 !important;
+      border: 1px solid #a88734 !important;
+      border-radius: 3px !important;
+      height: 36px !important;
+      font-size: 13px !important;
+      font-weight: 400 !important;
+      cursor: pointer !important;
+      box-shadow: 0 1px 0 rgba(255,255,255,.4) inset !important;
+    }
+
+    .signin-btn:hover {
+      background: linear-gradient(to bottom, #f5d78e, #edb933) !important;
+      border-color: #a88734 !important;
     }
 
     .new-customer {
-      margin-top: 12px;
-      font-size: 12px;
-      color: #111;
+      margin-top: 16px !important;
+      font-size: 12px !important;
+      color: #0f1111 !important;
+      line-height: 1.5 !important;
     }
 
     .new-customer a {
-      color: #007185;
-      text-decoration: none;
+      color: #007185 !important;
+      text-decoration: none !important;
+      font-weight: 400 !important;
     }
 
     .new-customer a:hover {
-      color: #c7511f;
-      text-decoration: underline;
+      color: #c7511f !important;
+      text-decoration: underline !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .signout-item {
-      margin-top: 8px !important;
-      color: #333 !important;
+      margin: 0 !important;
+      padding: 12px 20px !important;
+      color: #0f1111 !important;
       background: #ffffff !important;
+      font-size: 14px !important;
+      border-top: 1px solid #e7e7e7 !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+    }
+
+    ::ng-deep .mat-mdc-menu-panel.account-menu .signout-item:hover {
+      background-color: #f0f2f2 !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .signout-item mat-icon {
-      margin-right: 8px !important;
+      margin: 0 !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .mat-divider {
-      margin: 0 !important;
-      background-color: #e3e6e6 !important;
+      display: none !important;
     }
 
     /* Main Content */
