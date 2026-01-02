@@ -210,7 +210,7 @@ import { Subscription } from 'rxjs';
                 </div>
               </button>
 
-              <mat-menu #accountMenu="matMenu" class="account-menu" yPosition="below" xPosition="after">
+              <mat-menu #accountMenu="matMenu" class="account-menu" [overlapTrigger]="false">
                 <div *ngIf="!isLoggedIn" class="menu-signin">
                   <button mat-raised-button color="primary" routerLink="/auth" class="signin-btn">Sign in</button>
                   <p class="new-customer">New customer? <a routerLink="/auth?mode=signup">Start here.</a></p>
@@ -669,21 +669,7 @@ import { Subscription } from 'rxjs';
       box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
       border: 1px solid #ddd !important;
       border-radius: 4px !important;
-      margin-top: 2px !important;
-      position: relative !important;
-    }
-
-    ::ng-deep .cdk-overlay-connected-position-bounding-box {
-      position: absolute !important;
-    }
-
-    ::ng-deep .cdk-overlay-pane {
-      position: absolute !important;
-      z-index: 9999 !important;
-    }
-
-    ::ng-deep .cdk-overlay-backdrop {
-      z-index: 9998 !important;
+      margin-top: 8px !important;
     }
 
     ::ng-deep .mat-mdc-menu-panel.account-menu .account-menu-content {
