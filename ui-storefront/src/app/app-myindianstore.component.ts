@@ -511,6 +511,8 @@ import { Subscription } from 'rxjs';
 
     .account-menu-wrapper {
       position: relative;
+      overflow: visible !important;
+      z-index: 10000;
     }
 
     .custom-account-menu {
@@ -524,11 +526,19 @@ import { Subscription } from 'rxjs';
       min-width: 480px;
       z-index: 10001;
       margin-top: 2px;
+      max-height: 600px;
+      overflow-y: auto;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .menu-signin {
       padding: 24px;
       text-align: center;
+      visibility: visible;
+      opacity: 1;
+      display: block !important;
     }
 
     .signin-btn {
@@ -559,18 +569,28 @@ import { Subscription } from 'rxjs';
 
     .account-menu-content {
       padding: 0;
+      visibility: visible;
+      opacity: 1;
+      display: block !important;
     }
 
     .account-columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-      padding: 16px 0;
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+      gap: 0 !important;
+      padding: 16px 0 !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      overflow: visible !important;
     }
 
     .menu-column {
-      padding: 0 20px;
+      padding: 0 20px !important;
       border-right: 1px solid #e3e6e6;
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: block !important;
+      overflow: visible !important;
     }
 
     .menu-column:last-child {
@@ -583,27 +603,43 @@ import { Subscription } from 'rxjs';
       color: #111;
       margin: 0 0 12px 0;
       padding: 0;
+      visibility: visible;
+      opacity: 1;
     }
 
     .menu-item-btn {
-      width: 100%;
-      justify-content: flex-start;
-      padding: 8px 12px;
-      font-size: 13px;
-      color: #333;
-      text-align: left;
-      min-height: auto;
-      height: auto;
-      line-height: 1.5;
-      font-weight: 400;
-      text-transform: none;
-      border: none;
-      background: transparent;
+      width: 100% !important;
+      justify-content: flex-start !important;
+      padding: 8px 12px !important;
+      font-size: 13px !important;
+      color: #333 !important;
+      text-align: left !important;
+      min-height: auto !important;
+      height: auto !important;
+      line-height: 1.5 !important;
+      font-weight: 400 !important;
+      text-transform: none !important;
+      border: none !important;
+      background: transparent !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: block !important;
+      cursor: pointer !important;
+      text-decoration: none !important;
+      white-space: normal !important;
+      word-wrap: break-word !important;
     }
 
     .menu-item-btn:hover {
-      background: #f3f3f3;
-      color: #C7511F;
+      background: #f3f3f3 !important;
+      color: #C7511F !important;
+    }
+
+    /* Ensure menu item text is visible */
+    .menu-item-btn span {
+      visibility: visible !important;
+      opacity: 1 !important;
+      display: inline !important;
     }
 
     .signout-item {
@@ -614,6 +650,8 @@ import { Subscription } from 'rxjs';
       gap: 8px;
       width: 100%;
       justify-content: flex-start;
+      visibility: visible;
+      opacity: 1;
     }
 
     .signout-item mat-icon {
