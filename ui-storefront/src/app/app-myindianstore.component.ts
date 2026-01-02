@@ -660,6 +660,24 @@ import { Subscription } from 'rxjs';
     }
 
     /* Account Menu */
+    ::ng-deep .cdk-overlay-container {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      height: 100% !important;
+      width: 100% !important;
+      z-index: 10000 !important;
+      pointer-events: none !important;
+    }
+
+    ::ng-deep .cdk-overlay-connected-position-bounding-box {
+      pointer-events: auto !important;
+    }
+
+    ::ng-deep .cdk-overlay-pane {
+      pointer-events: auto !important;
+    }
+
     ::ng-deep .mat-mdc-menu-panel.account-menu {
       min-width: 480px !important;
       max-width: 520px !important;

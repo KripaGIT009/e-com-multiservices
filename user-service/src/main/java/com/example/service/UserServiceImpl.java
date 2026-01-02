@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.entity.User;
 import com.example.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,9 +15,16 @@ public class UserServiceImpl implements IUserService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     public User createUser(User user) {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
+        // Encode password if provided
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         return userRepository.save(user);
     }
 
@@ -45,7 +53,7 @@ public class UserServiceImpl implements IUserService {
             user.setUsername(userDetails.getUsername());
             user.setEmail(userDetails.getEmail());
             if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-                user.setPassword(userDetails.getPassword());
+                user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
             }
             user.setFirstName(userDetails.getFirstName());
             user.setLastName(userDetails.getLastName());
@@ -65,8 +73,7 @@ public class UserServiceImpl implements IUserService {
     public boolean authenticateUser(String email, String password) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isPresent()) {
-            // Simple password comparison - in production, use BCrypt or similar
-            return user.get().getPassword() != null && user.get().getPassword().equals(password);
+            return passwordEncoder.matches(password, user.get().getPassword());
         }
         return false;
     }

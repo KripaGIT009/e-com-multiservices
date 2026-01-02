@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://logistics_postgres:5432/logistics_service
+    url: jdbc:postgresql://localhost:5432/logistics_service
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -11,7 +11,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: logistics-service-group
       auto-offset-reset: earliest
@@ -24,7 +24,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
-  port: 8080
+  port: 8088
 
 management:
   endpoints:
