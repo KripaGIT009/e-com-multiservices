@@ -172,8 +172,18 @@ import { Subscription } from 'rxjs';
             <div class="nav-left">
               <!-- Logo -->
               <div class="nav-logo" routerLink="/">
+                <svg class="logo-svg" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Ashoka Chakra inspired circle -->
+                  <circle cx="20" cy="20" r="18" fill="white" stroke="#FF9933" stroke-width="1.5"/>
+                  <!-- Stylized "M" for MyIndianStore -->
+                  <path d="M12 14 L16 26 L18 18 L22 26 L26 14 M14 24 Q20 28 26 24" fill="none" stroke="#138808" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <!-- Decorative dots (saffron, white, green) -->
+                  <circle cx="10" cy="10" r="1.5" fill="#FF9933"/>
+                  <circle cx="30" cy="10" r="1.5" fill="#138808"/>
+                  <circle cx="10" cy="30" r="1.5" fill="#FF9933"/>
+                  <circle cx="30" cy="30" r="1.5" fill="#138808"/>
+                </svg>
                 <span class="logo-text">myindiansstore</span>
-                <span class="logo-in">.com</span>
               </div>
 
               <!-- Delivery Location -->
@@ -396,7 +406,8 @@ import { Subscription } from 'rxjs';
       cursor: pointer;
       padding: 8px;
       display: flex;
-      align-items: baseline;
+      align-items: center;
+      gap: 12px;
       border: 1px solid transparent;
       transition: border-color 0.2s;
     }
@@ -405,11 +416,18 @@ import { Subscription } from 'rxjs';
       border-color: white;
     }
 
+    .logo-svg {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+
     .logo-text {
-      font-size: 24px;
+      font-size: 18px;
       font-weight: 700;
       color: white;
       font-family: Arial, sans-serif;
+      letter-spacing: -0.5px;
     }
 
     .logo-in {
