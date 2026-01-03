@@ -15,15 +15,16 @@ import { AuthGuard } from './guards/auth.guard';
 export const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
-  { path: 'users', component: UserListComponent, canActivate: [AuthGuard] },
-  { path: 'items', component: ItemListComponent, canActivate: [AuthGuard] },
-  { path: 'orders', component: OrderListComponent, canActivate: [AuthGuard] },
-  { path: 'cart', component: CartComponent, canActivate: [AuthGuard] },
-  { path: 'payments', component: PaymentListComponent, canActivate: [AuthGuard] },
-  { path: 'inventory', component: InventoryListComponent, canActivate: [AuthGuard] },
-  { path: 'returns', component: ReturnListComponent, canActivate: [AuthGuard] },
-  { path: 'shipments', component: ShipmentListComponent, canActivate: [AuthGuard] },
-  { path: 'notifications', component: NotificationListComponent, canActivate: [AuthGuard] },
+  // Publicly accessible routes (no login gate)
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'users', component: UserListComponent },
+  { path: 'items', component: ItemListComponent },
+  { path: 'orders', component: OrderListComponent },
+  { path: 'cart', component: CartComponent },
+  { path: 'payments', component: PaymentListComponent },
+  { path: 'inventory', component: InventoryListComponent },
+  { path: 'returns', component: ReturnListComponent },
+  { path: 'shipments', component: ShipmentListComponent },
+  { path: 'notifications', component: NotificationListComponent },
   { path: '**', redirectTo: '/login' }
 ];
