@@ -7,6 +7,7 @@ import com.example.entity.Order;
 import com.example.entity.OrderItem;
 import com.example.entity.OrderStatus;
 import com.example.repository.OrderRepository;
+import com.example.OrderSaga;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -27,6 +28,7 @@ public class OrderServiceImpl implements IOrderService {
 
     private final OrderRepository orderRepository;
     private final KafkaTemplate<String, SagaEvent> kafkaTemplate;
+    private final OrderSaga orderSaga;
 
     public OrderDTO createOrder(CreateOrderRequest request) {
         log.info("Creating new order for customer: {}", request.getCustomerId());
@@ -136,13 +138,22 @@ public class OrderServiceImpl implements IOrderService {
 
     // Kafka event publishing methods
     private void publishOrderCreatedEvent(Order order) {
+        // Build a compact data payload: "amount|sku1:qty1,sku2:qty2"
+        String items = order.getItems().stream()
+            .map(i -> i.getProductId() + ":" + i.getQuantity())
+            .collect(Collectors.joining(","));
+        String orderData = order.getTotalAmount() + "|" + items;
+
         SagaEvent event = new SagaEvent(
             order.getOrderNumber(),
             "OrderCreated",
-            order.getCustomerId()
+            orderData
         );
         kafkaTemplate.send("order-events", event);
-        log.info("Published OrderCreated event for order: {}", order.getOrderNumber());
+
+        // Kick off the saga with the order data so payment/inventory have context
+        orderSaga.start(order.getOrderNumber(), orderData);
+        log.info("Published OrderCreated event and started saga for order: {}", order.getOrderNumber());
     }
 
     private void publishOrderStatusChangedEvent(Order order, OrderStatus oldStatus, OrderStatus newStatus) {

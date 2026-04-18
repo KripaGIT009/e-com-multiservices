@@ -1,620 +1,492 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatTabsModule,
-    MatIconModule,
-    MatSnackBarModule,
-    MatDividerModule,
-    MatCheckboxModule
-  ],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   template: `
-    <div class="auth-container">
+    <div class="auth-page">
+
+      <!-- Logo -->
+      <div class="auth-logo" (click)="router.navigate(['/'])">
+        <span class="logo-text">🛍️ My Indian Store</span>
+      </div>
+
+      <!-- Card -->
       <div class="auth-card">
-        <div class="auth-header">
-          <div class="icon-container">
-            <mat-icon class="header-icon">shopping_cart</mat-icon>
-          </div>
-          <h1>Welcome Back!</h1>
-          <p>Sign in to save your cart and access exclusive deals</p>
+
+        <!-- Tab switcher -->
+        <div class="auth-tabs">
+          <button class="tab-btn" [class.active]="mode==='customer'" (click)="setMode('customer')">Customer</button>
+          <button class="tab-btn" [class.active]="mode==='admin'" (click)="setMode('admin')">Admin</button>
         </div>
 
-        <mat-tab-group
-          class="auth-tabs"
-          [selectedIndex]="selectedTabIndex"
-          (selectedIndexChange)="onTabChange($event)">
-          
-          <!-- Login Tab -->
-          <mat-tab label="Login">
-            <div class="tab-content">
-              <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
-                <mat-form-field appearance="fill" class="form-field">
-                  <mat-label>Email</mat-label>
-                  <input matInput type="email" formControlName="email" placeholder="your@email.com" />
-                  <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
-                    Email is required
-                  </mat-error>
-                  <mat-error *ngIf="loginForm.get('email')?.hasError('email')">
-                    Please enter a valid email
-                  </mat-error>
-                </mat-form-field>
+        <!-- ── CUSTOMER LOGIN ── -->
+        <ng-container *ngIf="mode==='customer' && view==='login'">
+          <h2 class="card-title">Sign in</h2>
 
-                <mat-form-field appearance="fill" class="form-field">
-                  <mat-label>Password</mat-label>
-                  <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Enter your password" />
-                  <button type="button" mat-icon-button matSuffix (click)="hidePassword = !hidePassword">
-                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                  </button>
-                  <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-                    Password is required
-                  </mat-error>
-                </mat-form-field>
+          <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
 
-                <button 
-                  mat-raised-button 
-                  color="primary" 
-                  class="submit-btn"
-                  [disabled]="loginForm.invalid || loading">
-                  <mat-icon *ngIf="!loading">login</mat-icon>
-                  <span>{{ loading ? 'Logging in...' : 'Login' }}</span>
-                </button>
-              </form>
-
-              <div class="divider">
-                <span>or</span>
+          <form [formGroup]="loginForm" (ngSubmit)="onCustomerLogin()">
+            <div class="field">
+              <label>Email or mobile phone number</label>
+              <input formControlName="username" type="text" autocomplete="username" />
+              <div class="field-err" *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.invalid">
+                Enter your email or username
               </div>
-
-              <button mat-stroked-button class="guest-btn">
-                <mat-icon>person</mat-icon>
-                Continue as Guest
-              </button>
-
-              <p class="demo-users">
-                <strong>Demo Credentials:</strong><br/>
-                Customer: customer&#64;example.com / password<br/>
-                Admin: admin&#64;example.com / password
-              </p>
             </div>
-          </mat-tab>
-
-          <!-- Sign Up Tab -->
-          <mat-tab label="Sign Up">
-            <div class="tab-content">
-              <form [formGroup]="signupForm" (ngSubmit)="onSignup()">
-                <mat-form-field appearance="fill" class="form-field">
-                  <mat-label>Username</mat-label>
-                  <input matInput formControlName="username" placeholder="Choose a username" />
-                  <mat-error *ngIf="signupForm.get('username')?.hasError('required')">
-                    Username is required
-                  </mat-error>
-                  <mat-error *ngIf="signupForm.get('username')?.hasError('minlength')">
-                    Username must be at least 3 characters
-                  </mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="fill" class="form-field">
-                  <mat-label>Email</mat-label>
-                  <input matInput type="email" formControlName="email" placeholder="your@email.com" />
-                  <mat-error *ngIf="signupForm.get('email')?.hasError('required')">
-                    Email is required
-                  </mat-error>
-                  <mat-error *ngIf="signupForm.get('email')?.hasError('email')">
-                    Please enter a valid email
-                  </mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="fill" class="form-field">
-                  <mat-label>Password</mat-label>
-                  <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="password" placeholder="Create a strong password" />
-                  <button type="button" mat-icon-button matSuffix (click)="hidePassword = !hidePassword">
-                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                  </button>
-                  <mat-error *ngIf="signupForm.get('password')?.hasError('required')">
-                    Password is required
-                  </mat-error>
-                  <mat-error *ngIf="signupForm.get('password')?.hasError('minlength')">
-                    Password must be at least 6 characters
-                  </mat-error>
-                </mat-form-field>
-
-                <mat-form-field appearance="fill" class="form-field">
-                  <mat-label>Confirm Password</mat-label>
-                  <input matInput [type]="hidePassword ? 'password' : 'text'" formControlName="confirmPassword" placeholder="Confirm your password" />
-                  <button type="button" mat-icon-button matSuffix (click)="hidePassword = !hidePassword">
-                    <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                  </button>
-                  <mat-error *ngIf="signupForm.get('confirmPassword')?.hasError('required')">
-                    Please confirm your password
-                  </mat-error>
-                  <mat-error *ngIf="signupForm.hasError('passwordMismatch')">
-                    Passwords do not match
-                  </mat-error>
-                </mat-form-field>
-
-                <button 
-                  mat-raised-button 
-                  color="primary" 
-                  class="submit-btn"
-                  [disabled]="signupForm.invalid || loading">
-                  <mat-icon *ngIf="!loading">person_add</mat-icon>
-                  <span>{{ loading ? 'Creating Account...' : 'Create Account' }}</span>
-                </button>
-              </form>
-
-              <p class="terms">
-                By signing up, you agree to our Terms of Service and Privacy Policy
-              </p>
+            <div class="field">
+              <label>Password <a class="forgot" href="#">Forgot password?</a></label>
+              <input formControlName="password" [type]="showPwd ? 'text' : 'password'" autocomplete="current-password" />
+              <button type="button" class="show-pwd" (click)="showPwd=!showPwd">{{ showPwd ? 'Hide' : 'Show' }}</button>
+              <div class="field-err" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+                Enter your password
+              </div>
             </div>
-          </mat-tab>
-        </mat-tab-group>
+            <button type="submit" class="btn-primary" [disabled]="loading">
+              {{ loading ? 'Signing in…' : 'Sign in' }}
+            </button>
+          </form>
 
-        <button mat-button class="back-home" (click)="goHome()">
-          <mat-icon>arrow_back</mat-icon>
-          Back to Home
-        </button>
+          <p class="terms">
+            By continuing, you agree to My Indian Store's
+            <a href="#">Conditions of Use</a> and <a href="#">Privacy Notice</a>.
+          </p>
+
+          <div class="divider"><span>New to My Indian Store?</span></div>
+
+          <button class="btn-secondary" (click)="view='register'">Create your account</button>
+        </ng-container>
+
+        <!-- ── CUSTOMER REGISTER ── -->
+        <ng-container *ngIf="mode==='customer' && view==='register'">
+          <h2 class="card-title">Create account</h2>
+
+          <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+          <form [formGroup]="registerForm" (ngSubmit)="onCustomerRegister()">
+            <div class="field">
+              <label>Your name</label>
+              <input formControlName="username" type="text" placeholder="First and last name" />
+              <div class="field-err" *ngIf="registerForm.get('username')?.touched && registerForm.get('username')?.invalid">
+                Enter your name
+              </div>
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input formControlName="email" type="email" />
+              <div class="field-err" *ngIf="registerForm.get('email')?.touched && registerForm.get('email')?.invalid">
+                Enter a valid email
+              </div>
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input formControlName="password" [type]="showPwd ? 'text' : 'password'" />
+              <button type="button" class="show-pwd" (click)="showPwd=!showPwd">{{ showPwd ? 'Hide' : 'Show' }}</button>
+              <div class="field-err" *ngIf="registerForm.get('password')?.touched && registerForm.get('password')?.invalid">
+                Minimum 6 characters required
+              </div>
+            </div>
+            <div class="field">
+              <label>Re-enter password</label>
+              <input formControlName="confirmPassword" [type]="showPwd ? 'text' : 'password'" />
+              <div class="field-err" *ngIf="registerForm.hasError('mismatch') && registerForm.get('confirmPassword')?.touched">
+                Passwords must match
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" [disabled]="loading">
+              {{ loading ? 'Creating…' : 'Continue' }}
+            </button>
+          </form>
+
+          <p class="terms">
+            By creating an account, you agree to My Indian Store's
+            <a href="#">Conditions of Use</a> and <a href="#">Privacy Notice</a>.
+          </p>
+
+          <div class="divider"><span>Already have an account?</span></div>
+          <button class="btn-secondary" (click)="view='login'">Sign in</button>
+        </ng-container>
+
+        <!-- ── ADMIN LOGIN ── -->
+        <ng-container *ngIf="mode==='admin'">
+          <h2 class="card-title">Admin Sign in</h2>
+          <p class="admin-sub">Access the admin dashboard</p>
+
+          <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+          <form [formGroup]="adminForm" (ngSubmit)="onAdminLogin()">
+            <div class="field">
+              <label>Admin Username</label>
+              <input formControlName="username" type="text" autocomplete="username" />
+              <div class="field-err" *ngIf="adminForm.get('username')?.touched && adminForm.get('username')?.invalid">
+                Enter your admin username
+              </div>
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input formControlName="password" [type]="showPwd ? 'text' : 'password'" autocomplete="current-password" />
+              <button type="button" class="show-pwd" (click)="showPwd=!showPwd">{{ showPwd ? 'Hide' : 'Show' }}</button>
+              <div class="field-err" *ngIf="adminForm.get('password')?.touched && adminForm.get('password')?.invalid">
+                Enter your password
+              </div>
+            </div>
+            <button type="submit" class="btn-admin" [disabled]="loading">
+              {{ loading ? 'Signing in…' : 'Sign in to Admin' }}
+            </button>
+          </form>
+
+          <div class="admin-hint">
+            <strong>Default credentials:</strong> admin / admin123
+          </div>
+        </ng-container>
+
       </div>
+
+      <!-- Footer -->
+      <div class="auth-footer">
+        <a href="#">Conditions of Use</a>
+        <a href="#">Privacy Notice</a>
+        <a href="#">Help</a>
+        <p>© 2025 My Indian Store</p>
+      </div>
+
     </div>
   `,
   styles: [`
-    .auth-container {
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .auth-page {
       min-height: 100vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .auth-card {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
-      max-width: 480px;
-      width: 100%;
-      animation: slideUp 0.5s ease-out;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .auth-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 48px 24px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .auth-header::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      right: -50%;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      animation: pulse 4s ease-in-out infinite;
-    }
-
-    .icon-container {
-      background: rgba(255, 255, 255, 0.2);
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-      backdrop-filter: blur(10px);
-      position: relative;
-      z-index: 1;
-    }
-
-    .header-icon {
-      font-size: 40px;
-      width: 40px;
-      height: 40px;
-      color: white;
-    }
-
-    .auth-header h1 {
-      margin: 0 0 12px 0;
-      font-size: 2.2rem;
-      font-weight: 700;
-      position: relative;
-      z-index: 1;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .auth-header p {
-      margin: 0;
-      opacity: 0.95;
-      font-size: 1rem;
-      position: relative;
-      z-index: 1;
-      max-width: 300px;
-      margin: 0 auto;
-      line-height: 1.5;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(-10px, -10px) scale(1.1); }
-    }
-
-    .auth-tabs {
-      padding: 40px 32px 32px;
-    }
-
-    .tab-content {
-      animation: fadeIn 0.4s ease-out;
-      padding-top: 24px;
-    }
-
-    form {
+      background: #fff;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      align-items: center;
+      font-family: Arial, sans-serif;
     }
 
-    .form-field {
-      width: 100%;
-      margin: 0 !important;
+    /* Logo */
+    .auth-logo {
+      padding: 20px 0 16px;
+      cursor: pointer;
     }
-
-    ::ng-deep .auth-tabs mat-form-field {
-      width: 100% !important;
-      display: block !important;
-    }
-
-    ::ng-deep .mat-mdc-text-field-wrapper {
-      background-color: #f8f9fa !important;
-    }
-
-    ::ng-deep .mat-mdc-form-field-focus-overlay {
-      background-color: rgba(102, 126, 234, 0.05) !important;
-    }
-
-    .submit-btn {
-      padding: 16px 32px !important;
-      font-size: 1.05rem !important;
-      border-radius: 12px !important;
-      font-weight: 600;
-      margin-top: 16px;
-      height: 56px !important;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35) !important;
-      transition: all 0.3s ease !important;
-      letter-spacing: 0.5px;
-    }
-
-    .submit-btn:hover:not(:disabled) {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.45) !important;
-    }
-
-    .submit-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .submit-btn mat-icon {
-      margin-right: 8px;
-    }
-
-    .divider {
-      position: relative;
-      text-align: center;
-      margin: 28px 0;
-    }
-
-    .divider::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      width: 100%;
-      height: 1px;
-      background: #e0e0e0;
-    }
-
-    .divider span {
-      background: white;
-      padding: 0 16px;
-      color: #95a5a6;
-      font-size: 0.9rem;
-      position: relative;
-      font-weight: 500;
-    }
-
-    .guest-btn {
-      width: 100%;
-      padding: 14px 24px !important;
-      height: 52px !important;
-      border: 2px solid #667eea !important;
-      color: #667eea !important;
-      font-weight: 600;
-      border-radius: 12px !important;
-      transition: all 0.3s ease !important;
-      letter-spacing: 0.3px;
-    }
-
-    .guest-btn:hover {
-      background: rgba(102, 126, 234, 0.08) !important;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
-    }
-
-    .guest-btn mat-icon {
-      margin-right: 8px;
-    }
-
-    .demo-users {
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-      padding: 16px 20px;
-      border-radius: 12px;
-      font-size: 0.875rem;
-      color: #495057;
-      margin-top: 20px;
-      line-height: 1.8;
-      border-left: 4px solid #667eea;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
-
-    .demo-users strong {
-      color: #667eea;
+    .logo-text {
+      font-size: 22px;
       font-weight: 700;
-      display: block;
-      margin-bottom: 8px;
+      color: #131921;
     }
 
-    .terms {
-      font-size: 0.875rem;
-      color: #95a5a6;
-      text-align: center;
-      margin-top: 20px;
-      line-height: 1.6;
-      padding: 0 8px;
-    }
-
-    .back-home {
+    /* Card */
+    .auth-card {
       width: 100%;
-      padding: 16px !important;
-      border-top: 1px solid #e9ecef;
-      margin-top: 0;
-      color: #667eea !important;
-      border-radius: 0 !important;
+      max-width: 348px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 24px;
+      background: #fff;
+    }
+
+    /* Tabs */
+    .auth-tabs {
+      display: flex;
+      border-bottom: 2px solid #e7e7e7;
+      margin-bottom: 20px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 10px 0;
+      font-size: 14px;
       font-weight: 600;
-      transition: all 0.3s ease !important;
+      color: #555;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.15s;
+    }
+    .tab-btn.active {
+      color: #c7511f;
+      border-bottom-color: #c7511f;
+    }
+    .tab-btn:hover:not(.active) { color: #c7511f; }
+
+    /* Title */
+    .card-title {
+      font-size: 24px;
+      font-weight: 400;
+      color: #111;
+      margin-bottom: 16px;
+    }
+    .admin-sub {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 16px;
+      margin-top: -12px;
     }
 
-    .back-home:hover {
-      background: rgba(102, 126, 234, 0.05) !important;
+    /* Error box */
+    .error-box {
+      background: #fff8f0;
+      border: 1px solid #c7511f;
+      border-left: 4px solid #c7511f;
+      border-radius: 4px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #c7511f;
+      margin-bottom: 16px;
     }
 
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    /* Fields */
+    .field {
+      margin-bottom: 14px;
+      position: relative;
+    }
+    .field label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 4px;
+    }
+    .field input {
+      width: 100%;
+      height: 36px;
+      padding: 4px 8px;
+      border: 1px solid #888;
+      border-radius: 3px;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+    }
+    .field input:focus {
+      border-color: #e77600;
+      box-shadow: 0 0 0 3px rgba(228,121,17,0.25);
+    }
+    .show-pwd {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      background: none;
+      border: none;
+      font-size: 12px;
+      color: #0066c0;
+      cursor: pointer;
+    }
+    .show-pwd:hover { text-decoration: underline; color: #c7511f; }
+    .forgot { font-size: 12px; color: #0066c0; text-decoration: none; font-weight: 400; }
+    .forgot:hover { text-decoration: underline; color: #c7511f; }
+    .field-err { font-size: 12px; color: #c7511f; margin-top: 4px; }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      height: 36px;
+      background: linear-gradient(to bottom, #f7dfa5, #f0c14b);
+      border: 1px solid #a88734;
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #111;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover:not(:disabled) { background: linear-gradient(to bottom, #f5d78e, #eeb933); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%;
+      height: 36px;
+      background: linear-gradient(to bottom, #f7f8fa, #e7e9ec);
+      border: 1px solid #adb1b8;
+      border-radius: 3px;
+      font-size: 13px;
+      color: #111;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-secondary:hover { background: linear-gradient(to bottom, #e7e9ec, #d9dce1); }
+
+    .btn-admin {
+      width: 100%;
+      height: 36px;
+      background: linear-gradient(to bottom, #f0c14b, #e8a820);
+      border: 1px solid #a88734;
+      border-radius: 3px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #111;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .btn-admin:hover:not(:disabled) { background: linear-gradient(to bottom, #e8a820, #d4920e); }
+    .btn-admin:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* Terms */
+    .terms {
+      font-size: 11px;
+      color: #555;
+      margin-top: 12px;
+      line-height: 1.5;
+    }
+    .terms a { color: #0066c0; text-decoration: none; }
+    .terms a:hover { text-decoration: underline; color: #c7511f; }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 16px 0 12px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e7e7e7;
+    }
+    .divider span { font-size: 12px; color: #767676; white-space: nowrap; }
+
+    /* Admin hint */
+    .admin-hint {
+      margin-top: 16px;
+      padding: 10px 12px;
+      background: #f3f3f3;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #555;
+      border-left: 3px solid #f0c14b;
     }
 
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
+    /* Footer */
+    .auth-footer {
+      margin-top: 24px;
+      padding: 16px;
+      border-top: 1px solid #ddd;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 12px;
+      font-size: 12px;
     }
-
-    /* Material Overrides */
-    ::ng-deep .auth-tabs .mat-mdc-tab-label {
-      min-width: auto !important;
-      padding: 0 32px !important;
-    }
-
-    ::ng-deep .auth-tabs .mdc-tab__content {
-      padding: 24px 0 !important;
-    }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .auth-card {
-        border-radius: 12px;
-      }
-
-      .auth-header {
-        padding: 32px 16px;
-      }
-
-      .auth-header h1 {
-        font-size: 1.5rem;
-      }
-
-      .auth-tabs {
-        padding: 24px 16px;
-      }
-
-      .form-field {
-        margin-bottom: 8px !important;
-      }
-
-      form {
-        gap: 16px;
-      }
-    }
-
-    /* Ensure proper alignment across all screen sizes */
-    ::ng-deep .mat-mdc-form-field-infix {
-      padding: 12px 0 !important;
-    }
+    .auth-footer a { color: #0066c0; text-decoration: none; }
+    .auth-footer a:hover { text-decoration: underline; color: #c7511f; }
+    .auth-footer p { width: 100%; text-align: center; color: #767676; }
   `]
 })
 export class AuthComponent implements OnInit {
-  loginForm!: FormGroup;
-  signupForm!: FormGroup;
+  mode: 'customer' | 'admin' = 'customer';
+  view: 'login' | 'register' = 'login';
   loading = false;
-  hidePassword = true;
-  selectedTabIndex = 0;
+  errorMsg = '';
+  showPwd = false;
+
+  loginForm!: FormGroup;
+  registerForm!: FormGroup;
+  adminForm!: FormGroup;
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     private http: HttpClient,
-    private snackBar: MatSnackBar,
     private authService: AuthService
-  ) {
-    this.initializeForms();
-  }
+  ) {}
 
   ngOnInit(): void {
-    // Check query params to determine which tab to show
-    this.route.queryParams.subscribe(params => {
-      if (params['type'] === 'signup') {
-        this.selectedTabIndex = 1;
-      } else {
-        this.selectedTabIndex = 0;
-      }
-    });
-  }
-
-  private initializeForms(): void {
     this.loginForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', Validators.required]
+    });
+
+    this.registerForm = this.fb.group({
+      username: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required]
+    }, { validators: this.pwdMatch });
+
+    this.adminForm = this.fb.group({
+      username: ['', Validators.required],
+      password: ['', Validators.required]
     });
 
-    this.signupForm = this.fb.group(
-      {
-        username: ['', [Validators.required, Validators.minLength(3)]],
-        email: ['', [Validators.required, Validators.email]],
-        password: ['', [Validators.required, Validators.minLength(6)]],
-        confirmPassword: ['', Validators.required]
-      },
-      { validators: this.passwordMatchValidator }
-    );
+    this.route.queryParams.subscribe(p => {
+      if (p['type'] === 'signup') this.view = 'register';
+      if (p['mode'] === 'admin') this.mode = 'admin';
+    });
   }
 
-  private passwordMatchValidator(form: FormGroup): { [key: string]: any } | null {
-    const password = form.get('password');
-    const confirmPassword = form.get('confirmPassword');
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      return { passwordMismatch: true };
-    }
-    return null;
+  setMode(m: 'customer' | 'admin'): void {
+    this.mode = m;
+    this.errorMsg = '';
+    this.view = 'login';
   }
 
-  onTabChange(index: number): void {
-    this.selectedTabIndex = index;
-    this.loginForm.reset();
-    this.signupForm.reset();
+  private pwdMatch(g: FormGroup) {
+    return g.get('password')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true };
   }
 
-  onLogin(): void {
-    if (this.loginForm.invalid) {
-      return;
-    }
-
+  onCustomerLogin(): void {
+    this.loginForm.markAllAsTouched();
+    if (this.loginForm.invalid) return;
     this.loading = true;
-    const { email, password } = this.loginForm.value;
-
-    this.authService.login(email, password).subscribe({
-      next: (response) => {
+    this.errorMsg = '';
+    const { username, password } = this.loginForm.value;
+    this.authService.login(username, password).subscribe({
+      next: () => { this.loading = false; this.router.navigate(['/']); },
+      error: (e) => {
         this.loading = false;
-        this.snackBar.open(`✅ Welcome ${response.username || email}!`, 'Close', { 
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-        
-        // Notify other components about login
-        window.dispatchEvent(new CustomEvent('userLoggedIn', {
-          detail: { userId: response.userId || email, username: response.username }
-        }));
-        
-        // Redirect to home
-        setTimeout(() => {
-          this.router.navigate(['/']);
-        }, 500);
-      },
-      error: (error) => {
-        this.loading = false;
-        const errorMessage = error.error?.message || error.message || 'Login failed. Please check your credentials.';
-        this.snackBar.open(`❌ ${errorMessage}`, 'Close', { 
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-        console.error('Login error:', error);
+        this.errorMsg = e.error?.error || 'Invalid email or password. Please try again.';
       }
     });
   }
 
-  onSignup(): void {
-    if (this.signupForm.invalid) {
-      return;
-    }
-
+  onCustomerRegister(): void {
+    this.registerForm.markAllAsTouched();
+    if (this.registerForm.invalid) return;
     this.loading = true;
-    const { username, email, password } = this.signupForm.value;
-
-    this.authService.signup(username, email, password).subscribe({
-      next: (response) => {
+    this.errorMsg = '';
+    const { username, email, password } = this.registerForm.value;
+    this.authService.signup(username, email).subscribe({
+      next: () => { this.loading = false; this.router.navigate(['/']); },
+      error: (e) => {
         this.loading = false;
-        this.snackBar.open(`🎉 Account created! Welcome to My Indian Store.`, 'Close', { 
-          duration: 3000,
-          panelClass: ['success-snackbar']
-        });
-        
-        // Notify other components about login
-        window.dispatchEvent(new CustomEvent('userLoggedIn', {
-          detail: { userId: response.id || email, username: response.username }
-        }));
-        
-        // Redirect to home
-        setTimeout(() => {
-          this.router.navigate(['/']);
-        }, 500);
-      },
-      error: (error) => {
-        this.loading = false;
-        const errorMessage = error.error?.message || error.message || 'Signup failed. Please try again.';
-        this.snackBar.open(`❌ ${errorMessage}`, 'Close', { 
-          duration: 5000,
-          panelClass: ['error-snackbar']
-        });
-        console.error('Signup error:', error);
+        this.errorMsg = e.error?.error || 'Registration failed. Please try again.';
       }
     });
   }
 
-  goHome(): void {
-    this.router.navigate(['/']);
+  onAdminLogin(): void {
+    this.adminForm.markAllAsTouched();
+    if (this.adminForm.invalid) return;
+    this.loading = true;
+    this.errorMsg = '';
+    const { username, password } = this.adminForm.value;
+    this.http.post<any>('/api/auth/admin-login', { username, password }).subscribe({
+      next: (res) => {
+        this.loading = false;
+        // Store admin token and redirect to admin UI
+        localStorage.setItem('token', res.token);
+        localStorage.setItem('username', res.user?.username || username);
+        localStorage.setItem('userRole', res.user?.role || 'ADMIN');
+        localStorage.setItem('isAdmin', 'true');
+        localStorage.setItem('user', JSON.stringify({ username: res.user?.username || username, role: res.user?.role || 'ADMIN' }));
+        window.location.href = res.redirectUrl || 'http://localhost:3000';
+      },
+      error: (e) => {
+        this.loading = false;
+        this.errorMsg = e.error?.error || 'Invalid admin credentials.';
+      }
+    });
   }
 }

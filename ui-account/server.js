@@ -12,9 +12,9 @@ const PORT = process.env.PORT || 4203;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // Backend service URLs
-const USER_SERVICE = process.env.USER_SERVICE_URL || 'http://localhost:8080';
-const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || 'http://localhost:8081';
-const RETURN_SERVICE = process.env.RETURN_SERVICE_URL || 'http://localhost:8087';const AUTH_SERVICE = process.env.AUTH_SERVICE_URL || 'http://localhost:4200';
+const USER_SERVICE = process.env.USER_SERVICE_URL || 'http://localhost:8004';
+const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || 'http://localhost:8001';
+const RETURN_SERVICE = process.env.RETURN_SERVICE_URL || 'http://localhost:8008';const AUTH_SERVICE = process.env.AUTH_SERVICE_URL || 'http://localhost:4200';
 app.use(cors());
 app.use(bodyParser.json());
 

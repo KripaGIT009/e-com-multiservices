@@ -2,35 +2,19 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
-import { of } from 'rxjs';
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
 
 export interface LoginResponse {
   token?: string;
+  user?: { id: any; username: string; email: string; role: string };
+  // legacy fields kept for compatibility
   username?: string;
   userId?: string;
   email?: string;
   role?: string;
-  message?: string;
 }
 
-export interface SignupRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-  private apiUrl = 'http://localhost:8004/users'; // User Service at port 8004
-  private adminApiUrl = 'http://localhost:8011/api/admin'; // Admin Service
-  
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -38,134 +22,66 @@ export class AuthService {
     this.loadCurrentUser();
   }
 
-  login(email: string, password: string): Observable<LoginResponse> {
-    const request: LoginRequest = { email, password };
-    
-    // Call the login endpoint on User Service (port 8004)
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, request).pipe(
-      tap(response => {
-        if (response.token || response.userId) {
-          // Store user info in localStorage
-          localStorage.setItem('userId', response.userId || email);
-          localStorage.setItem('username', response.username || email);
-          localStorage.setItem('userEmail', response.email || email);
-          localStorage.setItem('userRole', response.role || 'CUSTOMER');
-          if (response.token) {
-            localStorage.setItem('token', response.token);
-          }
-          localStorage.setItem('user', JSON.stringify({
-            userId: response.userId,
-            username: response.username,
-            email: response.email,
-            role: response.role
-          }));
-          this.currentUserSubject.next({
-            userId: response.userId,
-            username: response.username,
-            email: response.email,
-            role: response.role
-          });
-        }
-      }),
-      catchError(error => {
-        console.error('Login error:', error);
-        throw error;
-      })
+  // ── Customer login via BFF ──────────────────────────────────────────────────
+  login(username: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>('/api/auth/login', { username, password }).pipe(
+      tap(res => this.storeSession(res)),
+      catchError(err => { throw err; })
     );
   }
 
+  // ── Customer register via BFF ───────────────────────────────────────────────
+  signup(username: string, email: string, firstName = '', lastName = ''): Observable<any> {
+    return this.http.post<any>('/api/auth/register', { username, email, firstName, lastName }).pipe(
+      tap(res => this.storeSession(res)),
+      catchError(err => { throw err; })
+    );
+  }
+
+  // ── Admin login — goes directly to admin-service ────────────────────────────
   adminLogin(username: string, password: string): Observable<LoginResponse> {
-    const request = { username, password };
-    
-    return this.http.post<LoginResponse>(`${this.adminApiUrl}/login`, request).pipe(
-      tap(response => {
-        if (response.token) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('userId', response.username || 'admin');
-          localStorage.setItem('username', response.username || 'admin');
-          localStorage.setItem('userRole', response.role || 'ADMIN');
+    return this.http.post<LoginResponse>('http://localhost:8011/api/admin/login', { username, password }).pipe(
+      tap(res => {
+        if (res.token) {
+          localStorage.setItem('token', res.token);
+          localStorage.setItem('userRole', 'ADMIN');
           localStorage.setItem('isAdmin', 'true');
-          this.currentUserSubject.next({
-            username: response.username,
-            role: response.role,
-            isAdmin: true
-          });
+          this.currentUserSubject.next({ username, role: 'ADMIN' });
+          // Redirect to admin UI
+          window.location.href = 'http://localhost:3000';
         }
       }),
-      catchError(error => {
-        console.error('Admin login error:', error);
-        throw error;
-      })
-    );
-  }
-
-  signup(username: string, email: string, password: string): Observable<any> {
-    const request: SignupRequest = { username, email, password };
-    
-    return this.http.post<any>(`${this.apiUrl}`, {
-      username,
-      email,
-      password,
-      firstName: username,
-      lastName: '',
-      role: 'CUSTOMER'
-    }).pipe(
-      tap(response => {
-        console.log('Signup successful:', response);
-        // After signup, store the user info
-        localStorage.setItem('userId', response.id || email);
-        localStorage.setItem('username', response.username || username);
-        localStorage.setItem('userEmail', response.email || email);
-        localStorage.setItem('userRole', 'CUSTOMER');
-        this.currentUserSubject.next({
-          userId: response.id,
-          username: response.username,
-          email: response.email,
-          role: 'CUSTOMER'
-        });
-      }),
-      catchError(error => {
-        console.error('Signup error:', error);
-        throw error;
-      })
+      catchError(err => { throw err; })
     );
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('username');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userRole');
-    localStorage.removeItem('user');
-    localStorage.removeItem('isAdmin');
+    ['token','userId','username','userEmail','userRole','user','isAdmin'].forEach(k => localStorage.removeItem(k));
     this.currentUserSubject.next(null);
+    window.dispatchEvent(new CustomEvent('userLoggedOut'));
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('token');
-  }
+  getToken(): string | null { return localStorage.getItem('token'); }
+  isLoggedIn(): boolean { return !!this.getToken(); }
+  isAuthenticated(): boolean { return this.isLoggedIn(); }
+  getCurrentUser(): any { return this.currentUserSubject.value; }
 
-  isLoggedIn(): boolean {
-    return !!this.getToken();
-  }
-
-  isAuthenticated(): boolean {
-    return this.isLoggedIn();
-  }
-
-  getCurrentUser(): any {
-    return this.currentUserSubject.value;
+  private storeSession(res: LoginResponse): void {
+    const user = res.user || { id: res.userId, username: res.username, email: res.email, role: res.role || 'CUSTOMER' };
+    if (res.token) localStorage.setItem('token', res.token);
+    localStorage.setItem('userId',    String(user.id   || ''));
+    localStorage.setItem('username',  user.username || '');
+    localStorage.setItem('userEmail', user.email    || '');
+    localStorage.setItem('userRole',  user.role     || 'CUSTOMER');
+    localStorage.setItem('user', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+    window.dispatchEvent(new CustomEvent('userLoggedIn', { detail: user }));
   }
 
   private loadCurrentUser(): void {
-    const user = localStorage.getItem('user');
-    if (user) {
-      try {
-        this.currentUserSubject.next(JSON.parse(user));
-      } catch (e) {
-        console.error('Error parsing user from localStorage:', e);
-      }
-    }
+    try {
+      const raw = localStorage.getItem('user');
+      if (raw) this.currentUserSubject.next(JSON.parse(raw));
+    } catch (_) {}
   }
 }

@@ -8,7 +8,6 @@ com\example\domain\ShipmentStatus.class
 com\example\LogisticsServiceApplication.class
 com\example\repository\ShipmentRepository.class
 com\example\controller\ShipmentController.class
-com\example\config\KafkaConfig.class
 com\example\dto\CreateShipmentRequest.class
 com\example\entity\Shipment.class
 com\example\service\IShipmentService.class

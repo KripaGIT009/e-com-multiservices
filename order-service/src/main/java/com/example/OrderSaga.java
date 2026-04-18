@@ -14,16 +14,20 @@ public class OrderSaga {
         this.kafka = kafka;
     }
 
-    public void start(String orderId) {
-        kafka.send("order-events", new SagaEvent(orderId, "OrderCreated", null));
-        kafka.send("payment-command", new SagaEvent(orderId, "ProcessPayment", null));
+    /**
+     * Starts the saga. data should be a JSON string carrying order details
+     * (e.g. amount and items) so downstream services can act on real values.
+     */
+    public void start(String orderId, String orderData) {
+        kafka.send("order-events", new SagaEvent(orderId, "OrderCreated", orderData));
+        kafka.send("payment-command", new SagaEvent(orderId, "ProcessPayment", orderData));
     }
 
     @KafkaListener(topics = "payment-events")
     public void onPayment(SagaEvent e) {
         if ("PaymentCompleted".equals(e.type())) {
             kafka.send("inventory-command",
-                new SagaEvent(e.orderId(), "ReserveInventory", null));
+                new SagaEvent(e.orderId(), "ReserveInventory", e.data()));
         } else {
             kafka.send("order-events",
                 new SagaEvent(e.orderId(), "OrderCancelled", "Payment failed"));
@@ -36,8 +40,9 @@ public class OrderSaga {
             kafka.send("order-events",
                 new SagaEvent(e.orderId(), "OrderCompleted", null));
         } else {
+            // Compensate: trigger refund
             kafka.send("payment-command",
-                new SagaEvent(e.orderId(), "RefundPayment", null));
+                new SagaEvent(e.orderId(), "RefundPayment", e.data()));
             kafka.send("order-events",
                 new SagaEvent(e.orderId(), "OrderCancelled", "Inventory failed"));
         }

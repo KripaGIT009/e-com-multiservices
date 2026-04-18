@@ -6,7 +6,6 @@ com\example\dto\CreateOrderRequest.class
 com\example\dto\OrderDTO.class
 com\example\OrderServiceApplication.class
 com\example\service\IOrderService.class
-com\example\orderservice\entity\Order.class
 com\example\service\OrderServiceImpl.class
 com\example\dto\DiscountResponse.class
 com\example\OrderSaga.class
@@ -16,15 +15,11 @@ com\example\entity\OrderItem$OrderItemBuilder.class
 com\example\repository\DiscountRepository.class
 com\example\entity\OrderStatus.class
 com\example\repository\OrderRepository.class
-com\example\orderservice\controller\OrderController.class
 com\example\entity\Discount.class
 com\example\dto\OrderItemDTO.class
-com\example\orderservice\entity\OrderItem.class
 com\example\service\DiscountService.class
 com\example\common\SagaEvent.class
 com\example\controller\OrderController.class
 com\example\dto\CreateOrderItemRequest.class
 com\example\dto\CreateOrderRequest$CreateOrderRequestBuilder.class
 com\example\dto\OrderItemDTO$OrderItemDTOBuilder.class
-com\example\orderservice\repository\OrderRepository.class
-com\example\orderservice\service\OrderService.class

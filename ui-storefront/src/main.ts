@@ -3,11 +3,11 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
-import { AppMyindianstoreComponent } from './app/app-myindianstore.component';
+import { AppComponent } from './app/app.component';
 import { routes } from './app/app.routes';
 import { AuthInterceptor } from './app/interceptors/auth.interceptor';
 
-bootstrapApplication(AppMyindianstoreComponent, {
+bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
     provideHttpClient(),

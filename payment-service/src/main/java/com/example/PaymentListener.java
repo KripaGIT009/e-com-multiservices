@@ -14,14 +14,16 @@ public class PaymentListener {
         this.kafka = kafka;
     }
 
-    @KafkaListener(topics = "payment-command")
+    @KafkaListener(topics = "payment-command", containerFactory = "kafkaListenerContainerFactory")
     public void handle(SagaEvent e) {
         if ("ProcessPayment".equals(e.type())) {
+            // TODO: integrate real payment gateway; stub always succeeds
             kafka.send("payment-events",
-                new SagaEvent(e.orderId(), "PaymentCompleted", null));
-        }
-        if ("RefundPayment".equals(e.type())) {
-            // refund logic
+                new SagaEvent(e.orderId(), "PaymentCompleted", e.data()));
+        } else if ("RefundPayment".equals(e.type())) {
+            // TODO: integrate real refund logic
+            kafka.send("payment-events",
+                new SagaEvent(e.orderId(), "PaymentRefunded", e.data()));
         }
     }
 }

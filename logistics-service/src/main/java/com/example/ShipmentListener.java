@@ -14,7 +14,7 @@ public class ShipmentListener {
         this.shipmentService = shipmentService;
     }
 
-    @KafkaListener(topics = {"shipment-command", "order-events"}, containerFactory = "sagaEventKafkaListenerContainerFactory")
+    @KafkaListener(topics = {"shipment-command", "order-events"})
     public void onEvent(SagaEvent event) {
         if (event == null || event.type() == null) {
             return;

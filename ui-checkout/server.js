@@ -10,9 +10,9 @@ const app = express();
 const PORT = process.env.PORT || 4202;
 
 // Backend service URLs
-const CHECKOUT_SERVICE = process.env.CHECKOUT_SERVICE_URL || 'http://localhost:8086';
-const PAYMENT_SERVICE = process.env.PAYMENT_SERVICE_URL || 'http://localhost:8083';
-const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || 'http://localhost:8081';
+const CHECKOUT_SERVICE = process.env.CHECKOUT_SERVICE_URL || 'http://localhost:8007';
+const PAYMENT_SERVICE = process.env.PAYMENT_SERVICE_URL || 'http://localhost:8002';
+const ORDER_SERVICE = process.env.ORDER_SERVICE_URL || 'http://localhost:8001';
 
 app.use(cors());
 app.use(bodyParser.json());

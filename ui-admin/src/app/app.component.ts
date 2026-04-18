@@ -33,7 +33,8 @@ export class AppComponent {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/login']);
+    // Redirect to customer app after admin logout
+    window.location.href = 'http://localhost:4200';
   }
 
   navigateTo(route: string): void {

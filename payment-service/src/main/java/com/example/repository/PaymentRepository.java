@@ -26,6 +26,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.createdAt BETWEEN :startDate AND :endDate")
     List<Payment> findPaymentsByDateRange(LocalDateTime startDate, LocalDateTime endDate);
 
-    @Query("SELECT p FROM Payment p LEFT JOIN FETCH p WHERE p.id = :id")
+    @Query("SELECT p FROM Payment p WHERE p.id = :id")
     Optional<Payment> findByIdWithDetails(Long id);
 }

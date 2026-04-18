@@ -6,9 +6,9 @@ spring:
     name: admin-service
   
   datasource:
-    url: jdbc:postgresql://localhost:5442/admin_db
-    username: admin
-    password: admin123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://admin_postgres:5432/admin_db}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -21,7 +21,7 @@ spring:
         format_sql: true
   
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     consumer:
       group-id: admin-group
       auto-offset-reset: earliest
@@ -49,8 +49,8 @@ service:
 
 # JWT Configuration
 jwt:
-  secret: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
-  expiration: 86400000 # 24 hours
+  secret: ${JWT_SECRET:adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 # Management
 management:

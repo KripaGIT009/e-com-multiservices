@@ -11,5 +11,4 @@ com\example\NotificationListener.class
 com\example\dto\SendNotificationRequest.class
 com\example\repository\NotificationPreferenceRepository.class
 com\example\controller\NotificationController.class
-com\example\config\KafkaConfig.class
 com\example\repository\NotificationEventRepository.class
