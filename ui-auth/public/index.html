@@ -206,7 +206,46 @@
             text-decoration: underline;
         }
 
-        .redirect-message {
+        .divider {
+            text-align: center;
+            margin: 18px 0 14px;
+            color: #aaa;
+            font-size: 13px;
+            position: relative;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            display: inline-block;
+            width: 38%;
+            height: 1px;
+            background: #ddd;
+            vertical-align: middle;
+            margin: 0 8px;
+        }
+        .guest-section {
+            text-align: center;
+        }
+        .btn-guest {
+            width: 100%;
+            padding: 11px;
+            background: #fff;
+            border: 1px solid #aaa;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-guest:hover {
+            background: #f5f5f5;
+            border-color: #888;
+        }
+        .guest-hint {
+            margin-top: 7px;
+            font-size: 12px;
+            color: #888;
+        }
             text-align: center;
             color: #667eea;
             margin: 20px 0;
@@ -256,6 +295,13 @@
 
             <div class="toggle-form">
                 Don't have an account? <a onclick="toggleForms()">Create one</a>
+            </div>
+
+            <div class="divider">or</div>
+
+            <div class="guest-section">
+                <button class="btn-guest" onclick="browseAsGuest()">Continue as Guest</button>
+                <p class="guest-hint">Browse products without signing in</p>
             </div>
         </div>
 
@@ -430,6 +476,11 @@
                 showError(error.message, 'register');
             }
         });
+
+        function browseAsGuest() {
+            const STOREFRONT = window.location.protocol + '//' + window.location.hostname + ':4201';
+            window.location.href = STOREFRONT;
+        }
 
         // Check if user is already logged in
         window.addEventListener('load', () => {
