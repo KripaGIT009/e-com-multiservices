@@ -7,7 +7,7 @@ target/
 *.war
 
 # Angular build cache
-.angular/cache/
+.angular/
 
 # Environment files (contain secrets)
 .env
