@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.config.JwtTokenProvider;
 import com.example.dto.UserRequest;
 import com.example.dto.LoginRequest;
 import com.example.dto.LoginResponse;
@@ -21,6 +22,9 @@ public class UserController {
     @Autowired
     private IUserService userService;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody UserRequest request) {
         User user = new User(request.getUsername(), request.getEmail(), request.getPassword(),
@@ -30,24 +34,28 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-        @PostMapping("/login")
-        public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         boolean authenticated = userService.authenticateUser(request.getEmail(), request.getPassword());
         if (authenticated) {
             return userService.getUserByEmail(request.getEmail())
-                .map(user -> ResponseEntity.ok(new LoginResponse(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getRole(),
-                    "Login successful"
-                )))
+                .map(user -> {
+                    String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
+                    return ResponseEntity.ok(new LoginResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getEmail(),
+                        user.getRole(),
+                        "Login successful",
+                        token
+                    ));
+                })
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new LoginResponse(null, null, null, null, "Invalid credentials")));
         }
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
             .body(new LoginResponse(null, null, null, null, "Invalid credentials"));
-        }
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<User> getUser(@PathVariable Long id) {

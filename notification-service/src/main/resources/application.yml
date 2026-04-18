@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://notification_postgres:5432/notification_service
+    url: jdbc:postgresql://localhost:5432/notification_service
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -11,7 +11,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: notification-service-group
       auto-offset-reset: earliest
@@ -24,7 +24,7 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
-  port: 8080
+  port: 8086
 
 management:
   endpoints:

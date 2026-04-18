@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://checkout_postgres:5432/checkout_service
+    url: jdbc:postgresql://localhost:5432/checkout_service
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver

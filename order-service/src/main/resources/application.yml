@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://order_postgres:5432/order_service
+    url: jdbc:postgresql://localhost:5432/order_service
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -11,7 +11,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: localhost:9092
     consumer:
       group-id: order-service-group
       auto-offset-reset: earliest
