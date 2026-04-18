@@ -257,11 +257,6 @@
             <div class="toggle-form">
                 Don't have an account? <a onclick="toggleForms()">Create one</a>
             </div>
-
-            <div class="guest-login">
-                <p style="margin-bottom: 10px;">Just browsing?</p>
-                <a href="#" onclick="guestLogin()">Continue as Guest</a>
-            </div>
         </div>
 
         <!-- REGISTER FORM -->
@@ -435,11 +430,6 @@
                 showError(error.message, 'register');
             }
         });
-
-        function guestLogin() {
-            const storefront = 'http://localhost:4201'; // UI_STOREFRONT_URL
-            window.location.href = storefront;
-        }
 
         // Check if user is already logged in
         window.addEventListener('load', () => {

@@ -11,11 +11,9 @@ const PORT = process.env.PORT || 4200;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const USER_SERVICE = process.env.USER_SERVICE_URL || 'http://localhost:8004';
 
-// UI URLs for redirects based on role
+// UI URLs for redirects — only two flows: ADMIN and CUSTOMER
 const UI_URLS = {
   ADMIN: process.env.UI_ADMIN_URL || 'http://localhost:3000',
-  ACCOUNT: process.env.UI_ACCOUNT_URL || 'http://localhost:4203',
-  CHECKOUT: process.env.UI_CHECKOUT_URL || 'http://localhost:4202',
   STOREFRONT: process.env.UI_STOREFRONT_URL || 'http://localhost:4201'
 };
 
@@ -71,16 +69,8 @@ app.post('/api/auth/login', async (req, res) => {
         { expiresIn: '24h' }
       );
 
-      // Determine redirect URL based on role
-      let redirectUrl = UI_URLS.STOREFRONT; // Default to storefront
-      
-      if (user.role === 'ADMIN') {
-        redirectUrl = UI_URLS.ADMIN;
-      } else if (user.role === 'CUSTOMER') {
-        redirectUrl = UI_URLS.ACCOUNT;
-      } else if (user.role === 'GUEST') {
-        redirectUrl = UI_URLS.STOREFRONT;
-      }
+      // Determine redirect URL: ADMIN → admin portal, everyone else → storefront
+      const redirectUrl = user.role === 'ADMIN' ? UI_URLS.ADMIN : UI_URLS.STOREFRONT;
 
       res.json({ 
         token, 
@@ -140,13 +130,8 @@ app.post('/api/auth/register', async (req, res) => {
         { expiresIn: '24h' }
       );
 
-      // Determine redirect URL based on role
-      let redirectUrl = UI_URLS.STOREFRONT;
-      if (user.role === 'ADMIN') {
-        redirectUrl = UI_URLS.ADMIN;
-      } else if (user.role === 'CUSTOMER') {
-        redirectUrl = UI_URLS.ACCOUNT;
-      }
+      // Determine redirect URL: ADMIN → admin portal, everyone else → storefront
+      const redirectUrl = user.role === 'ADMIN' ? UI_URLS.ADMIN : UI_URLS.STOREFRONT;
 
       res.status(201).json({
         user: {
@@ -214,12 +199,9 @@ app.get('/api/auth/redirect-url/:role', (req, res) => {
   const role = req.params.role.toUpperCase();
   let redirectUrl = UI_URLS.STOREFRONT;
 
+  // Two flows only: ADMIN → admin portal, everyone else → storefront
   if (role === 'ADMIN') {
     redirectUrl = UI_URLS.ADMIN;
-  } else if (role === 'CUSTOMER') {
-    redirectUrl = UI_URLS.ACCOUNT;
-  } else if (role === 'GUEST') {
-    redirectUrl = UI_URLS.STOREFRONT;
   }
 
   res.json({ redirectUrl });
@@ -239,9 +221,7 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
   console.log(`🔐 Centralized Auth Service running on port ${PORT}`);
   console.log(`👤 User Service: ${USER_SERVICE}`);
-  console.log(`\nUI Redirect URLs:`);
-  console.log(`  ADMIN: ${UI_URLS.ADMIN}`);
-  console.log(`  CUSTOMER: ${UI_URLS.ACCOUNT}`);
-  console.log(`  CHECKOUT: ${UI_URLS.CHECKOUT}`);
-  console.log(`  STOREFRONT: ${UI_URLS.STOREFRONT}`);
+  console.log(`\nUI Flows (role-based redirect):`);
+  console.log(`  ADMIN    → ${UI_URLS.ADMIN}`);
+  console.log(`  CUSTOMER → ${UI_URLS.STOREFRONT}`);
 });
