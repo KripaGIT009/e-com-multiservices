@@ -24,7 +24,7 @@ import { AuthService } from './services/auth.service';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'E-Commerce Admin Dashboard';
+  title = 'My Indians Store - Admin';
 
   constructor(
     public authService: AuthService,
