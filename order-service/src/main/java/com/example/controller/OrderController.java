@@ -45,7 +45,7 @@ public class OrderController {
      * Get order by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable("id") Long id) {
         log.info("GET /api/v1/orders/{} - Fetching order by id", id);
         OrderDTO order = orderService.getOrderById(id);
         return ResponseEntity.ok(order);
@@ -55,7 +55,7 @@ public class OrderController {
      * Get order by order number
      */
     @GetMapping("/number/{orderNumber}")
-    public ResponseEntity<OrderDTO> getOrderByNumber(@PathVariable String orderNumber) {
+    public ResponseEntity<OrderDTO> getOrderByNumber(@PathVariable("orderNumber") String orderNumber) {
         log.info("GET /api/v1/orders/number/{} - Fetching order by number", orderNumber);
         OrderDTO order = orderService.getOrderByNumber(orderNumber);
         return ResponseEntity.ok(order);
@@ -65,7 +65,7 @@ public class OrderController {
      * Get orders by customer ID
      */
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<OrderDTO>> getOrdersByCustomer(@PathVariable String customerId) {
+    public ResponseEntity<List<OrderDTO>> getOrdersByCustomer(@PathVariable("customerId") String customerId) {
         log.info("GET /api/v1/orders/customer/{} - Fetching orders by customer", customerId);
         List<OrderDTO> orders = orderService.getOrdersByCustomer(customerId);
         return ResponseEntity.ok(orders);
@@ -75,7 +75,7 @@ public class OrderController {
      * Get orders by user ID (Alias for frontend compatibility)
      */
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@PathVariable String userId) {
+    public ResponseEntity<List<OrderDTO>> getOrdersByUserId(@PathVariable("userId") String userId) {
         log.info("GET /api/v1/orders/user/{} - Fetching orders by user", userId);
         List<OrderDTO> orders = orderService.getOrdersByCustomer(userId);
         return ResponseEntity.ok(orders);
@@ -85,7 +85,7 @@ public class OrderController {
      * Get orders by status
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<OrderDTO>> getOrdersByStatus(@PathVariable OrderStatus status) {
+    public ResponseEntity<List<OrderDTO>> getOrdersByStatus(@PathVariable("status") OrderStatus status) {
         log.info("GET /api/v1/orders/status/{} - Fetching orders by status", status);
         List<OrderDTO> orders = orderService.getOrdersByStatus(status);
         return ResponseEntity.ok(orders);
@@ -96,7 +96,7 @@ public class OrderController {
      */
     @PatchMapping("/{id}/status")
     public ResponseEntity<OrderDTO> updateOrderStatus(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @RequestParam OrderStatus status) {
         log.info("PATCH /api/v1/orders/{}/status?status={} - Updating order status", id, status);
         OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
@@ -107,7 +107,7 @@ public class OrderController {
      * Delete order
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteOrder(@PathVariable("id") Long id) {
         log.info("DELETE /api/v1/orders/{} - Deleting order", id);
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();

@@ -32,4 +32,27 @@ export class OrderService {
       headers: this.authService.getAuthHeaders()
     });
   }
+
+  getOrderWorkflowActions(id: number): Observable<OrderWorkflowActionsResponse> {
+    return this.http.get<OrderWorkflowActionsResponse>(
+      `${this.apiUrl}/${id}/workflow/actions`,
+      {
+        headers: this.authService.getAuthHeaders()
+      }
+    );
+  }
+
+  executeOrderWorkflowAction(id: number, action: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/workflow/actions`, { action }, {
+      headers: this.authService.getAuthHeaders()
+    });
+  }
+}
+
+export interface OrderWorkflowActionsResponse {
+  orderId: number;
+  currentStatus: string;
+  availableActions: string[];
+  recommendedAction?: string;
+  actionPriorities?: Record<string, number>;
 }

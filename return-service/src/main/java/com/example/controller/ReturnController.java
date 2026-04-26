@@ -29,40 +29,40 @@ public class ReturnController {
     }
 
     @GetMapping("/{returnId}")
-    public ResponseEntity<Return> getReturn(@PathVariable Long returnId) {
+    public ResponseEntity<Return> getReturn(@PathVariable("returnId") Long returnId) {
         Return ret = returnService.getReturn(returnId);
         return ret != null ? new ResponseEntity<>(ret, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Return>> getReturnsByUser(@PathVariable Long userId) {
+    public ResponseEntity<List<Return>> getReturnsByUser(@PathVariable("userId") Long userId) {
         List<Return> returns = returnService.getReturnsByUserId(userId);
         return new ResponseEntity<>(returns, HttpStatus.OK);
     }
 
     @GetMapping("/order/{orderId}")
-    public ResponseEntity<List<Return>> getReturnsByOrder(@PathVariable Long orderId) {
+    public ResponseEntity<List<Return>> getReturnsByOrder(@PathVariable("orderId") Long orderId) {
         List<Return> returns = returnService.getReturnsByOrderId(orderId);
         return new ResponseEntity<>(returns, HttpStatus.OK);
     }
 
     @PutMapping("/{returnId}/approve")
-    public ResponseEntity<Return> approveReturn(@PathVariable Long returnId) {
+    public ResponseEntity<Return> approveReturn(@PathVariable("returnId") Long returnId) {
         Return ret = returnService.approveReturn(returnId);
         return ret != null ? new ResponseEntity<>(ret, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/{returnId}/reject")
-    public ResponseEntity<Return> rejectReturn(@PathVariable Long returnId) {
+    public ResponseEntity<Return> rejectReturn(@PathVariable("returnId") Long returnId) {
         Return ret = returnService.rejectReturn(returnId);
         return ret != null ? new ResponseEntity<>(ret, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @PutMapping("/{returnId}/refund")
-    public ResponseEntity<Return> processRefund(@PathVariable Long returnId) {
+    public ResponseEntity<Return> processRefund(@PathVariable("returnId") Long returnId) {
         Return ret = returnService.processRefund(returnId);
         return ret != null ? new ResponseEntity<>(ret, HttpStatus.OK)
                 : new ResponseEntity<>(HttpStatus.NOT_FOUND);

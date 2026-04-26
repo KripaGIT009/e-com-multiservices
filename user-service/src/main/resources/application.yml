@@ -14,11 +14,18 @@ spring:
 server:
   port: 8080
 
+jwt:
+  secret: userServiceSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+  expiration: 86400000
+  refresh-expiration: 604800000
+
 springdoc:
   api-docs:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+management:
   endpoints:
     web:
       exposure:

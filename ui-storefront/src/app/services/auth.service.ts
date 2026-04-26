@@ -31,8 +31,8 @@ export class AuthService {
   }
 
   // ── Customer register via BFF ───────────────────────────────────────────────
-  signup(username: string, email: string, firstName = '', lastName = ''): Observable<any> {
-    return this.http.post<any>('/api/auth/register', { username, email, firstName, lastName }).pipe(
+  signup(username: string, email: string, password: string, firstName = '', lastName = ''): Observable<any> {
+    return this.http.post<any>('/api/auth/register', { username, email, password, firstName, lastName }).pipe(
       tap(res => this.storeSession(res)),
       catchError(err => { throw err; })
     );
@@ -81,7 +81,36 @@ export class AuthService {
   private loadCurrentUser(): void {
     try {
       const raw = localStorage.getItem('user');
-      if (raw) this.currentUserSubject.next(JSON.parse(raw));
+      const token = localStorage.getItem('token');
+      if (raw) {
+        const user = JSON.parse(raw);
+        const resolvedUser = {
+          ...user,
+          id: user?.id || user?.userId || this.extractUserIdFromToken(token)
+        };
+        if (resolvedUser.id) {
+          localStorage.setItem('userId', String(resolvedUser.id));
+        }
+        this.currentUserSubject.next(resolvedUser);
+        return;
+      }
+
+      const tokenUserId = this.extractUserIdFromToken(token);
+      if (tokenUserId) {
+        localStorage.setItem('userId', String(tokenUserId));
+        this.currentUserSubject.next({ id: tokenUserId });
+      }
     } catch (_) {}
+  }
+
+  private extractUserIdFromToken(token: string | null): string | null {
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload?.id ? String(payload.id) : null;
+    } catch (_) {
+      return null;
+    }
   }
 }

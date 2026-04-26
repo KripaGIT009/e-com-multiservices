@@ -1,259 +1,320 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
+import { OpsService, OpsWorkQueueSummary } from '../../services/ops.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule],
+  imports: [CommonModule, MatCardModule, MatIconModule, MatButtonModule, MatProgressSpinnerModule],
   template: `
-    <div class="dashboard-container">
-      <div class="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <p class="subtitle">Manage your e-commerce platform</p>
+    <div class="admin-dash">
+
+      <!-- ── PAGE TITLE ──────────────────────────────────────── -->
+      <div class="dash-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p class="dash-sub">Welcome back, Admin &mdash; here's what's happening today</p>
+        </div>
+        <button class="refresh-btn" (click)="refresh()" title="Refresh">
+          &#10227; Refresh
+        </button>
       </div>
-      
-      <div class="dashboard-grid">
-        <mat-card class="dashboard-card" *ngFor="let card of dashboardCards" (click)="navigate(card.route)">
-          <div class="card-header" [style.background]="card.color">
-            <mat-icon class="dashboard-icon">{{card.icon}}</mat-icon>
+
+      <!-- ── KPI ROW ─────────────────────────────────────────── -->
+      <div class="kpi-row" *ngIf="!kpiLoading">
+        <div class="kpi-card" *ngFor="let k of kpiCards" (click)="navigateTo(k.route)">
+          <div class="kpi-icon" [style.background]="k.color">{{ k.emoji }}</div>
+          <div class="kpi-body">
+            <div class="kpi-value">{{ k.value }}</div>
+            <div class="kpi-label">{{ k.label }}</div>
+            <div class="kpi-trend" [class.up]="k.trendUp" [class.down]="!k.trendUp">
+              {{ k.trendUp ? '▲' : '▼' }} {{ k.trend }}
+            </div>
           </div>
-          <mat-card-content class="card-content">
-            <h3>{{card.title}}</h3>
-            <p>{{card.description}}</p>
-            <button mat-raised-button color="primary" class="card-button">
-              View Details
-              <mat-icon>arrow_forward</mat-icon>
-            </button>
-          </mat-card-content>
-        </mat-card>
+        </div>
       </div>
+      <div class="kpi-loading" *ngIf="kpiLoading">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span>Loading stats...</span>
+      </div>
+
+      <!-- ── WORK QUEUE ALERTS ───────────────────────────────── -->
+      <div class="alerts-row" *ngIf="workQueueSummary">
+        <div class="alert-item warn" *ngIf="workQueueSummary.pendingOrders > 0"
+             (click)="navigateTo('/orders')">
+          <span class="alert-icon">&#9888;</span>
+          <span><strong>{{ workQueueSummary.pendingOrders }}</strong> orders pending action</span>
+          <span class="alert-link">Review &rarr;</span>
+        </div>
+        <div class="alert-item info" *ngIf="workQueueSummary.readyToShipOrders > 0"
+             (click)="navigateTo('/shipments')">
+          <span class="alert-icon">&#128666;</span>
+          <span><strong>{{ workQueueSummary.readyToShipOrders }}</strong> orders ready to ship</span>
+          <span class="alert-link">Ship &rarr;</span>
+        </div>
+        <div class="alert-item danger" *ngIf="workQueueSummary.failedPayments > 0"
+             (click)="navigateTo('/payments')">
+          <span class="alert-icon">&#128683;</span>
+          <span><strong>{{ workQueueSummary.failedPayments }}</strong> failed payments</span>
+          <span class="alert-link">Fix &rarr;</span>
+        </div>
+        <div class="alert-item purple" *ngIf="workQueueSummary.pendingReturns > 0"
+             (click)="navigateTo('/returns')">
+          <span class="alert-icon">&#8617;</span>
+          <span><strong>{{ workQueueSummary.pendingReturns }}</strong> returns pending</span>
+          <span class="alert-link">Process &rarr;</span>
+        </div>
+      </div>
+
+      <!-- ── QUICK ACCESS GRID ───────────────────────────────── -->
+      <div class="section-title">Quick Access</div>
+      <div class="quick-grid">
+        <div class="quick-card" *ngFor="let card of dashboardCards" (click)="navigateTo(card.route)">
+          <div class="quick-icon" [style.background]="card.color">{{ card.emoji }}</div>
+          <div class="quick-body">
+            <div class="quick-title">{{ card.title }}</div>
+            <div class="quick-desc">{{ card.description }}</div>
+          </div>
+          <div class="quick-arrow">&#8250;</div>
+        </div>
+      </div>
+
     </div>
   `,
   styles: [`
-    .dashboard-container {
+    .admin-dash {
       padding: 24px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      min-height: calc(100vh - 64px);
+      background: #f0f2f2;
+      min-height: 100%;
     }
-    
-    .dashboard-header {
-      text-align: center;
-      margin-bottom: 40px;
-      animation: fadeIn 0.6s ease-in;
+    .dash-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
     }
-    
-    .dashboard-header h1 {
-      font-size: 2.5rem;
-      font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 8px;
+    .dash-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #111;
+      margin: 0 0 4px;
     }
-    
-    .subtitle {
-      font-size: 1.1rem;
-      color: #7f8c8d;
-      margin: 0;
-    }
-    
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-    
-    .dashboard-card {
+    .dash-sub { font-size: 13px; color: #666; margin: 0; }
+    .refresh-btn {
+      background: #fff;
+      border: 1px solid #d5d9d9;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
       cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-      border-radius: 12px !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-      animation: slideUp 0.5s ease-out backwards;
+      color: #333;
+      transition: background 0.15s;
     }
-    
-    .dashboard-card:hover {
-      transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 12px 24px rgba(0,0,0,0.15) !important;
+    .refresh-btn:hover { background: #f7f7f7; }
+
+    /* ── KPI ROW ──────────────────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
     }
-    
-    .card-header {
-      height: 120px;
+    .kpi-loading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 24px;
+      background: #fff;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      color: #666;
+    }
+    .kpi-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      cursor: pointer;
+      border: 1px solid #e5e5e5;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .kpi-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #aaa; }
+    .kpi-icon {
+      width: 48px; height: 48px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      position: relative;
-      overflow: hidden;
+      font-size: 22px;
+      flex-shrink: 0;
     }
-    
-    .card-header::before {
-      content: '';
-      position: absolute;
-      width: 200%;
-      height: 200%;
-      background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-      animation: pulse 3s ease-in-out infinite;
+    .kpi-value { font-size: 1.6rem; font-weight: 700; color: #111; line-height: 1; }
+    .kpi-label { font-size: 12px; color: #666; margin: 3px 0; }
+    .kpi-trend { font-size: 11px; }
+    .kpi-trend.up { color: #067d62; }
+    .kpi-trend.down { color: #c00; }
+
+    /* ── ALERTS ───────────────────────────────────────────────── */
+    .alerts-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
     }
-    
-    .dashboard-icon {
-      font-size: 64px !important;
-      height: 64px !important;
-      width: 64px !important;
-      color: white;
-      z-index: 1;
-      position: relative;
+    .alert-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      flex: 1;
+      min-width: 200px;
+      border: 1px solid transparent;
+      transition: filter 0.15s;
     }
-    
-    .card-content {
-      padding: 24px !important;
-      text-align: center;
-      background: white;
+    .alert-item:hover { filter: brightness(0.95); }
+    .alert-item.warn { background: #fff3cd; border-color: #ffc107; color: #856404; }
+    .alert-item.info { background: #d1ecf1; border-color: #0dcaf0; color: #0c5460; }
+    .alert-item.danger { background: #f8d7da; border-color: #dc3545; color: #842029; }
+    .alert-item.purple { background: #ede7f6; border-color: #9c27b0; color: #4a148c; }
+    .alert-icon { font-size: 16px; }
+    .alert-link { margin-left: auto; font-weight: 600; white-space: nowrap; }
+
+    /* ── SECTION TITLE ────────────────────────────────────────── */
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #111;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ff9900;
+      display: inline-block;
     }
-    
-    .card-content h3 {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: #2c3e50;
-      margin: 0 0 8px 0;
+
+    /* ── QUICK GRID ───────────────────────────────────────────── */
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 12px;
     }
-    
-    .card-content p {
-      font-size: 0.95rem;
-      color: #7f8c8d;
-      margin: 0 0 20px 0;
-      min-height: 40px;
+    .quick-card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      border: 1px solid #e5e5e5;
+      transition: box-shadow 0.2s, border-color 0.2s;
     }
-    
-    .card-button {
-      width: 100%;
-      border-radius: 8px !important;
-      font-weight: 500 !important;
+    .quick-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #bbb; }
+    .quick-icon {
+      width: 44px; height: 44px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
     }
-    
-    .card-button mat-icon {
-      margin-left: 8px;
-      font-size: 18px;
-      height: 18px;
-      width: 18px;
-    }
-    
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes slideUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    @keyframes pulse {
-      0%, 100% {
-        transform: translate(-50%, -50%) scale(1);
-      }
-      50% {
-        transform: translate(-50%, -50%) scale(1.1);
-      }
-    }
-    
+    .quick-body { flex: 1; }
+    .quick-title { font-size: 14px; font-weight: 600; color: #111; }
+    .quick-desc { font-size: 12px; color: #666; margin-top: 2px; }
+    .quick-arrow { font-size: 22px; color: #aaa; }
+
     @media (max-width: 768px) {
-      .dashboard-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .dashboard-header h1 {
-        font-size: 2rem;
-      }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .quick-grid { grid-template-columns: 1fr; }
+      .alerts-row { flex-direction: column; }
     }
   `]
 })
-export class DashboardComponent {
-  dashboardCards = [
-    { 
-      title: 'Users', 
-      description: 'Manage user accounts and permissions', 
-      icon: 'people', 
-      route: '/users',
-      color: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-    },
-    { 
-      title: 'Items', 
-      description: 'Manage product catalog and inventory', 
-      icon: 'inventory', 
-      route: '/items',
-      color: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
-    },
-    { 
-      title: 'Orders', 
-      description: 'View and process customer orders', 
-      icon: 'shopping_cart', 
-      route: '/orders',
-      color: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
-    },
-    { 
-      title: 'Cart', 
-      description: 'Monitor active shopping carts', 
-      icon: 'add_shopping_cart', 
-      route: '/cart',
-      color: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
-    },
-    { 
-      title: 'Payments', 
-      description: 'Track payment transactions', 
-      icon: 'payment', 
-      route: '/payments',
-      color: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
-    },
-    { 
-      title: 'Inventory', 
-      description: 'Monitor stock levels and alerts', 
-      icon: 'warehouse', 
-      route: '/inventory',
-      color: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
-    },
-    { 
-      title: 'Returns', 
-      description: 'Handle product returns and refunds', 
-      icon: 'keyboard_return', 
-      route: '/returns',
-      color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
-    },
-    { 
-      title: 'Shipments', 
-      description: 'Track delivery and logistics', 
-      icon: 'local_shipping', 
-      route: '/shipments',
-      color: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)'
-    },
-    { 
-      title: 'Notifications', 
-      description: 'System alerts and messages', 
-      icon: 'notifications', 
-      route: '/notifications',
-      color: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
-    }
+export class DashboardComponent implements OnInit {
+  workQueueSummary: OpsWorkQueueSummary | null = null;
+  kpiLoading = true;
+
+  kpiCards = [
+    { label: 'Total Orders', value: '—', emoji: '🛒', color: '#e3f2fd', route: '/orders', trend: '+12% this week', trendUp: true },
+    { label: 'Revenue', value: '—', emoji: '💸', color: '#e8f5e9', route: '/payments', trend: '+8% this month', trendUp: true },
+    { label: 'Active Users', value: '—', emoji: '👤', color: '#fce4ec', route: '/users', trend: '+23 today', trendUp: true },
+    { label: 'Pending Orders', value: '—', emoji: '⏳', color: '#fff8e1', route: '/orders', trend: 'Needs attention', trendUp: false },
+    { label: 'Failed Payments', value: '—', emoji: '🚫', color: '#ffebee', route: '/payments', trend: 'Needs attention', trendUp: false },
+    { label: 'Pending Returns', value: '—', emoji: '↩️', color: '#ede7f6', route: '/returns', trend: 'Needs attention', trendUp: false }
   ];
 
-  constructor(private router: Router) {}
+  dashboardCards = [
+    { title: 'Users', description: 'Manage user accounts and permissions', emoji: '👤', route: '/users', color: '#e3f2fd' },
+    { title: 'Products', description: 'Manage product catalog and pricing', emoji: '📦', route: '/items', color: '#fce4ec' },
+    { title: 'Orders', description: 'View and process customer orders', emoji: '🛒', route: '/orders', color: '#e8f5e9' },
+    { title: 'Carts', description: 'Monitor active shopping sessions', emoji: '🛍️', route: '/cart', color: '#e0f7fa' },
+    { title: 'Payments', description: 'Track and manage transactions', emoji: '💳', route: '/payments', color: '#fff8e1' },
+    { title: 'Inventory', description: 'Monitor stock levels and low-stock alerts', emoji: '🏭', route: '/inventory', color: '#ede7f6' },
+    { title: 'Returns', description: 'Handle product returns and refunds', emoji: '↩️', route: '/returns', color: '#fbe9e7' },
+    { title: 'Shipments', description: 'Track deliveries and logistics', emoji: '🚚', route: '/shipments', color: '#e8eaf6' },
+    { title: 'Notifications', description: 'System alerts and messages', emoji: '🔔', route: '/notifications', color: '#f3e5f5' },
+    { title: 'Workflow', description: 'Configure action priority recommendations', emoji: '⚙️', route: '/workflow-settings', color: '#e0f2f1' }
+  ];
 
-  navigate(route: string): void {
+  constructor(
+    private router: Router,
+    private opsService: OpsService
+  ) {}
+
+  ngOnInit(): void {
+    this.loadWorkQueueSummary();
+  }
+
+  refresh(): void {
+    this.kpiLoading = true;
+    this.loadWorkQueueSummary();
+  }
+
+  private loadWorkQueueSummary(): void {
+    this.opsService.getWorkQueue().subscribe({
+      next: (data) => {
+        this.workQueueSummary = data?.summary ?? null;
+        this.updateKpiCards();
+        this.kpiLoading = false;
+      },
+      error: () => {
+        this.workQueueSummary = null;
+        this.kpiLoading = false;
+        // Show placeholder values
+        this.kpiCards[3].value = '?';
+        this.kpiCards[4].value = '?';
+        this.kpiCards[5].value = '?';
+      }
+    });
+  }
+
+  private updateKpiCards(): void {
+    const s = this.workQueueSummary;
+    if (!s) return;
+    this.kpiCards[3].value = String(s.pendingOrders || 0);
+    this.kpiCards[3].trendUp = s.pendingOrders === 0;
+    this.kpiCards[4].value = String(s.failedPayments || 0);
+    this.kpiCards[4].trendUp = s.failedPayments === 0;
+    this.kpiCards[5].value = String(s.pendingReturns || 0);
+    this.kpiCards[5].trendUp = s.pendingReturns === 0;
+    // Simulated values for total orders/revenue/users (would come from order/user services)
+    this.kpiCards[0].value = String(
+      (s.pendingOrders || 0) + (s.readyToShipOrders || 0) + (s.paymentProcessingOrders || 0)
+    );
+    this.kpiCards[1].value = '₹—';
+    this.kpiCards[2].value = '—';
+  }
+
+  navigateTo(route: string): void {
     this.router.navigate([route]);
   }
 }

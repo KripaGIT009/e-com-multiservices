@@ -101,16 +101,17 @@ app.post('/api/auth/login', async (req, res) => {
  */
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { username, email, firstName, lastName, role } = req.body;
+    const { username, email, password, firstName, lastName, role } = req.body;
 
-    if (!username || !email) {
-      return res.status(400).json({ error: 'Username and email are required' });
+    if (!username || !email || !password) {
+      return res.status(400).json({ error: 'Username, email and password are required' });
     }
 
     // Create user in user service
     const userResponse = await axios.post(`${USER_SERVICE}/users`, {
       username,
       email,
+      password,
       firstName: firstName || username,
       lastName: lastName || '',
       role: role || 'CUSTOMER'

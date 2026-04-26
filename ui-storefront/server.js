@@ -103,12 +103,12 @@ app.post('/api/auth/login', async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { username, email, firstName, lastName } = req.body;
-    if (!username || !email)
-      return res.status(400).json({ error: 'Username and email are required' });
+    const { username, email, password, firstName, lastName } = req.body;
+    if (!username || !email || !password)
+      return res.status(400).json({ error: 'Username, email, and password are required' });
 
     const r = await axios.post(`${USER_SERVICE}/users`, {
-      username, email,
+      username, email, password,
       firstName: firstName || username,
       lastName:  lastName  || '',
       role: 'CUSTOMER'
@@ -247,7 +247,19 @@ app.get('/api/orders/:orderId', authenticateToken, async (req, res) => {
 });
 
 app.post('/api/orders', authenticateToken, async (req, res) => {
-  try { res.json((await axios.post(`${ORDER_SERVICE}/api/v1/orders`, { ...req.body, customerId: String(req.user.id) })).data); }
+  try {
+    const { items, ...rest } = req.body;
+    const mappedItems = (items || []).map(item => ({
+      productId: String(item.itemId || item.productId || ''),
+      productName: item.name || item.productName || '',
+      quantity: item.quantity || 1,
+      unitPrice: item.price || item.unitPrice || 0,
+      description: item.sku || item.description || null
+    }));
+    const orderPayload = { ...rest, items: mappedItems, customerId: String(req.user.id) };
+    const response = await axios.post(`${ORDER_SERVICE}/api/v1/orders`, orderPayload);
+    res.status(response.status).json(response.data);
+  }
   catch (e) { res.status(e.response?.status||500).json({ error: 'Failed to create order', details: e.message }); }
 });
 
@@ -255,12 +267,12 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 // CHECKOUT
 // ═════════════════════════════════════════════════════════════════════════════
 app.post('/api/checkout', async (req, res) => {
-  try { res.json((await axios.post(`${CHECKOUT_SERVICE}/checkout`, req.body)).data); }
+  try { res.json((await axios.post(`${CHECKOUT_SERVICE}/checkouts`, req.body)).data); }
   catch (e) { res.status(e.response?.status||500).json({ error: 'Checkout failed', details: e.message }); }
 });
 
 app.get('/api/checkout/:id', async (req, res) => {
-  try { res.json((await axios.get(`${CHECKOUT_SERVICE}/checkout/${req.params.id}`)).data); }
+  try { res.json((await axios.get(`${CHECKOUT_SERVICE}/checkouts/${req.params.id}`)).data); }
   catch (e) { res.status(e.response?.status||500).json({ error: 'Failed to fetch checkout', details: e.message }); }
 });
 
@@ -268,17 +280,17 @@ app.get('/api/checkout/:id', async (req, res) => {
 // PAYMENTS
 // ═════════════════════════════════════════════════════════════════════════════
 app.get('/api/payments', async (req, res) => {
-  try { res.json((await axios.get(`${PAYMENT_SERVICE}/payments`)).data); }
+  try { res.json((await axios.get(`${PAYMENT_SERVICE}/api/v1/payments`)).data); }
   catch (e) { res.status(e.response?.status||500).json({ error: 'Failed to fetch payments', details: e.message }); }
 });
 
 app.post('/api/payments', async (req, res) => {
-  try { res.json((await axios.post(`${PAYMENT_SERVICE}/payments`, req.body)).data); }
+  try { res.json((await axios.post(`${PAYMENT_SERVICE}/api/v1/payments`, req.body)).data); }
   catch (e) { res.status(e.response?.status||500).json({ error: 'Payment failed', details: e.message }); }
 });
 
 app.get('/api/payments/order/:orderId', async (req, res) => {
-  try { res.json((await axios.get(`${PAYMENT_SERVICE}/payments/order/${req.params.orderId}`)).data); }
+  try { res.json((await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/order/${req.params.orderId}`)).data); }
   catch (e) { res.status(e.response?.status||500).json({ error: 'Failed to fetch payment', details: e.message }); }
 });
 

@@ -5,6 +5,7 @@ export interface Item {
   description: string;
   price: number;
   quantity: number;
+  stock?: number;
   itemType: string;
   createdAt: string;
   updatedAt: string;

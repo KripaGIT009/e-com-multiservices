@@ -1,97 +1,67 @@
 package com.example.controller;
 
-import com.example.config.JwtTokenProvider;
 import com.example.dto.UserRequest;
-import com.example.dto.LoginRequest;
-import com.example.dto.LoginResponse;
-import com.example.entity.User;
+import com.example.dto.UserResponse;
+import com.example.dto.UserUpdateRequest;
 import com.example.service.IUserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/users")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class UserController {
 
     @Autowired
     private IUserService userService;
 
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
-
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody UserRequest request) {
-        User user = new User(request.getUsername(), request.getEmail(), request.getPassword(),
-                   request.getFirstName(), request.getLastName(),
-                   request.getRole() != null ? request.getRole() : "CUSTOMER");
-        User created = userService.createUser(user);
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
+        UserResponse created = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-        boolean authenticated = userService.authenticateUser(request.getEmail(), request.getPassword());
-        if (authenticated) {
-            return userService.getUserByEmail(request.getEmail())
-                .map(user -> {
-                    String token = jwtTokenProvider.generateToken(user.getId(), user.getUsername(), user.getEmail(), user.getRole());
-                    return ResponseEntity.ok(new LoginResponse(
-                        user.getId(),
-                        user.getUsername(),
-                        user.getEmail(),
-                        user.getRole(),
-                        "Login successful",
-                        token
-                    ));
-                })
-                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new LoginResponse(null, null, null, null, "Invalid credentials")));
-        }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(new LoginResponse(null, null, null, null, "Invalid credentials"));
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
-        Optional<User> user = userService.getUser(id);
-        return user.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
+        UserResponse user = userService.getUserById(id);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
-        Optional<User> user = userService.getUserByUsername(username);
-        return user.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
+        UserResponse user = userService.getUserByUsername(username);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<User> getUserByEmail(@PathVariable String email) {
-        Optional<User> user = userService.getUserByEmail(email);
-        return user.map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> getUserByEmail(@PathVariable String email) {
+        UserResponse user = userService.getUserByEmail(email);
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<Page<UserResponse>> getAllUsers(Pageable pageable) {
+        Page<UserResponse> users = userService.getAllUsers(pageable);
+        return ResponseEntity.ok(users);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody UserRequest request) {
-        User userDetails = new User(request.getUsername(), request.getEmail(),
-                                   request.getPassword(),
-                                   request.getFirstName(), request.getLastName(),
-                                   request.getRole() != null ? request.getRole() : "CUSTOMER");
-        User updated = userService.updateUser(id, userDetails);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UserUpdateRequest request) {
+        UserResponse updated = userService.updateUser(id, request);
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        return userService.deleteUser(id) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        boolean deleted = userService.deleteUser(id);
+        if (deleted) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
     }
 }

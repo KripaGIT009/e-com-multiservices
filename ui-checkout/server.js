@@ -33,7 +33,7 @@ app.get('/health', (req, res) => {
 // ============ CHECKOUT API ============
 app.post('/api/checkout', async (req, res) => {
   try {
-    const response = await axios.post(`${CHECKOUT_SERVICE}/checkout`, req.body);
+    const response = await axios.post(`${CHECKOUT_SERVICE}/checkouts`, req.body);
     res.json(response.data);
   } catch (error) {
     console.error('Error processing checkout:', error.message);
@@ -46,7 +46,7 @@ app.post('/api/checkout', async (req, res) => {
 
 app.get('/api/checkout/:checkoutId', async (req, res) => {
   try {
-    const response = await axios.get(`${CHECKOUT_SERVICE}/checkout/${req.params.checkoutId}`);
+    const response = await axios.get(`${CHECKOUT_SERVICE}/checkouts/${req.params.checkoutId}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching checkout:', error.message);
@@ -60,7 +60,7 @@ app.get('/api/checkout/:checkoutId', async (req, res) => {
 // ============ PAYMENT API ============
 app.get('/api/payments', async (req, res) => {
   try {
-    const response = await axios.get(`${PAYMENT_SERVICE}/payments`);
+    const response = await axios.get(`${PAYMENT_SERVICE}/api/v1/payments`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching payments:', error.message);
@@ -73,7 +73,7 @@ app.get('/api/payments', async (req, res) => {
 
 app.get('/api/payments/:id', async (req, res) => {
   try {
-    const response = await axios.get(`${PAYMENT_SERVICE}/payments/${req.params.id}`);
+    const response = await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/${req.params.id}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching payment:', error.message);
@@ -86,7 +86,7 @@ app.get('/api/payments/:id', async (req, res) => {
 
 app.get('/api/payments/order/:orderId', async (req, res) => {
   try {
-    const response = await axios.get(`${PAYMENT_SERVICE}/payments/order/${req.params.orderId}`);
+    const response = await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/order/${req.params.orderId}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching payment by order:', error.message);
@@ -99,7 +99,7 @@ app.get('/api/payments/order/:orderId', async (req, res) => {
 
 app.post('/api/payments', async (req, res) => {
   try {
-    const response = await axios.post(`${PAYMENT_SERVICE}/payments`, req.body);
+    const response = await axios.post(`${PAYMENT_SERVICE}/api/v1/payments`, req.body);
     res.json(response.data);
   } catch (error) {
     console.error('Error creating payment:', error.message);
@@ -113,7 +113,7 @@ app.post('/api/payments', async (req, res) => {
 // ============ ORDER API (for confirmation) ============
 app.get('/api/orders/:orderId', async (req, res) => {
   try {
-    const response = await axios.get(`${ORDER_SERVICE}/orders/${req.params.orderId}`);
+    const response = await axios.get(`${ORDER_SERVICE}/api/v1/orders/${req.params.orderId}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching order:', error.message);

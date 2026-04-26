@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.service.IManagementService;
 import com.example.service.IAuditLogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -137,6 +138,38 @@ public class ManagementController {
         return managementService.updateOrderStatus(id, status);
     }
 
+    @GetMapping("/orders/{id}/workflow/actions")
+    public ResponseEntity<String> getOrderWorkflowActions(@PathVariable Long id, HttpServletRequest request) {
+        logAction(request, "VIEW", "ORDER", id.toString(), "Viewed workflow actions for order");
+        return managementService.getOrderWorkflowActions(id);
+    }
+
+    @PostMapping("/orders/{id}/workflow/actions")
+    public ResponseEntity<String> executeOrderWorkflowAction(@PathVariable Long id,
+                                                              @RequestParam String action,
+                                                              HttpServletRequest request) {
+        logAction(request, "UPDATE", "ORDER", id.toString(), "Executed order workflow action: " + action);
+        return managementService.executeOrderWorkflowAction(id, action);
+    }
+
+    @GetMapping("/orders/workflow/priorities")
+    public ResponseEntity<String> getOrderWorkflowPriorities(HttpServletRequest request) {
+        logAction(request, "VIEW", "ORDER_WORKFLOW", "priorities", "Viewed order workflow priorities");
+        return managementService.getOrderWorkflowPriorities();
+    }
+
+    @PutMapping("/orders/workflow/priorities")
+    public ResponseEntity<String> updateOrderWorkflowPriorities(@RequestBody String priorityJson,
+                                                                HttpServletRequest request) {
+        String role = (String) request.getAttribute("role");
+        if (role == null || !"SUPER_ADMIN".equalsIgnoreCase(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body("{\"error\":\"Only SUPER_ADMIN can update workflow priorities\"}");
+        }
+        logAction(request, "UPDATE", "ORDER_WORKFLOW", "priorities", "Updated order workflow priorities");
+        return managementService.updateOrderWorkflowPriorities(priorityJson);
+    }
+
     // Payment Management
     @GetMapping("/payments")
     public ResponseEntity<String> getAllPayments(HttpServletRequest request) {
@@ -199,6 +232,20 @@ public class ManagementController {
     public ResponseEntity<String> rejectReturn(@PathVariable Long id, HttpServletRequest request) {
         logAction(request, "UPDATE", "RETURN", id.toString(), "Rejected return");
         return managementService.rejectReturn(id);
+    }
+
+    @PutMapping("/returns/{id}/resolve")
+    public ResponseEntity<String> resolveReturn(@PathVariable Long id,
+                                                @RequestParam String action,
+                                                HttpServletRequest request) {
+        logAction(request, "UPDATE", "RETURN", id.toString(), "Resolved return with action: " + action);
+        return managementService.resolveReturnAction(id, action);
+    }
+
+    @GetMapping("/ops/work-queue")
+    public ResponseEntity<String> getOperationalWorkQueue(HttpServletRequest request) {
+        logAction(request, "VIEW", "OPERATIONS", "work-queue", "Viewed operational work queue");
+        return managementService.getOperationalWorkQueue();
     }
 
     // System Health

@@ -1,17 +1,17 @@
 package com.example.service;
 
-import com.example.entity.User;
-import java.util.List;
-import java.util.Optional;
+import com.example.dto.UserRequest;
+import com.example.dto.UserResponse;
+import com.example.dto.UserUpdateRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface IUserService {
-    User createUser(User user);
-    Optional<User> getUserById(Long id);
-    Optional<User> getUserByEmail(String email);
-    Optional<User> getUser(Long id);
-    Optional<User> getUserByUsername(String username);
-    List<User> getAllUsers();
-    User updateUser(Long id, User user);
+    UserResponse createUser(UserRequest request);
+    UserResponse getUserById(Long id);
+    UserResponse getUserByEmail(String email);
+    UserResponse getUserByUsername(String username);
+    Page<UserResponse> getAllUsers(Pageable pageable);
+    UserResponse updateUser(Long id, UserUpdateRequest request);
     boolean deleteUser(Long id);
-    boolean authenticateUser(String email, String password);
 }

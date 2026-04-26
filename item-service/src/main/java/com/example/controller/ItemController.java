@@ -24,7 +24,7 @@ public class ItemController {
     @PostMapping
     public ResponseEntity<ItemResponse> createItem(@RequestBody ItemRequest request) {
         Item item = new Item(request.getSku(), request.getName(), request.getDescription(),
-                           request.getPrice(), request.getQuantity());
+                           request.getPrice(), request.getQuantity(), request.getItemType());
         Item created = itemService.createItem(item);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToResponse(created));
     }
@@ -50,7 +50,7 @@ public class ItemController {
     @PutMapping("/{id}")
     public ResponseEntity<ItemResponse> updateItem(@PathVariable Long id, @RequestBody ItemRequest request) {
         Item itemDetails = new Item(request.getSku(), request.getName(), request.getDescription(),
-                                   request.getPrice(), request.getQuantity());
+                                   request.getPrice(), request.getQuantity(), request.getItemType());
         Item updated = itemService.updateItem(id, itemDetails);
         return updated != null ? ResponseEntity.ok(convertToResponse(updated)) : ResponseEntity.notFound().build();
     }

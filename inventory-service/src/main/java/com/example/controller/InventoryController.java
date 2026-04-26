@@ -9,6 +9,7 @@ import com.example.service.IInventoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -21,6 +22,11 @@ public class InventoryController {
     public InventoryController(IInventoryService service, KafkaTemplate<String, SagaEvent> kafka) {
         this.service = service;
         this.kafka = kafka;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<InventoryItem>> getAll() {
+        return ResponseEntity.ok(service.getAllItems());
     }
 
     @PostMapping

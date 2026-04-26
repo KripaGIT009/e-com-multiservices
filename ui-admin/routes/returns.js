@@ -51,4 +51,51 @@ router.put('/:id/reject', async (req, res) => {
     }
 });
 
+router.put('/:id/resolve', async (req, res) => {
+    try {
+        const action = req.body?.action;
+        if (!action) {
+            return res.status(400).json({ error: 'Action is required' });
+        }
+
+        const response = await axios.put(
+            `${ADMIN_SERVICE_URL}/api/manage/returns/${req.params.id}/resolve?action=${encodeURIComponent(action)}`,
+            {},
+            { headers: { Authorization: req.headers.authorization } }
+        );
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).json({ error: 'Failed to resolve return action' });
+    }
+});
+
+// Compatibility endpoint for older frontend calls
+router.put('/:id/status', async (req, res) => {
+    try {
+        const status = (req.body?.status || '').toString().toUpperCase();
+        const actionMap = {
+            PENDING: 'APPROVE',
+            APPROVED: 'APPROVE',
+            REJECTED: 'REJECT',
+            REJECT: 'REJECT',
+            REFUNDED: 'REFUND',
+            REFUND: 'REFUND'
+        };
+
+        const action = actionMap[status];
+        if (!action) {
+            return res.status(400).json({ error: 'Unsupported return status/action value' });
+        }
+
+        const response = await axios.put(
+            `${ADMIN_SERVICE_URL}/api/manage/returns/${req.params.id}/resolve?action=${encodeURIComponent(action)}`,
+            {},
+            { headers: { Authorization: req.headers.authorization } }
+        );
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).json({ error: 'Failed to update return status' });
+    }
+});
+
 module.exports = router;

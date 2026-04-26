@@ -1,372 +1,163 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCardModule } from '@angular/material/card';
+﻿import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { UserService } from '../../services/user.service';
-import { UserDialogComponent } from '../user-dialog/user-dialog.component';
 
 @Component({
   selector: 'app-user-list',
   standalone: true,
-  imports: [
-    CommonModule, 
-    MatTableModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatCardModule,
-    MatSnackBarModule,
-    MatDialogModule,
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatSnackBarModule, MatProgressSpinnerModule],
   template: `
-    <div class="container">
+    <div class="user-page">
       <div class="page-header">
-        <h1><mat-icon>people</mat-icon> User Management</h1>
-        <p class="subtitle">Manage user accounts and permissions</p>
+        <div>
+          <h2>Users</h2>
+          <p class="page-sub">{{ users.length }} registered users</p>
+        </div>
+        <button class="add-btn" (click)="toggleForm()">
+          {{ showForm ? 'âœ• Cancel' : '+ Add User' }}
+        </button>
       </div>
 
-      <button mat-raised-button color="primary" class="add-button" (click)="openAddDialog()">
-        <mat-icon>add_circle</mat-icon> Add New User
-      </button>
-
-      <div *ngIf="showInlineForm" class="form-container">
-        <mat-card class="add-form-card">
-          <div class="form-header">
-            <mat-icon>person_add</mat-icon>
-            <h2>Create New User</h2>
+      <div class="add-form" *ngIf="showForm">
+        <h3>Create New User</h3>
+        <form [formGroup]="form" (ngSubmit)="saveUser()">
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Username *</label>
+              <input type="text" formControlName="username" placeholder="username" />
+            </div>
+            <div class="form-field">
+              <label>Email *</label>
+              <input type="email" formControlName="email" placeholder="user@example.com" />
+            </div>
+            <div class="form-field">
+              <label>Password *</label>
+              <input type="password" formControlName="password" placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢" />
+            </div>
+            <div class="form-field">
+              <label>Role *</label>
+              <select formControlName="role">
+                <option value="CUSTOMER">Customer</option>
+                <option value="ADMIN">Admin</option>
+                <option value="GUEST">Guest</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>First Name</label>
+              <input type="text" formControlName="firstName" placeholder="First" />
+            </div>
+            <div class="form-field">
+              <label>Last Name</label>
+              <input type="text" formControlName="lastName" placeholder="Last" />
+            </div>
           </div>
-          <mat-card-content>
-            <form [formGroup]="inlineForm" (ngSubmit)="saveInline()">
-                  <div class="row">
-                    <div class="col">
-                      <mat-form-field class="full-width">
-                        <mat-label>Username</mat-label>
-                        <input matInput formControlName="username" required>
-                      </mat-form-field>
-                    </div>
-                    <div class="col">
-                      <mat-form-field class="full-width">
-                        <mat-label>Email</mat-label>
-                        <input matInput type="email" formControlName="email" required>
-                      </mat-form-field>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <mat-form-field class="full-width">
-                        <mat-label>Password</mat-label>
-                        <input matInput type="password" formControlName="password" required>
-                      </mat-form-field>
-                    </div>
-                    <div class="col">
-                      <mat-form-field class="full-width">
-                        <mat-label>Role</mat-label>
-                        <mat-select formControlName="role" required>
-                          <mat-option value="ADMIN">Admin</mat-option>
-                          <mat-option value="CUSTOMER">Customer</mat-option>
-                          <mat-option value="GUEST">Guest</mat-option>
-                        </mat-select>
-                      </mat-form-field>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col">
-                      <mat-form-field class="full-width">
-                        <mat-label>First Name</mat-label>
-                        <input matInput formControlName="firstName">
-                      </mat-form-field>
-                    </div>
-                    <div class="col">
-                      <mat-form-field class="full-width">
-                        <mat-label>Last Name</mat-label>
-                        <input matInput formControlName="lastName">
-                      </mat-form-field>
-                    </div>
-                  </div>
-                  <div class="form-actions">
-                    <button mat-stroked-button type="button" (click)="cancelInline()" class="cancel-btn">
-                      <mat-icon>close</mat-icon> Cancel
-                    </button>
-                    <button mat-raised-button color="primary" type="submit" [disabled]="!inlineForm.valid" class="save-btn">
-                      <mat-icon>save</mat-icon> Save User
-                    </button>
-                  </div>
-                </form>
-              </mat-card-content>
-            </mat-card>
+          <div class="form-actions">
+            <button type="button" class="cancel-btn" (click)="toggleForm()">Cancel</button>
+            <button type="submit" class="save-btn" [disabled]="!form.valid">Save User</button>
           </div>
+        </form>
+      </div>
 
-          <mat-card class="table-card">
-            <table mat-table [dataSource]="users" class="mat-elevation-z2 full-width">
-            <ng-container matColumnDef="id">
-              <th mat-header-cell *matHeaderCellDef>ID</th>
-              <td mat-cell *matCellDef="let user">{{user.id}}</td>
-            </ng-container>
-            
-            <ng-container matColumnDef="username">
-              <th mat-header-cell *matHeaderCellDef>Username</th>
-              <td mat-cell *matCellDef="let user">{{user.username}}</td>
-            </ng-container>
+      <div class="filter-bar">
+        <input type="text" placeholder="Search by username or email..."
+               [(ngModel)]="searchQuery" (ngModelChange)="applyFilter()" />
+      </div>
 
-            <ng-container matColumnDef="fullName">
-              <th mat-header-cell *matHeaderCellDef>Full Name</th>
-              <td mat-cell *matCellDef="let user">{{(user.firstName || '') + (user.lastName ? ' ' + user.lastName : '')}}</td>
-            </ng-container>
-            
-            <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef>Email</th>
-              <td mat-cell *matCellDef="let user">{{user.email}}</td>
-            </ng-container>
-            
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Actions</th>
-              <td mat-cell *matCellDef="let user">
-                <button mat-icon-button color="primary" (click)="openEditDialog(user)">
-                  <mat-icon>edit</mat-icon>
-                </button>
-                <button mat-icon-button color="warn" (click)="deleteUser(user.id)">
-                  <mat-icon>delete</mat-icon>
-                </button>
+      <div class="loading-wrap" *ngIf="loading">
+        <mat-spinner diameter="36"></mat-spinner>
+        <span>Loading users...</span>
+      </div>
+
+      <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+        <div class="empty-icon">ðŸ‘¤</div>
+        <h3>No users found</h3>
+        <p>Try adjusting your search or add a new user</p>
+      </div>
+
+      <div class="table-wrap" *ngIf="!loading && filtered.length > 0">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Username</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of filtered">
+              <td><span class="user-id">#{{ u.id }}</span></td>
+              <td><strong>{{ u.username }}</strong></td>
+              <td>{{ (u.firstName || '') + (u.lastName ? ' ' + u.lastName : '') || 'â€”' }}</td>
+              <td class="email-col">{{ u.email }}</td>
+              <td>
+                <button class="act-btn delete" (click)="deleteUser(u.id)">ðŸ—‘ Delete</button>
               </td>
-            </ng-container>
-            
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-          </table>
-        </mat-card>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   `,
   styles: [`
-    .container {
-      padding: 24px;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      min-height: calc(100vh - 64px);
-    }
-
-    .page-header {
-      text-align: center;
-      margin-bottom: 32px;
-      animation: fadeIn 0.6s ease-in;
-    }
-
-    .page-header h1 {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font-size: 2rem;
-      font-weight: 600;
-      color: #2c3e50;
-      margin: 0 0 8px 0;
-    }
-
-    .page-header h1 mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-    }
-
-    .subtitle {
-      font-size: 1rem;
-      color: #7f8c8d;
-      margin: 0;
-    }
-
-    .add-button {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 24px !important;
-      font-size: 1rem !important;
-      font-weight: 500 !important;
-      border-radius: 8px !important;
-      box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3) !important;
-      transition: all 0.3s ease !important;
-      margin-bottom: 24px;
-    }
-
-    .add-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(63, 81, 181, 0.4) !important;
-    }
-
-    .add-button mat-icon {
-      font-size: 24px;
-      width: 24px;
-      height: 24px;
-    }
-
-    .form-container {
-      margin-bottom: 24px;
-      animation: slideDown 0.4s ease-out;
-    }
-
-    .add-form-card {
-      background: white;
-      border-radius: 12px !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
-      overflow: hidden;
-    }
-
-    .form-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 24px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .form-header mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-    }
-
-    .form-header h2 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 500;
-    }
-
-    .add-form-card mat-card-content {
-      padding: 24px !important;
-    }
-
-    .table-card {
-      background: white;
-      border-radius: 12px !important;
-      padding: 24px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
-    }
-
-    table {
-      width: 100%;
-      background: white;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    .row {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .col {
-      flex: 1;
-    }
-
-    mat-form-field {
-      width: 100%;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 24px;
-      padding-top: 24px;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .cancel-btn {
-      padding: 8px 20px !important;
-      border-radius: 8px !important;
-    }
-
-    .save-btn {
-      padding: 8px 20px !important;
-      border-radius: 8px !important;
-      box-shadow: 0 2px 8px rgba(63, 81, 181, 0.3) !important;
-    }
-
-    .save-btn:hover:not([disabled]) {
-      box-shadow: 0 4px 12px rgba(63, 81, 181, 0.4) !important;
-    }
-
-    .save-btn mat-icon,
-    .cancel-btn mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      margin-right: 4px;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-20px);
-        max-height: 0;
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-        max-height: 1000px;
-      }
-    }
-
-    ::ng-deep .mat-mdc-form-field {
-      margin-bottom: 8px;
-    }
-
-    ::ng-deep .mat-mdc-text-field-wrapper {
-      background-color: #f8f9fa;
-      border-radius: 8px;
-    }
-
-    mat-header-cell {
-      font-weight: 600 !important;
-      color: #2c3e50 !important;
-      background: #f8f9fa;
-    }
-
-    mat-row:hover {
-      background-color: #f8f9fa;
-      transition: background-color 0.2s ease;
-    }
+    .user-page { padding: 24px; background: #f0f2f2; min-height: 100%; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+    .page-header h2 { font-size: 1.4rem; font-weight: 700; color: #111; margin: 0 0 4px; }
+    .page-sub { font-size: 12px; color: #666; margin: 0; }
+    .add-btn { background: #ff9900; border: none; padding: 9px 18px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #111; font-weight: 600; }
+    .add-btn:hover { background: #e68900; }
+    .add-form { background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .add-form h3 { margin: 0 0 16px; font-size: 14px; font-weight: 700; color: #111; }
+    .form-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 4px; }
+    .form-field label { font-size: 12px; font-weight: 600; color: #555; }
+    .form-field input, .form-field select { border: 1px solid #d5d9d9; border-radius: 6px; padding: 8px 12px; font-size: 13px; outline: none; background: #fff; }
+    .form-field input:focus, .form-field select:focus { border-color: #ff9900; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .cancel-btn { background: #fff; border: 1px solid #d5d9d9; padding: 8px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #333; }
+    .save-btn { background: #ff9900; border: none; padding: 8px 20px; border-radius: 6px; font-size: 13px; cursor: pointer; color: #111; font-weight: 600; }
+    .save-btn:disabled { background: #ddd; cursor: not-allowed; color: #999; }
+    .filter-bar { background: #fff; padding: 12px 16px; border-radius: 8px; border: 1px solid #e5e5e5; margin-bottom: 16px; }
+    .filter-bar input { border: 1px solid #d5d9d9; border-radius: 6px; padding: 8px 12px; font-size: 13px; width: 300px; outline: none; }
+    .filter-bar input:focus { border-color: #ff9900; }
+    .loading-wrap { display: flex; align-items: center; gap: 12px; padding: 40px; justify-content: center; background: #fff; border-radius: 8px; color: #666; font-size: 14px; }
+    .empty-state { text-align: center; padding: 60px 20px; background: #fff; border-radius: 8px; }
+    .empty-icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state h3 { color: #555; margin: 0 0 8px; }
+    .empty-state p { color: #888; margin: 0; }
+    .table-wrap { background: #fff; border-radius: 8px; border: 1px solid #e5e5e5; overflow-x: auto; }
+    .user-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .user-table thead tr { background: #f7f7f7; border-bottom: 2px solid #e5e5e5; }
+    .user-table th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+    .user-table td { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .user-table tr:last-child td { border-bottom: none; }
+    .user-table tr:hover td { background: #fafafa; }
+    .user-id { color: #888; font-size: 12px; }
+    .email-col { color: #555; font-size: 12px; }
+    .act-btn { border: none; border-radius: 4px; padding: 5px 12px; font-size: 12px; cursor: pointer; font-weight: 600; }
+    .act-btn.delete { background: #f8d7da; color: #721c24; }
+    .act-btn.delete:hover { background: #f5c6cb; }
+    @media (max-width: 900px) { .form-grid { grid-template-columns: repeat(2, 1fr); } }
   `]
 })
 export class UserListComponent implements OnInit {
   users: any[] = [];
-  displayedColumns: string[] = ['id', 'username', 'fullName', 'email', 'actions'];
-  showInlineForm = false;
-  inlineForm: FormGroup;
-  private isBrowser: boolean;
+  filtered: any[] = [];
+  loading = false;
+  searchQuery = '';
+  showForm = false;
+  form: FormGroup;
 
   constructor(
     private userService: UserService,
     private snackBar: MatSnackBar,
-    private dialog: MatDialog,
-    private fb: FormBuilder,
-    @Inject(PLATFORM_ID) platformId: Object
+    private fb: FormBuilder
   ) {
-    this.isBrowser = isPlatformBrowser(platformId);
-    this.inlineForm = this.fb.group({
+    this.form = this.fb.group({
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required],
@@ -381,88 +172,66 @@ export class UserListComponent implements OnInit {
   }
 
   loadUsers(): void {
+    this.loading = true;
     this.userService.getAllUsers().subscribe({
       next: (data) => {
-        try {
-          const parsed = typeof data === 'string' ? JSON.parse(data) : data;
-          this.users = Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-          console.error('Failed to parse users payload', e);
-          this.users = [];
-        }
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+        this.users = Array.isArray(parsed) ? parsed : [];
+        this.applyFilter();
+        this.loading = false;
       },
-      error: (error) => {
+      error: () => {
         this.snackBar.open('Error loading users', 'Close', { duration: 3000 });
         this.users = [];
+        this.filtered = [];
+        this.loading = false;
       }
     });
   }
 
-  openAddDialog(): void {
-    // Show inline form
-    this.showInlineForm = true;
-    this.inlineForm.reset();
+  toggleForm(): void {
+    this.showForm = !this.showForm;
+    if (!this.showForm) this.form.reset({ role: 'CUSTOMER' });
   }
 
-  saveInline(): void {
-    if (this.inlineForm.valid) {
-      const payload = this.inlineForm.value;
-      this.userService.createUser(payload).subscribe({
-        next: () => {
-          this.snackBar.open('User created successfully', 'Close', { duration: 3000 });
-          this.showInlineForm = false;
-          this.inlineForm.reset();
-          this.loadUsers();
-        },
-        error: (error) => {
-          console.error('Error creating user (inline):', error);
-          this.snackBar.open('Error creating user', 'Close', { duration: 3000 });
-        }
-      });
-    }
-  }
-
-  cancelInline(): void {
-    this.showInlineForm = false;
-  }
-
-  openEditDialog(user: any): void {
-    if (!this.isBrowser) {
-      return;
-    }
-    
-    const dialogRef = this.dialog.open(UserDialogComponent, {
-      width: '500px',
-      data: { user: user }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        this.userService.updateUser(user.id, result).subscribe({
-          next: () => {
-            this.snackBar.open('User updated successfully', 'Close', { duration: 3000 });
-            this.loadUsers();
-          },
-          error: (error) => {
-            this.snackBar.open('Error updating user', 'Close', { duration: 3000 });
-          }
-        });
+  saveUser(): void {
+    if (!this.form.valid) return;
+    this.userService.createUser(this.form.value).subscribe({
+      next: () => {
+        this.snackBar.open('User created successfully', 'Close', { duration: 3000 });
+        this.showForm = false;
+        this.form.reset({ role: 'CUSTOMER' });
+        this.loadUsers();
+      },
+      error: () => {
+        this.snackBar.open('Error creating user', 'Close', { duration: 3000 });
       }
     });
   }
 
   deleteUser(id: number): void {
-    if (confirm('Are you sure you want to delete this user?')) {
-      this.userService.deleteUser(id).subscribe({
-        next: () => {
-          this.snackBar.open('User deleted successfully', 'Close', { duration: 3000 });
-          this.loadUsers();
-        },
-        error: (error) => {
-          this.snackBar.open('Error deleting user', 'Close', { duration: 3000 });
-        }
-      });
+    if (!confirm('Delete this user?')) return;
+    this.userService.deleteUser(id).subscribe({
+      next: () => {
+        this.snackBar.open('User deleted', 'Close', { duration: 3000 });
+        this.loadUsers();
+      },
+      error: () => {
+        this.snackBar.open('Error deleting user', 'Close', { duration: 3000 });
+      }
+    });
+  }
+
+  applyFilter(): void {
+    if (!this.searchQuery.trim()) {
+      this.filtered = [...this.users];
+      return;
     }
+    const q = this.searchQuery.toLowerCase();
+    this.filtered = this.users.filter(u =>
+      (u.username || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q)
+    );
   }
 }
 

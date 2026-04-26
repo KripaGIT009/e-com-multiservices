@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,7 +13,8 @@ import { AuthService } from './services/auth.service';
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
+    FormsModule,
     RouterOutlet,
     MatToolbarModule,
     MatButtonModule,
@@ -25,15 +27,27 @@ import { AuthService } from './services/auth.service';
 })
 export class AppComponent {
   title = 'My Indians Store - Admin';
+  sidebarOpen = true;
+  globalSearch = '';
+  currentUrl = '';
 
   constructor(
     public authService: AuthService,
     private router: Router
-  ) {}
+  ) {
+    this.router.events.subscribe(e => {
+      if (e instanceof NavigationEnd) {
+        this.currentUrl = e.urlAfterRedirects;
+      }
+    });
+  }
+
+  isActive(path: string): boolean {
+    return this.currentUrl === path || this.currentUrl.startsWith(path + '/');
+  }
 
   logout(): void {
     this.authService.logout();
-    // Redirect to customer app after admin logout
     window.location.href = 'http://localhost:4200';
   }
 

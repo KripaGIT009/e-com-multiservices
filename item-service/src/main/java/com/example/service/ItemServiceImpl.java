@@ -38,6 +38,7 @@ public class ItemServiceImpl implements IItemService {
             item.setDescription(itemDetails.getDescription());
             item.setPrice(itemDetails.getPrice());
             item.setQuantity(itemDetails.getQuantity());
+            item.setItemType(itemDetails.getItemType());
             item.setUpdatedAt(LocalDateTime.now());
             return itemRepository.save(item);
         }).orElse(null);

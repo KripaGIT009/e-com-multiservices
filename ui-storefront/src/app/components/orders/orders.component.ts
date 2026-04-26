@@ -303,7 +303,7 @@ export class OrdersComponent implements OnInit {
   }
 
   loadOrders(): void {
-    const userId = localStorage.getItem('userId');
+    const userId = this.resolveUserId();
     if (!userId) {
       this.router.navigate(['/login']);
       return;
@@ -335,5 +335,40 @@ export class OrdersComponent implements OnInit {
 
   goToShopping(): void {
     this.router.navigate(['/products']);
+  }
+
+  private resolveUserId(): string | null {
+    const storedUserId = localStorage.getItem('userId');
+    if (storedUserId) {
+      return storedUserId;
+    }
+
+    const rawUser = localStorage.getItem('user');
+    if (rawUser) {
+      try {
+        const user = JSON.parse(rawUser);
+        const resolvedUserId = user?.id || user?.userId;
+        if (resolvedUserId) {
+          localStorage.setItem('userId', String(resolvedUserId));
+          return String(resolvedUserId);
+        }
+      } catch (_) {}
+    }
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      return null;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const tokenUserId = payload?.id;
+      if (tokenUserId) {
+        localStorage.setItem('userId', String(tokenUserId));
+        return String(tokenUserId);
+      }
+    } catch (_) {}
+
+    return null;
   }
 }

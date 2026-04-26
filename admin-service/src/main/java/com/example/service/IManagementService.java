@@ -29,6 +29,10 @@ public interface IManagementService {
     ResponseEntity<String> getOrderById(Long id);
     ResponseEntity<String> getOrdersByCustomer(String customerId);
     ResponseEntity<String> updateOrderStatus(Long id, String status);
+    ResponseEntity<String> getOrderWorkflowActions(Long id);
+    ResponseEntity<String> executeOrderWorkflowAction(Long id, String action);
+    ResponseEntity<String> getOrderWorkflowPriorities();
+    ResponseEntity<String> updateOrderWorkflowPriorities(String priorityJson);
 
     // Payment Management
     ResponseEntity<String> getAllPayments();
@@ -45,6 +49,10 @@ public interface IManagementService {
     ResponseEntity<String> getReturnById(Long id);
     ResponseEntity<String> approveReturn(Long id);
     ResponseEntity<String> rejectReturn(Long id);
+    ResponseEntity<String> resolveReturnAction(Long id, String action);
+
+    // Operations Dashboard
+    ResponseEntity<String> getOperationalWorkQueue();
 
     // System Health
     ResponseEntity<String> getSystemHealth();

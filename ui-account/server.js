@@ -54,7 +54,21 @@ app.post('/api/login', async (req, res) => {
   try {
     // Delegate to centralized auth service
     const response = await axios.post(`${AUTH_SERVICE}/api/auth/login`, req.body);
-    res.json(response.data);
+    const authData = response.data;
+    // Re-sign token with this service's JWT_SECRET so authenticateToken middleware accepts it
+    if (authData.token) {
+      const decoded = jwt.decode(authData.token);
+      const localToken = jwt.sign(
+        { id: decoded.id || decoded.userId || decoded.sub,
+          username: decoded.username,
+          email: decoded.email,
+          role: decoded.role },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      return res.json({ ...authData, token: localToken });
+    }
+    res.json(authData);
   } catch (error) {
     console.error('Login error:', error.response?.status, error.message);
     res.status(error.response?.status || 500).json({ 
@@ -163,7 +177,7 @@ app.put('/api/users/profile', authenticateToken, async (req, res) => {
 // ============ ORDERS HISTORY API ============
 app.get('/api/orders', authenticateToken, async (req, res) => {
   try {
-    const response = await axios.get(`${ORDER_SERVICE}/orders/user/${req.user.id}`);
+    const response = await axios.get(`${ORDER_SERVICE}/api/v1/orders/user/${req.user.id}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching orders:', error.message);
@@ -176,7 +190,7 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
 
 app.get('/api/orders/:orderId', authenticateToken, async (req, res) => {
   try {
-    const response = await axios.get(`${ORDER_SERVICE}/orders/${req.params.orderId}`);
+    const response = await axios.get(`${ORDER_SERVICE}/api/v1/orders/${req.params.orderId}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching order:', error.message);
@@ -190,7 +204,7 @@ app.get('/api/orders/:orderId', authenticateToken, async (req, res) => {
 // ============ RETURNS API ============
 app.get('/api/returns', authenticateToken, async (req, res) => {
   try {
-    const response = await axios.get(`${RETURN_SERVICE}/returns/user/${req.user.id}`);
+    const response = await axios.get(`${RETURN_SERVICE}/api/returns/user/${req.user.id}`);
     res.json(response.data);
   } catch (error) {
     console.error('Error fetching returns:', error.message);
@@ -203,7 +217,7 @@ app.get('/api/returns', authenticateToken, async (req, res) => {
 
 app.post('/api/returns', authenticateToken, async (req, res) => {
   try {
-    const response = await axios.post(`${RETURN_SERVICE}/returns`, {
+    const response = await axios.post(`${RETURN_SERVICE}/api/returns`, {
       ...req.body,
       userId: req.user.id
     });

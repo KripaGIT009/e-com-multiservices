@@ -29,6 +29,38 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/:id/workflow/actions', async (req, res) => {
+    try {
+        const response = await axios.get(
+            `${ADMIN_SERVICE_URL}/api/manage/orders/${req.params.id}/workflow/actions`,
+            {
+                headers: { Authorization: req.headers.authorization }
+            }
+        );
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).json({ error: 'Failed to fetch order workflow actions' });
+    }
+});
+
+router.post('/:id/workflow/actions', async (req, res) => {
+    try {
+        const action = req.body?.action;
+        if (!action) {
+            return res.status(400).json({ error: 'Action is required' });
+        }
+
+        const response = await axios.post(
+            `${ADMIN_SERVICE_URL}/api/manage/orders/${req.params.id}/workflow/actions?action=${encodeURIComponent(action)}`,
+            {},
+            { headers: { Authorization: req.headers.authorization } }
+        );
+        res.json(response.data);
+    } catch (error) {
+        res.status(error.response?.status || 500).json({ error: 'Failed to execute order workflow action' });
+    }
+});
+
 router.put('/:id/status', async (req, res) => {
     try {
         const response = await axios.put(

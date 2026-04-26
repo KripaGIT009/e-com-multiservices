@@ -62,6 +62,16 @@ management:
     health:
       show-details: always
 
+workflow:
+  order:
+    action-priority:
+      SHIP_ORDER: 100
+      MARK_DELIVERED: 95
+      RESERVE_INVENTORY: 90
+      CONFIRM_PAYMENT: 85
+      ISSUE_REFUND: 50
+      CANCEL_ORDER: 10
+
 logging:
   level:
     com.example: DEBUG

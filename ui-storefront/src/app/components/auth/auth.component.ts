@@ -457,7 +457,7 @@ export class AuthComponent implements OnInit {
     this.loading = true;
     this.errorMsg = '';
     const { username, email, password } = this.registerForm.value;
-    this.authService.signup(username, email).subscribe({
+    this.authService.signup(username, email, password).subscribe({
       next: () => { this.loading = false; this.router.navigate(['/']); },
       error: (e) => {
         this.loading = false;

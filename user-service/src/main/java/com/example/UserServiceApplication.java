@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.entity.Role;
 import com.example.entity.User;
 import com.example.repository.UserRepository;
 import org.springframework.boot.SpringApplication;
@@ -18,13 +19,13 @@ public class UserServiceApplication {
         return args -> {
             // Check if test users already exist
             if (userRepository.findByEmail("customer@example.com").isEmpty()) {
-                User customer = new User("customer", "customer@example.com", "password", "Test", "Customer", "CUSTOMER");
+                User customer = new User("customer", "customer@example.com", "password", "Test", "Customer", Role.CUSTOMER);
                 userRepository.save(customer);
                 System.out.println("✓ Created test customer user: customer@example.com / password");
             }
             
             if (userRepository.findByEmail("admin@example.com").isEmpty()) {
-                User admin = new User("admin", "admin@example.com", "password", "Admin", "User", "ADMIN");
+                User admin = new User("admin", "admin@example.com", "password", "Admin", "User", Role.ADMIN);
                 userRepository.save(admin);
                 System.out.println("✓ Created test admin user: admin@example.com / password");
             }

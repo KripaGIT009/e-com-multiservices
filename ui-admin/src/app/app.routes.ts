@@ -10,6 +10,7 @@ import { InventoryListComponent } from './components/inventory-list/inventory-li
 import { ReturnListComponent } from './components/return-list/return-list.component';
 import { ShipmentListComponent } from './components/shipment-list/shipment-list.component';
 import { NotificationListComponent } from './components/notification-list/notification-list.component';
+import { WorkflowSettingsComponent } from './components/workflow-settings/workflow-settings.component';
 import { AuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -26,5 +27,6 @@ export const routes: Routes = [
   { path: 'returns', component: ReturnListComponent },
   { path: 'shipments', component: ShipmentListComponent },
   { path: 'notifications', component: NotificationListComponent },
+  { path: 'workflow-settings', component: WorkflowSettingsComponent },
   { path: '**', redirectTo: '/login' }
 ];
