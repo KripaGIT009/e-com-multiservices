@@ -41,6 +41,11 @@ coverage/
 # Kiro IDE config (not user-facing spec content)
 .kiro/**/.config.kiro
 
+# Workspace/session residue
+LOCAL_TESTING_STATUS.md
+STARTUP_STATUS.md
+write_component.py
+
 # Temp / OS
 Thumbs.db
 

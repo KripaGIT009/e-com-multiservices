@@ -1294,6 +1294,6 @@ export class AppComponent implements OnInit, OnDestroy {
   navigateToHelp(): void {
     this.closeSidebar();
     // For now, just show alert - can be replaced with actual help page
-    alert('Customer Service: Contact us at support@myindianstore.com or call 1800-XXX-XXXX');
+    alert('Customer Service: Contact us at support@myindianstore.com. Our team is available 24/7.');
   }
 }
