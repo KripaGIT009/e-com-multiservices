@@ -648,6 +648,51 @@ public class ManagementServiceImpl implements IManagementService {
     }
 
     @Override
+    public ResponseEntity<String> getShipmentByOrderId(String orderId) {
+        try {
+            String response = webClientBuilder.build()
+                .get()
+                .uri(logisticsServiceUrl + "/api/shipments/order/" + orderId)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"Shipment not found\"}");
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> getShipmentByTrackingNumber(String trackingNumber) {
+        try {
+            String response = webClientBuilder.build()
+                .get()
+                .uri(logisticsServiceUrl + "/api/shipments/track/" + trackingNumber)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"Shipment not found\"}");
+        }
+    }
+
+    @Override
+    public ResponseEntity<String> getShipmentEvents(Long id) {
+        try {
+            String response = webClientBuilder.build()
+                .get()
+                .uri(logisticsServiceUrl + "/api/shipments/" + id + "/events")
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body("{\"error\":\"" + e.getMessage() + "\"}");
+        }
+    }
+
+    @Override
     public ResponseEntity<String> updateShipmentStatus(Long id, String statusJson) {
         try {
             String response = webClientBuilder.build()

@@ -14,6 +14,7 @@ export const routes: Routes = [
   { path: 'cart', loadComponent: () => import('./components/cart/cart.component').then(m => m.CartComponent) },
   { path: 'profile', loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent) },
   { path: 'orders', loadComponent: () => import('./components/orders/orders.component').then(m => m.OrdersComponent) },
+  { path: 'orders/:id/track', loadComponent: () => import('./components/order-tracking/order-tracking.component').then(m => m.OrderTrackingComponent) },
   { path: 'wishlist', loadComponent: () => import('./components/wishlist/wishlist.component').then(m => m.WishlistComponent) },
   { path: 'saved', loadComponent: () => import('./components/saved/saved.component').then(m => m.SavedComponent) },
   { path: 'reminders', loadComponent: () => import('./components/reminders/reminders.component').then(m => m.RemindersComponent) },

@@ -44,11 +44,8 @@ export class AuthService {
     return this.http.post<LoginResponse>(`${this.apiUrl}/admin/login`, request)
       .pipe(
         tap(response => {
-          console.log('Login response:', response);
           if (response.token && this.isBrowser) {
-            console.log('Storing token with key:', this.tokenKey);
             localStorage.setItem(this.tokenKey, response.token);
-            console.log('Token stored. Verification:', localStorage.getItem(this.tokenKey) ? 'SUCCESS' : 'FAILED');
             this.currentUserSubject.next({
               username: response.username,
               role: response.role
@@ -69,8 +66,8 @@ export class AuthService {
     if (!this.isBrowser) {
       return null;
     }
-    const token = localStorage.getItem(this.tokenKey);
-    console.log('getToken() called, key:', this.tokenKey, 'token exists:', !!token);
+    // Primary key used by admin UI; fall back to 'token' key used by storefront unified login
+    const token = localStorage.getItem(this.tokenKey) || localStorage.getItem('token');
     return token;
   }
 

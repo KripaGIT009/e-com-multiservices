@@ -1,0 +1,36 @@
+# ── Java build artifacts ──────────────────────────────────────────────────────
+**/target/
+
+# ── Node.js dependencies and built output (rebuilt inside Docker) ─────────────
+**/node_modules/
+**/dist/
+
+# ── Services not needed for ui-main build ────────────────────────────────────
+admin-service/
+cart-service/
+checkout-service/
+inventory-service/
+item-service/
+k8s/
+logistics-service/
+notification-service/
+order-service/
+payment-service/
+return-service/
+user-service/
+
+# ── Old individual UI services (replaced by ui-main) ─────────────────────────
+ui-auth/
+ui-checkout/
+ui-account/
+
+# ── Misc root files not needed in container ───────────────────────────────────
+*.md
+*.sql
+*.bat
+*.sh
+*.ps1
+*.log
+docker-compose*.yml
+.git/
+.gitignore

@@ -11,11 +11,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IShipmentService {
+    List<Shipment> getAllShipments();
     Shipment createShipment(CreateShipmentRequest request);
     Shipment createFromOrderEvent(SagaEvent event);
     Optional<Shipment> getShipment(Long id);
     Optional<Shipment> getShipmentByOrder(String orderId);
     Optional<Shipment> getShipmentByShipmentNumber(String shipmentNumber);
+    Optional<Shipment> getShipmentByTrackingNumber(String trackingNumber);
     Shipment updateStatus(Long id, UpdateShipmentStatusRequest request);
     Shipment updateEstimatedDelivery(Long id, LocalDateTime estimatedDelivery);
     List<ShipmentEvent> history(Long shipmentId);

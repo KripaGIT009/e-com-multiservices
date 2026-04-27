@@ -21,6 +21,11 @@ public class ShipmentController {
         this.shipmentService = shipmentService;
     }
 
+    @GetMapping
+    public ResponseEntity<List<Shipment>> getAll() {
+        return ResponseEntity.ok(shipmentService.getAllShipments());
+    }
+
     @PostMapping
     public ResponseEntity<Shipment> create(@RequestBody CreateShipmentRequest request) {
         return ResponseEntity.ok(shipmentService.createShipment(request));
@@ -36,6 +41,12 @@ public class ShipmentController {
     public ResponseEntity<Shipment> getByOrder(@PathVariable String orderId) {
         Optional<Shipment> shipment = shipmentService.getShipmentByOrder(orderId);
         return shipment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/track/{trackingNumber}")
+    public ResponseEntity<Shipment> getByTrackingNumber(@PathVariable String trackingNumber) {
+        return shipmentService.getShipmentByTrackingNumber(trackingNumber)
+            .map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/events")

@@ -24,7 +24,7 @@ public class Shipment {
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private ShipmentStatus status = ShipmentStatus.CREATED;
+    private ShipmentStatus status = ShipmentStatus.ORDER_PLACED;
 
     private String carrier;
 
@@ -32,6 +32,18 @@ public class Shipment {
     private String trackingNumber;
 
     private LocalDateTime estimatedDelivery;
+
+    /** Free-text address line delivered to (e.g. "123 Main St, Mumbai 400001") */
+    @Column(length = 512)
+    private String deliveryAddress;
+
+    /** Carrier tracking URL template, e.g. https://track.delhivery.com/p/{trackingNumber} */
+    @Column(length = 512)
+    private String carrierTrackingUrl;
+
+    /** Human-readable last update note shown to customer */
+    @Column(length = 512)
+    private String lastStatusNote;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -43,7 +55,7 @@ public class Shipment {
         this.shipmentNumber = shipmentNumber;
         this.orderId = orderId;
         this.customerId = customerId;
-        this.status = status == null ? ShipmentStatus.CREATED : status;
+        this.status = status == null ? ShipmentStatus.ORDER_PLACED : status;
         this.carrier = carrier;
         this.trackingNumber = trackingNumber;
         this.estimatedDelivery = estimatedDelivery;
@@ -55,7 +67,7 @@ public class Shipment {
         createdAt = now;
         updatedAt = now;
         if (status == null) {
-            status = ShipmentStatus.CREATED;
+            status = ShipmentStatus.ORDER_PLACED;
         }
     }
 
@@ -79,6 +91,12 @@ public class Shipment {
     public void setTrackingNumber(String trackingNumber) { this.trackingNumber = trackingNumber; }
     public LocalDateTime getEstimatedDelivery() { return estimatedDelivery; }
     public void setEstimatedDelivery(LocalDateTime estimatedDelivery) { this.estimatedDelivery = estimatedDelivery; }
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+    public String getCarrierTrackingUrl() { return carrierTrackingUrl; }
+    public void setCarrierTrackingUrl(String carrierTrackingUrl) { this.carrierTrackingUrl = carrierTrackingUrl; }
+    public String getLastStatusNote() { return lastStatusNote; }
+    public void setLastStatusNote(String lastStatusNote) { this.lastStatusNote = lastStatusNote; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
 }

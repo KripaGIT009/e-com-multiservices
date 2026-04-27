@@ -42,6 +42,9 @@ public interface IManagementService {
     // Shipment Management
     ResponseEntity<String> getAllShipments();
     ResponseEntity<String> getShipmentById(Long id);
+    ResponseEntity<String> getShipmentByOrderId(String orderId);
+    ResponseEntity<String> getShipmentByTrackingNumber(String trackingNumber);
+    ResponseEntity<String> getShipmentEvents(Long id);
     ResponseEntity<String> updateShipmentStatus(Long id, String statusJson);
 
     // Return Management

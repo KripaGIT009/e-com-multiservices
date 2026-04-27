@@ -40,6 +40,10 @@ public class ShipmentServiceImpl implements IShipmentService {
         this.objectMapper = objectMapper;
     }
 
+    public List<Shipment> getAllShipments() {
+        return shipments.findAll();
+    }
+
     public Shipment createShipment(CreateShipmentRequest request) {
         String shipmentNumber = request.getTrackingNumber() != null && !request.getTrackingNumber().isBlank()
             ? request.getTrackingNumber()
@@ -48,17 +52,26 @@ public class ShipmentServiceImpl implements IShipmentService {
             ? shipmentNumber
             : request.getTrackingNumber();
         String customerId = request.getCustomerId() == null || request.getCustomerId().isBlank() ? "UNKNOWN" : request.getCustomerId();
+
+        LocalDateTime eta = request.getEstimatedDelivery() != null
+            ? request.getEstimatedDelivery()
+            : addBusinessDays(LocalDateTime.now(), 5);
+
         Shipment shipment = new Shipment(
             shipmentNumber,
             request.getOrderId(),
             customerId,
-            ShipmentStatus.CREATED,
+            ShipmentStatus.ORDER_PLACED,
             request.getCarrier() == null ? "STANDARD" : request.getCarrier(),
             trackingNumber,
-            request.getEstimatedDelivery()
+            eta
         );
+        if (request.getDeliveryAddress() != null) shipment.setDeliveryAddress(request.getDeliveryAddress());
+        if (request.getCarrierTrackingUrl() != null) shipment.setCarrierTrackingUrl(request.getCarrierTrackingUrl());
+        shipment.setLastStatusNote("Your order has been placed and is being processed.");
+
         Shipment saved = shipments.save(shipment);
-        recordEvent(saved.getId(), "ShipmentCreated", "Shipment created for order " + saved.getOrderId());
+        recordEvent(saved.getId(), "ShipmentCreated", "Order placed - awaiting fulfilment.");
         publishShipmentEvent(saved, "ShipmentCreated");
         return saved;
     }
@@ -95,20 +108,46 @@ public class ShipmentServiceImpl implements IShipmentService {
         return shipments.findByShipmentNumber(shipmentNumber);
     }
 
+    @Transactional(readOnly = true)
+    public Optional<Shipment> getShipmentByTrackingNumber(String trackingNumber) {
+        Optional<Shipment> result = shipments.findByTrackingNumber(trackingNumber);
+        if (result.isEmpty()) {
+            result = shipments.findByShipmentNumber(trackingNumber);
+        }
+        return result;
+    }
+
     public Shipment updateStatus(Long id, UpdateShipmentStatusRequest request) {
         Shipment shipment = shipments.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("Shipment not found: " + id));
+
+        ShipmentStatus newStatus = null;
         if (request.getStatus() != null) {
-            shipment.setStatus(parseStatus(request.getStatus()));
+            newStatus = parseStatus(request.getStatus());
+            shipment.setStatus(newStatus);
         }
         if (request.getTrackingNumber() != null && !request.getTrackingNumber().isBlank()) {
             shipment.setTrackingNumber(request.getTrackingNumber());
         }
+        if (request.getCarrier() != null && !request.getCarrier().isBlank()) {
+            shipment.setCarrier(request.getCarrier());
+        }
+        if (request.getCarrierTrackingUrl() != null && !request.getCarrierTrackingUrl().isBlank()) {
+            shipment.setCarrierTrackingUrl(request.getCarrierTrackingUrl());
+        }
+        if (request.getDeliveryAddress() != null && !request.getDeliveryAddress().isBlank()) {
+            shipment.setDeliveryAddress(request.getDeliveryAddress());
+        }
         if (request.getEstimatedDelivery() != null) {
             shipment.setEstimatedDelivery(request.getEstimatedDelivery());
         }
+        String note = request.getNote() != null && !request.getNote().isBlank()
+            ? request.getNote()
+            : defaultNoteForStatus(newStatus != null ? newStatus : shipment.getStatus());
+        shipment.setLastStatusNote(note);
+
         Shipment saved = shipments.save(shipment);
-        recordEvent(saved.getId(), "ShipmentStatusUpdated", "Status set to " + saved.getStatus());
+        recordEvent(saved.getId(), "ShipmentStatusUpdated", note);
         publishShipmentEvent(saved, "ShipmentStatusUpdated");
         return saved;
     }
@@ -118,7 +157,7 @@ public class ShipmentServiceImpl implements IShipmentService {
             .orElseThrow(() -> new IllegalArgumentException("Shipment not found: " + id));
         shipment.setEstimatedDelivery(estimatedDelivery);
         Shipment saved = shipments.save(shipment);
-        recordEvent(saved.getId(), "ShipmentEtaUpdated", "ETA set to " + estimatedDelivery);
+        recordEvent(saved.getId(), "ShipmentEtaUpdated", "Estimated delivery updated to " + estimatedDelivery);
         publishShipmentEvent(saved, "ShipmentEtaUpdated");
         return saved;
     }
@@ -136,6 +175,33 @@ public class ShipmentServiceImpl implements IShipmentService {
         }
     }
 
+    private String defaultNoteForStatus(ShipmentStatus status) {
+        switch (status) {
+            case ORDER_PLACED:        return "Your order has been placed and is being processed.";
+            case PROCESSING:          return "We are picking and packing your items.";
+            case LABEL_GENERATED:     return "Shipping label created - handing over to carrier.";
+            case PICKED_UP:           return "Your package has been picked up by the carrier.";
+            case IN_TRANSIT:          return "Your package is on its way to you.";
+            case OUT_FOR_DELIVERY:    return "Your package is out for delivery today!";
+            case ATTEMPTED_DELIVERY:  return "Delivery was attempted. We will try again tomorrow.";
+            case DELIVERED:           return "Your package has been delivered. Enjoy!";
+            case EXCEPTION:           return "There is an issue with your shipment. Our team is looking into it.";
+            case RETURNED:            return "Your package is being returned to us.";
+            default:                  return "Shipment status updated.";
+        }
+    }
+
+    private LocalDateTime addBusinessDays(LocalDateTime from, int days) {
+        LocalDateTime result = from;
+        int added = 0;
+        while (added < days) {
+            result = result.plusDays(1);
+            int dow = result.getDayOfWeek().getValue();
+            if (dow < 6) added++;
+        }
+        return result.withHour(20).withMinute(0).withSecond(0).withNano(0);
+    }
+
     private void recordEvent(Long shipmentId, String type, String description) {
         shipmentEvents.save(new ShipmentEvent(shipmentId, type, description, LocalDateTime.now()));
     }
@@ -149,6 +215,7 @@ public class ShipmentServiceImpl implements IShipmentService {
         payload.put("customerId", shipment.getCustomerId());
         payload.put("carrier", shipment.getCarrier());
         payload.put("estimatedDelivery", shipment.getEstimatedDelivery());
+        payload.put("lastStatusNote", shipment.getLastStatusNote());
         kafkaTemplate.send("shipment-events", new SagaEvent(shipment.getOrderId(), type, toJson(payload)));
     }
 

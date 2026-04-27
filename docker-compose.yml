@@ -210,7 +210,7 @@ services:
       context: ./logistics-service
       dockerfile: Dockerfile
     ports:
-      - "8009:8080"
+      - "8009:8088"
     depends_on:
       kafka:
         condition: service_started
@@ -378,7 +378,7 @@ services:
       SERVICE_URLS_CART: http://cart-service:8080
       SERVICE_URLS_CHECKOUT: http://checkout-service:8080
       SERVICE_URLS_RETURN: http://return-service:8080
-      SERVICE_URLS_LOGISTICS: http://logistics-service:8080
+      SERVICE_URLS_LOGISTICS: http://logistics-service:8088
       SERVICE_URLS_NOTIFICATION: http://notification-service:8080
 
   admin_postgres:

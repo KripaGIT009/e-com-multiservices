@@ -534,16 +534,38 @@ app.put('/api/returns/:id/reject', authenticateAdmin, async (req, res) => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// SHIPMENTS — admin only
+// SHIPMENTS
 // ═════════════════════════════════════════════════════════════════════════════
+
+// Public: track by tracking number (like Amazon — no login required)
+app.get('/api/track/:trackingNumber', async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/shipments/track/${req.params.trackingNumber}`)).data); }
+  catch (e) { res.status(e.response?.status || 404).json({ error: 'Shipment not found' }); }
+});
+
+// Customer: get shipment for their order
+app.get('/api/shipments/order/:orderId', authenticateToken, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/shipments/order/${req.params.orderId}`, { headers: adminAuth(req) })).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch shipment' }); }
+});
+
+// Customer: shipment events for their order's shipment
+app.get('/api/shipments/:id/events', authenticateToken, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/shipments/${req.params.id}/events`, { headers: adminAuth(req) })).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch shipment events' }); }
+});
+
+// Admin: list all
 app.get('/api/shipments', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/shipments`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch shipments' }); }
 });
+// Admin: get by id
 app.get('/api/shipments/:id', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/shipments/${req.params.id}`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch shipment' }); }
 });
+// Admin: update status
 app.put('/api/shipments/:id/status', authenticateAdmin, async (req, res) => {
   try {
     const r = await axios.put(

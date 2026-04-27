@@ -1,16 +1,27 @@
-node_modules
+# Dependencies
+node_modules/
+**/node_modules/
 
 # Java build artifacts
 target/
 *.class
-*.jar
 *.war
 
-# Angular build cache
+# Angular build output
+dist/
 .angular/
 
-# Environment files (contain secrets)
+# Log files
+*.log
+build-log.txt
+logs/
+
+# Environment & secret files
 .env
+.env.*
+!.env.example
+application-local.yml
+application-local.properties
 
 # IDE files
 .idea/
@@ -18,5 +29,18 @@ target/
 .settings/
 .project
 .classpath
+.vscode/settings.json
 *.DS_Store
+*.orig
+*.bak
+
+# Test artifacts
+.jqwik-database
+coverage/
+
+# Kiro IDE config (not user-facing spec content)
+.kiro/**/.config.kiro
+
+# Temp / OS
+Thumbs.db
 

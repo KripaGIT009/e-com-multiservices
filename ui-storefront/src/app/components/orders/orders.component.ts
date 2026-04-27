@@ -303,15 +303,14 @@ export class OrdersComponent implements OnInit {
   }
 
   loadOrders(): void {
-    const userId = this.resolveUserId();
-    if (!userId) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       this.router.navigate(['/login']);
       return;
     }
 
     this.loading = true;
-    // Call order-service endpoint at port 8001
-    this.http.get<any[]>(`http://localhost:8001/api/v1/orders/user/${userId}`).subscribe({
+    this.http.get<any[]>(`/api/orders`).subscribe({
       next: (data) => {
         this.orders = data;
         this.loading = false;
@@ -319,8 +318,11 @@ export class OrdersComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load orders:', err);
         this.loading = false;
-        // For demo, show empty state
-        this.orders = [];
+        if (err.status === 401 || err.status === 403) {
+          this.router.navigate(['/login']);
+        } else {
+          this.orders = [];
+        }
       }
     });
   }
@@ -335,40 +337,5 @@ export class OrdersComponent implements OnInit {
 
   goToShopping(): void {
     this.router.navigate(['/products']);
-  }
-
-  private resolveUserId(): string | null {
-    const storedUserId = localStorage.getItem('userId');
-    if (storedUserId) {
-      return storedUserId;
-    }
-
-    const rawUser = localStorage.getItem('user');
-    if (rawUser) {
-      try {
-        const user = JSON.parse(rawUser);
-        const resolvedUserId = user?.id || user?.userId;
-        if (resolvedUserId) {
-          localStorage.setItem('userId', String(resolvedUserId));
-          return String(resolvedUserId);
-        }
-      } catch (_) {}
-    }
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return null;
-    }
-
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const tokenUserId = payload?.id;
-      if (tokenUserId) {
-        localStorage.setItem('userId', String(tokenUserId));
-        return String(tokenUserId);
-      }
-    } catch (_) {}
-
-    return null;
   }
 }

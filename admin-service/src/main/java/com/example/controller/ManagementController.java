@@ -202,6 +202,24 @@ public class ManagementController {
         return managementService.getShipmentById(id);
     }
 
+    @GetMapping("/shipments/order/{orderId}")
+    public ResponseEntity<String> getShipmentByOrderId(@PathVariable String orderId, HttpServletRequest request) {
+        logAction(request, "VIEW", "SHIPMENT", orderId, "Viewed shipment by order");
+        return managementService.getShipmentByOrderId(orderId);
+    }
+
+    @GetMapping("/shipments/track/{trackingNumber}")
+    public ResponseEntity<String> getShipmentByTrackingNumber(@PathVariable String trackingNumber, HttpServletRequest request) {
+        logAction(request, "VIEW", "SHIPMENT", trackingNumber, "Tracked shipment by tracking number");
+        return managementService.getShipmentByTrackingNumber(trackingNumber);
+    }
+
+    @GetMapping("/shipments/{id}/events")
+    public ResponseEntity<String> getShipmentEvents(@PathVariable Long id, HttpServletRequest request) {
+        logAction(request, "VIEW", "SHIPMENT", id.toString(), "Viewed shipment events");
+        return managementService.getShipmentEvents(id);
+    }
+
     @PutMapping("/shipments/{id}/status")
     public ResponseEntity<String> updateShipmentStatus(@PathVariable Long id, @RequestBody String statusJson,
                                                        HttpServletRequest request) {

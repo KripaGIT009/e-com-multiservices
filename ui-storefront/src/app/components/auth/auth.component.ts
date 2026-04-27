@@ -20,21 +20,15 @@ import { AuthService } from '../../services/auth.service';
       <!-- Card -->
       <div class="auth-card">
 
-        <!-- Tab switcher -->
-        <div class="auth-tabs">
-          <button class="tab-btn" [class.active]="mode==='customer'" (click)="setMode('customer')">Customer</button>
-          <button class="tab-btn" [class.active]="mode==='admin'" (click)="setMode('admin')">Admin</button>
-        </div>
-
-        <!-- ── CUSTOMER LOGIN ── -->
-        <ng-container *ngIf="mode==='customer' && view==='login'">
+        <!-- ── LOGIN ── -->
+        <ng-container *ngIf="view==='login'">
           <h2 class="card-title">Sign in</h2>
 
           <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
 
-          <form [formGroup]="loginForm" (ngSubmit)="onCustomerLogin()">
+          <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
             <div class="field">
-              <label>Email or mobile phone number</label>
+              <label>Email or username</label>
               <input formControlName="username" type="text" autocomplete="username" />
               <div class="field-err" *ngIf="loginForm.get('username')?.touched && loginForm.get('username')?.invalid">
                 Enter your email or username
@@ -60,11 +54,11 @@ import { AuthService } from '../../services/auth.service';
 
           <div class="divider"><span>New to My Indian Store?</span></div>
 
-          <button class="btn-secondary" (click)="view='register'">Create your account</button>
+          <button class="btn-secondary" (click)="switchToRegister()">Create your account</button>
         </ng-container>
 
-        <!-- ── CUSTOMER REGISTER ── -->
-        <ng-container *ngIf="mode==='customer' && view==='register'">
+        <!-- ── REGISTER ── -->
+        <ng-container *ngIf="view==='register'">
           <h2 class="card-title">Create account</h2>
 
           <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
@@ -110,40 +104,7 @@ import { AuthService } from '../../services/auth.service';
           </p>
 
           <div class="divider"><span>Already have an account?</span></div>
-          <button class="btn-secondary" (click)="view='login'">Sign in</button>
-        </ng-container>
-
-        <!-- ── ADMIN LOGIN ── -->
-        <ng-container *ngIf="mode==='admin'">
-          <h2 class="card-title">Admin Sign in</h2>
-          <p class="admin-sub">Access the admin dashboard</p>
-
-          <div class="error-box" *ngIf="errorMsg">{{ errorMsg }}</div>
-
-          <form [formGroup]="adminForm" (ngSubmit)="onAdminLogin()">
-            <div class="field">
-              <label>Admin Username</label>
-              <input formControlName="username" type="text" autocomplete="username" />
-              <div class="field-err" *ngIf="adminForm.get('username')?.touched && adminForm.get('username')?.invalid">
-                Enter your admin username
-              </div>
-            </div>
-            <div class="field">
-              <label>Password</label>
-              <input formControlName="password" [type]="showPwd ? 'text' : 'password'" autocomplete="current-password" />
-              <button type="button" class="show-pwd" (click)="showPwd=!showPwd">{{ showPwd ? 'Hide' : 'Show' }}</button>
-              <div class="field-err" *ngIf="adminForm.get('password')?.touched && adminForm.get('password')?.invalid">
-                Enter your password
-              </div>
-            </div>
-            <button type="submit" class="btn-admin" [disabled]="loading">
-              {{ loading ? 'Signing in…' : 'Sign in to Admin' }}
-            </button>
-          </form>
-
-          <div class="admin-hint">
-            <strong>Default credentials:</strong> admin / admin123
-          </div>
+          <button class="btn-secondary" (click)="switchToLogin()">Sign in</button>
         </ng-container>
 
       </div>
@@ -191,43 +152,12 @@ import { AuthService } from '../../services/auth.service';
       background: #fff;
     }
 
-    /* Tabs */
-    .auth-tabs {
-      display: flex;
-      border-bottom: 2px solid #e7e7e7;
-      margin-bottom: 20px;
-    }
-    .tab-btn {
-      flex: 1;
-      background: none;
-      border: none;
-      padding: 10px 0;
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      transition: all 0.15s;
-    }
-    .tab-btn.active {
-      color: #c7511f;
-      border-bottom-color: #c7511f;
-    }
-    .tab-btn:hover:not(.active) { color: #c7511f; }
-
     /* Title */
     .card-title {
       font-size: 24px;
       font-weight: 400;
       color: #111;
       margin-bottom: 16px;
-    }
-    .admin-sub {
-      font-size: 13px;
-      color: #666;
-      margin-bottom: 16px;
-      margin-top: -12px;
     }
 
     /* Error box */
@@ -315,21 +245,6 @@ import { AuthService } from '../../services/auth.service';
     }
     .btn-secondary:hover { background: linear-gradient(to bottom, #e7e9ec, #d9dce1); }
 
-    .btn-admin {
-      width: 100%;
-      height: 36px;
-      background: linear-gradient(to bottom, #f0c14b, #e8a820);
-      border: 1px solid #a88734;
-      border-radius: 3px;
-      font-size: 13px;
-      font-weight: 700;
-      color: #111;
-      cursor: pointer;
-      margin-top: 4px;
-    }
-    .btn-admin:hover:not(:disabled) { background: linear-gradient(to bottom, #e8a820, #d4920e); }
-    .btn-admin:disabled { opacity: 0.6; cursor: not-allowed; }
-
     /* Terms */
     .terms {
       font-size: 11px;
@@ -355,17 +270,6 @@ import { AuthService } from '../../services/auth.service';
     }
     .divider span { font-size: 12px; color: #767676; white-space: nowrap; }
 
-    /* Admin hint */
-    .admin-hint {
-      margin-top: 16px;
-      padding: 10px 12px;
-      background: #f3f3f3;
-      border-radius: 4px;
-      font-size: 12px;
-      color: #555;
-      border-left: 3px solid #f0c14b;
-    }
-
     /* Footer */
     .auth-footer {
       margin-top: 24px;
@@ -384,7 +288,6 @@ import { AuthService } from '../../services/auth.service';
   `]
 })
 export class AuthComponent implements OnInit {
-  mode: 'customer' | 'admin' = 'customer';
   view: 'login' | 'register' = 'login';
   loading = false;
   errorMsg = '';
@@ -392,7 +295,6 @@ export class AuthComponent implements OnInit {
 
   loginForm!: FormGroup;
   registerForm!: FormGroup;
-  adminForm!: FormGroup;
 
   constructor(
     private fb: FormBuilder,
@@ -415,38 +317,55 @@ export class AuthComponent implements OnInit {
       confirmPassword: ['', Validators.required]
     }, { validators: this.pwdMatch });
 
-    this.adminForm = this.fb.group({
-      username: ['', Validators.required],
-      password: ['', Validators.required]
-    });
-
     this.route.queryParams.subscribe(p => {
       if (p['type'] === 'signup') this.view = 'register';
-      if (p['mode'] === 'admin') this.mode = 'admin';
     });
   }
 
-  setMode(m: 'customer' | 'admin'): void {
-    this.mode = m;
-    this.errorMsg = '';
-    this.view = 'login';
-  }
+  switchToRegister(): void { this.view = 'register'; this.errorMsg = ''; }
+  switchToLogin(): void    { this.view = 'login';    this.errorMsg = ''; }
 
   private pwdMatch(g: FormGroup) {
     return g.get('password')?.value === g.get('confirmPassword')?.value ? null : { mismatch: true };
   }
 
-  onCustomerLogin(): void {
+  /** Unified login: try user-service first; on 401 fall back to admin-service. */
+  onLogin(): void {
     this.loginForm.markAllAsTouched();
     if (this.loginForm.invalid) return;
     this.loading = true;
     this.errorMsg = '';
     const { username, password } = this.loginForm.value;
+
     this.authService.login(username, password).subscribe({
-      next: () => { this.loading = false; this.router.navigate(['/']); },
-      error: (e) => {
+      next: (res) => {
         this.loading = false;
-        this.errorMsg = e.error?.error || 'Invalid email or password. Please try again.';
+        const role = res.user?.role || '';
+        if (role === 'ADMIN') {
+          window.location.href = '/admin/';
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: () => {
+        // User not found in user-service — try admin-service
+        this.http.post<any>('/api/auth/admin-login', { username, password }).subscribe({
+          next: (res) => {
+            this.loading = false;
+            // Store under both keys: 'token' (storefront) and 'auth_token' (admin UI)
+            localStorage.setItem('token', res.token);
+            localStorage.setItem('auth_token', res.token);
+            localStorage.setItem('username', res.user?.username || username);
+            localStorage.setItem('userRole', res.user?.role || 'ADMIN');
+            localStorage.setItem('isAdmin', 'true');
+            localStorage.setItem('user', JSON.stringify({ username: res.user?.username || username, role: res.user?.role || 'ADMIN' }));
+            window.location.href = res.redirectUrl || '/admin/';
+          },
+          error: () => {
+            this.loading = false;
+            this.errorMsg = 'Invalid email or password. Please try again.';
+          }
+        });
       }
     });
   }
@@ -462,30 +381,6 @@ export class AuthComponent implements OnInit {
       error: (e) => {
         this.loading = false;
         this.errorMsg = e.error?.error || 'Registration failed. Please try again.';
-      }
-    });
-  }
-
-  onAdminLogin(): void {
-    this.adminForm.markAllAsTouched();
-    if (this.adminForm.invalid) return;
-    this.loading = true;
-    this.errorMsg = '';
-    const { username, password } = this.adminForm.value;
-    this.http.post<any>('/api/auth/admin-login', { username, password }).subscribe({
-      next: (res) => {
-        this.loading = false;
-        // Store admin token and redirect to admin UI
-        localStorage.setItem('token', res.token);
-        localStorage.setItem('username', res.user?.username || username);
-        localStorage.setItem('userRole', res.user?.role || 'ADMIN');
-        localStorage.setItem('isAdmin', 'true');
-        localStorage.setItem('user', JSON.stringify({ username: res.user?.username || username, role: res.user?.role || 'ADMIN' }));
-        window.location.href = res.redirectUrl || 'http://localhost:3000';
-      },
-      error: (e) => {
-        this.loading = false;
-        this.errorMsg = e.error?.error || 'Invalid admin credentials.';
       }
     });
   }
