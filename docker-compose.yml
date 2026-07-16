@@ -126,11 +126,15 @@ services:
         condition: service_started
       user_postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       SPRING_DATASOURCE_URL: jdbc:postgresql://user_postgres:5432/user_service
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
 
   item-service:
     image: event-sourcing-saga-multiservice-item-service:1.1.0
@@ -397,11 +401,12 @@ services:
       timeout: 5s
       retries: 5
 
-  ui-main:
-    image: event-sourcing-saga-multiservice-ui-main:1.0.0
+  unified-ui:
+    image: myindianstore-unified-ui:1.0.0
+    pull_policy: never
     build:
-      context: .
-      dockerfile: ui-main/Dockerfile
+      context: ./unified-ui
+      dockerfile: Dockerfile
     ports:
       - "4200:4200"
     depends_on:
@@ -414,12 +419,11 @@ services:
       - inventory-service
       - return-service
       - admin-service
+      - logistics-service
+      - notification-service
     environment:
       PORT: 4200
-      # Customer token secret (issued by this server)
       JWT_SECRET: your-unified-secret-key
-      # Admin token secret — must match admin-service JWT_SECRET so tokens can
-      # be forwarded to admin-service for validation
       ADMIN_JWT_SECRET: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
       USER_SERVICE_URL: http://user-service:8080
       ITEM_SERVICE_URL: http://item-service:8080
@@ -429,6 +433,8 @@ services:
       PAYMENT_SERVICE_URL: http://payment-service:8080
       INVENTORY_SERVICE_URL: http://inventory-service:8080
       RETURN_SERVICE_URL: http://return-service:8080
+      LOGISTICS_SERVICE_URL: http://logistics-service:8088
+      NOTIFICATION_SERVICE_URL: http://notification-service:8080
       ADMIN_SERVICE_URL: http://admin-service:8011
 
   kafka-ui:
@@ -467,6 +473,18 @@ services:
     networks:
       - default
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
 volumes:
   order_postgres_data:
     driver: local
@@ -489,4 +507,6 @@ volumes:
   notification_postgres_data:
     driver: local
   admin_postgres_data:
+    driver: local
+  redis_data:
     driver: local

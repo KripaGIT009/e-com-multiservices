@@ -1,0 +1,101 @@
+@use '../../../shared/styles/variables' as *;
+
+.return-page {
+  padding: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-family: $mis-font-family;
+  font-size: 2rem;
+  font-weight: 700;
+  color: $mis-text-primary;
+  margin-bottom: 2rem;
+}
+
+.return-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: $mis-text-primary;
+  }
+
+  select,
+  textarea {
+    padding: 0.75rem;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius;
+    font-size: 1rem;
+    font-family: $mis-font-family;
+    min-height: 44px;
+    background: $mis-surface;
+
+    &:focus {
+      outline: none;
+      border-color: $mis-primary;
+      box-shadow: 0 0 0 2px rgba($mis-primary, 0.2);
+    }
+  }
+
+  textarea {
+    min-height: 100px;
+    resize: vertical;
+  }
+
+  .error {
+    color: $mis-error;
+    font-size: 0.8rem;
+  }
+}
+
+.btn-primary {
+  background-color: $mis-primary;
+  color: $mis-surface;
+  border: none;
+  border-radius: $mis-radius;
+  padding: 0.875rem 2rem;
+  font-family: $mis-font-family;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  align-self: flex-start;
+  transition: background-color 0.2s ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background-color: $mis-primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.success-message {
+  background: rgba($mis-success, 0.1);
+  border: 1px solid $mis-success;
+  border-radius: $mis-radius;
+  padding: 2rem;
+  text-align: center;
+  color: $mis-success;
+  font-weight: 600;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: $mis-text-secondary;
+}

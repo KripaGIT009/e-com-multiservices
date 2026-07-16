@@ -1,0 +1,131 @@
+<header class="app-header" role="banner" aria-label="MyIndianStore main header">
+  <!-- Row 1: Main Header -->
+  <div class="header-row-1">
+    <div class="header-container">
+      <!-- Logo -->
+      <a class="brand" routerLink="/home" aria-label="MyIndianStore home">
+        <span class="brand-icon">W</span>
+        <span class="brand-title">myindianstore</span>
+      </a>
+
+      <!-- Delivery Location -->
+      <div class="delivery-location" aria-label="Delivery location">
+        <span class="delivery-label">Delivering to</span>
+        <span class="delivery-address">India</span>
+        <a href="javascript:void(0)" class="update-location">Update location</a>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-bar" role="search" aria-label="Search products">
+        <select
+          class="search-category"
+          [(ngModel)]="selectedCategory"
+          aria-label="Search category">
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search MyIndianStore"
+          [(ngModel)]="searchQuery"
+          (keydown.enter)="onSearch()"
+          aria-label="Search products" />
+        <button
+          class="search-btn"
+          (click)="onSearch()"
+          aria-label="Submit search">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Right Actions -->
+      <div class="header-actions">
+        <!-- Language -->
+        <div class="header-action lang-selector" aria-label="Language selector">
+          <span class="flag-icon">🇮🇳</span>
+          <span class="action-text">EN</span>
+        </div>
+
+        <!-- Account -->
+        <div class="header-action account-action">
+          <ng-container *ngIf="isAuthenticated; else guestAccount">
+            <a routerLink="/account" class="action-link" aria-label="Your account">
+              <span class="action-label">Hello, {{ displayName }}</span>
+              <span class="action-text">Account & Lists</span>
+            </a>
+          </ng-container>
+          <ng-template #guestAccount>
+            <a routerLink="/login" class="action-link" aria-label="Sign in to your account">
+              <span class="action-label">Hello, Sign in</span>
+              <span class="action-text">Account & Lists</span>
+            </a>
+          </ng-template>
+        </div>
+
+        <!-- Returns & Orders -->
+        <div class="header-action">
+          <a routerLink="/account/orders" class="action-link" aria-label="Returns and orders">
+            <span class="action-label">Returns</span>
+            <span class="action-text">& Orders</span>
+          </a>
+        </div>
+
+        <!-- Cart -->
+        <a class="header-action cart-action" routerLink="/cart" [attr.aria-label]="'Shopping cart with ' + cartCount + ' items'">
+          <span class="cart-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span class="cart-count" *ngIf="cartCount > 0">{{ cartCount }}</span>
+          </span>
+          <span class="action-text cart-text">Cart</span>
+        </a>
+
+        <!-- Mobile menu toggle -->
+        <button
+          class="mobile-menu-toggle"
+          (click)="toggleMobileMenu()"
+          [attr.aria-expanded]="mobileMenuOpen"
+          aria-controls="nav-categories"
+          aria-label="Toggle navigation menu">
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: Navigation Categories -->
+  <nav
+    id="nav-categories"
+    class="header-row-2"
+    [class.open]="mobileMenuOpen"
+    role="navigation"
+    aria-label="Category navigation">
+    <div class="nav-container">
+      <ul class="nav-categories">
+        <li *ngFor="let cat of navCategories" class="nav-cat-item">
+          <a
+            class="nav-cat-link"
+            (click)="navigateToCategory(cat.link)"
+            (keydown.enter)="navigateToCategory(cat.link)"
+            tabindex="0"
+            [attr.aria-label]="cat.label">
+            <svg *ngIf="cat.icon === 'menu'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="menu-icon">
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+            {{ cat.label }}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+</header>

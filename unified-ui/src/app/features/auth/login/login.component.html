@@ -1,0 +1,53 @@
+<section class="login-page" aria-label="Login to MyIndianStore">
+  <div class="login-card">
+    <h1 class="login-title">Welcome Back</h1>
+    <p class="login-subtitle">Sign in to your MyIndianStore account</p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          [class.invalid]="email?.invalid && email?.touched"
+          placeholder="you@example.com"
+          aria-describedby="email-error"
+        />
+        <span id="email-error" class="form-error" *ngIf="email?.invalid && email?.touched">
+          <span *ngIf="email?.errors?.['required']">Email is required.</span>
+          <span *ngIf="email?.errors?.['email']">Please enter a valid email.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.invalid]="password?.invalid && password?.touched"
+          placeholder="Min. 8 characters"
+          aria-describedby="password-error"
+        />
+        <span id="password-error" class="form-error" *ngIf="password?.invalid && password?.touched">
+          <span *ngIf="password?.errors?.['required']">Password is required.</span>
+          <span *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters.</span>
+        </span>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </form>
+
+    <p class="login-footer">
+      Don't have an account? <a routerLink="/register" class="link">Register</a>
+    </p>
+    <p class="login-footer">
+      <a routerLink="/forgot-password" class="link">Forgot Password?</a>
+    </p>
+  </div>
+</section>

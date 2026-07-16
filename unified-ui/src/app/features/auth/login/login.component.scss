@@ -1,0 +1,108 @@
+@import '../../../shared/styles/variables';
+
+.login-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 2rem 1rem;
+}
+
+.login-card {
+  background: $mis-surface;
+  border-radius: $mis-radius-lg;
+  box-shadow: $mis-shadow;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 420px;
+}
+
+.login-title {
+  font-family: $mis-font-family;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $mis-secondary;
+  margin-bottom: 0.25rem;
+}
+
+.login-subtitle {
+  color: $mis-text-secondary;
+  margin-bottom: 2rem;
+  font-size: 0.9375rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: $mis-text-primary;
+  margin-bottom: 0.375rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  min-height: 44px;
+  border: 1px solid $mis-border;
+  border-radius: $mis-radius;
+  font-family: $mis-font-family;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: $mis-primary;
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+  }
+
+  &.invalid {
+    border-color: $mis-error;
+  }
+}
+
+.form-error {
+  display: block;
+  color: $mis-error;
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.875rem;
+  min-height: 44px;
+  background-color: $mis-primary;
+  color: #fff;
+  border: none;
+  border-radius: $mis-radius;
+  font-family: $mis-font-family;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 0.5rem;
+
+  &:hover:not(:disabled) { background-color: $mis-primary-dark; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+  &:focus-visible {
+    outline: 2px solid $mis-secondary;
+    outline-offset: 2px;
+  }
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.875rem;
+  color: $mis-text-secondary;
+}
+
+.link {
+  color: $mis-primary;
+  font-weight: 500;
+  &:hover { color: $mis-primary-dark; }
+}

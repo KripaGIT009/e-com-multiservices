@@ -1,0 +1,58 @@
+@import '../../styles/variables';
+
+.secondary-nav {
+  background-color: $mis-surface;
+  border-bottom: 1px solid $mis-border;
+  padding: 0 1rem;
+}
+
+.nav-list {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 1200px;
+  gap: 0.25rem;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  min-height: 44px;
+  color: $mis-text-primary;
+  text-decoration: none;
+  font-family: $mis-font-family;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: $mis-radius;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  &:hover {
+    background-color: $mis-background;
+    color: $mis-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $mis-primary;
+    outline-offset: 2px;
+  }
+
+  &.active {
+    color: $mis-primary;
+    border-bottom: 2px solid $mis-primary;
+  }
+}
+
+@media (max-width: 767px) {
+  .nav-list {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .nav-link {
+    padding: 0.75rem 1rem;
+    width: 100%;
+  }
+}

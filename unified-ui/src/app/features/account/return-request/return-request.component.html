@@ -1,0 +1,61 @@
+<section class="return-page" aria-label="Return Request">
+  <h1 class="page-title">Request a Return</h1>
+
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <p>Loading your orders...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !submitted && orders.length === 0" class="empty-state">
+    <p>No eligible orders found for return. Only delivered orders can be returned.</p>
+  </div>
+
+  <div *ngIf="submitted" class="success-message" role="status" aria-live="polite">
+    <p>Your return request has been submitted. We'll review it shortly.</p>
+  </div>
+
+  <form
+    *ngIf="!isLoading && !submitted && orders.length > 0"
+    [formGroup]="returnForm"
+    (ngSubmit)="onSubmit()"
+    class="return-form">
+    <div class="form-group">
+      <label for="orderId">Select Order *</label>
+      <select id="orderId" formControlName="orderId">
+        <option value="" disabled>Choose an order</option>
+        <option *ngFor="let order of orders" [value]="order.id">
+          Order #{{ order.id }} ({{ order.items.length }} items)
+        </option>
+      </select>
+      <span class="error" *ngIf="returnForm.get('orderId')?.touched && returnForm.get('orderId')?.invalid">
+        Please select an order.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="reason">Reason for Return *</label>
+      <select id="reason" formControlName="reason">
+        <option value="" disabled>Choose a reason</option>
+        <option *ngFor="let reason of reasons" [value]="reason">{{ reason }}</option>
+      </select>
+      <span class="error" *ngIf="returnForm.get('reason')?.touched && returnForm.get('reason')?.invalid">
+        Please select a reason.
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="description">Additional Details</label>
+      <textarea
+        id="description"
+        formControlName="description"
+        placeholder="Provide any additional details about your return..."
+        rows="4"></textarea>
+    </div>
+
+    <button
+      type="submit"
+      class="btn-primary"
+      [disabled]="isSubmitting || returnForm.invalid">
+      {{ isSubmitting ? 'Submitting...' : 'Submit Return Request' }}
+    </button>
+  </form>
+</section>

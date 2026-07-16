@@ -1,0 +1,43 @@
+<section class="profile-page" aria-label="My Profile">
+  <h1 class="page-title">My Profile</h1>
+
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <p>Loading profile...</p>
+  </div>
+
+  <form *ngIf="!isLoading" [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+    <div class="form-group">
+      <label for="username">Username *</label>
+      <input id="username" formControlName="username" type="text" autocomplete="username" />
+      <span class="error" *ngIf="profileForm.get('username')?.touched && profileForm.get('username')?.invalid">
+        Username is required (min 3 characters).
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input id="email" formControlName="email" type="email" autocomplete="email" />
+      <span class="error" *ngIf="profileForm.get('email')?.touched && profileForm.get('email')?.invalid">
+        Valid email is required.
+      </span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="firstName">First Name</label>
+        <input id="firstName" formControlName="firstName" type="text" autocomplete="given-name" />
+      </div>
+      <div class="form-group">
+        <label for="lastName">Last Name</label>
+        <input id="lastName" formControlName="lastName" type="text" autocomplete="family-name" />
+      </div>
+    </div>
+
+    <button
+      type="submit"
+      class="btn-primary"
+      [disabled]="isSubmitting || profileForm.invalid">
+      {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+    </button>
+  </form>
+</section>

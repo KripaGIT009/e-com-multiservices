@@ -1,0 +1,53 @@
+<section class="cart-page" aria-label="Shopping Cart">
+  <h1 class="page-title">Your Cart</h1>
+
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <p>Loading cart...</p>
+  </div>
+
+  <div *ngIf="!isLoading && cartItems.length === 0" class="empty-state">
+    <p>Your cart is empty.</p>
+    <button class="btn-primary" (click)="continueShopping()">Continue Shopping</button>
+  </div>
+
+  <div *ngIf="!isLoading && cartItems.length > 0" class="cart-content">
+    <div class="cart-items" role="list" aria-label="Cart items">
+      <div class="cart-item" *ngFor="let item of cartItems" role="listitem">
+        <div class="item-info">
+          <h2 class="item-name">{{ item.itemName }}</h2>
+          <p class="item-price">₹{{ item.price | number:'1.2-2' }}</p>
+        </div>
+        <div class="item-actions">
+          <div class="quantity-control" role="group" [attr.aria-label]="'Quantity for ' + item.itemName">
+            <button
+              class="qty-btn"
+              (click)="updateQuantity(item, -1)"
+              [disabled]="item.quantity <= 1"
+              aria-label="Decrease quantity">−</button>
+            <span class="qty-value" aria-live="polite">{{ item.quantity }}</span>
+            <button
+              class="qty-btn"
+              (click)="updateQuantity(item, 1)"
+              aria-label="Increase quantity">+</button>
+          </div>
+          <p class="item-subtotal">₹{{ item.price * item.quantity | number:'1.2-2' }}</p>
+          <button
+            class="btn-remove"
+            (click)="removeItem(item)"
+            [attr.aria-label]="'Remove ' + item.itemName + ' from cart'">
+            Remove
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <div class="summary-row total">
+        <span>Total</span>
+        <span class="total-price">₹{{ totalPrice | number:'1.2-2' }}</span>
+      </div>
+      <button class="btn-checkout" (click)="proceedToCheckout()">Proceed to Checkout</button>
+      <button class="btn-continue" (click)="continueShopping()">Continue Shopping</button>
+    </div>
+  </div>
+</section>

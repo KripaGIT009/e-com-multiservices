@@ -97,7 +97,7 @@ public class OrderController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<OrderDTO> updateOrderStatus(
             @PathVariable("id") Long id,
-            @RequestParam OrderStatus status) {
+            @RequestParam("status") OrderStatus status) {
         log.info("PATCH /api/v1/orders/{}/status?status={} - Updating order status", id, status);
         OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok(updatedOrder);

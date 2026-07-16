@@ -1,0 +1,64 @@
+@import '../../styles/variables';
+
+.app-footer {
+  background-color: $mis-secondary;
+  color: #ffffff;
+  padding: 1.5rem 1rem;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.brand-name {
+  font-family: $mis-font-family;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.copyright {
+  font-size: 0.8125rem;
+  opacity: 0.8;
+}
+
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.footer-link {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  font-size: 0.875rem;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+
+  &:hover { color: $mis-primary; }
+  &:focus-visible {
+    outline: 2px solid $mis-primary;
+    outline-offset: 2px;
+    border-radius: $mis-radius;
+  }
+}
+
+@media (max-width: 767px) {
+  .footer-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  .footer-links { justify-content: center; }
+}

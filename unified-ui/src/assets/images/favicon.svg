@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Saffron shopping bag favicon -->
+  <rect width="32" height="32" rx="4" fill="#FF6B35"/>
+  <!-- White bag silhouette -->
+  <g fill="#FFFFFF">
+    <path d="M8 13h16v13c0 1.5-1 2.5-2.5 2.5h-11C9 28.5 8 27.5 8 26V13z"/>
+    <path d="M12 13v-2.5c0-2.2 1.8-4 4-4s4 1.8 4 4V13" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Small flame/diya mark -->
+  <path d="M16 16c-0.8 1.5-1.2 2.8 0 4 1.2-1.2 0.8-2.5 0-4z" fill="#FF6B35"/>
+  <ellipse cx="16" cy="21" rx="2.5" ry="1.8" fill="#FF6B35" opacity="0.6"/>
+</svg>

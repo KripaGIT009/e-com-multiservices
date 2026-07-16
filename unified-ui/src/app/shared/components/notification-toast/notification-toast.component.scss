@@ -1,0 +1,66 @@
+@import '../../styles/variables';
+
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 1rem;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 400px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: $mis-radius;
+  box-shadow: $mis-shadow;
+  background-color: $mis-surface;
+  border-left: 4px solid transparent;
+  animation: slideIn 0.3s ease;
+
+  &--success { border-left-color: $mis-success; }
+  &--error   { border-left-color: $mis-error; }
+  &--warning { border-left-color: $mis-warning; }
+  &--info    { border-left-color: $mis-primary; }
+}
+
+.toast-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.toast-message {
+  flex: 1;
+  font-family: $mis-font-family;
+  font-size: 0.875rem;
+  color: $mis-text-primary;
+}
+
+.toast-dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: $mis-text-secondary;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $mis-radius;
+
+  &:hover { background-color: $mis-background; }
+  &:focus-visible {
+    outline: 2px solid $mis-primary;
+    outline-offset: 2px;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}

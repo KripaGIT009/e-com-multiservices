@@ -1,0 +1,14 @@
+<section class="confirmation-page" aria-label="Order Confirmation">
+  <div class="confirmation-card">
+    <div class="success-icon" aria-hidden="true">✓</div>
+    <h1 class="confirmation-title">Order Placed Successfully!</h1>
+    <p class="confirmation-message">Thank you for your order. Your items will be shipped soon.</p>
+    <p class="order-id" *ngIf="orderId">
+      Order ID: <strong>{{ orderId }}</strong>
+    </p>
+    <div class="confirmation-actions">
+      <button class="btn-primary" (click)="viewOrders()">View My Orders</button>
+      <button class="btn-secondary" (click)="continueShopping()">Continue Shopping</button>
+    </div>
+  </div>
+</section>

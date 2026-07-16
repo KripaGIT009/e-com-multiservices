@@ -1,0 +1,116 @@
+@use '../../../shared/styles/variables' as *;
+
+.admin-dashboard {
+  padding: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-family: $mis-font-family;
+  font-size: 2rem;
+  font-weight: 700;
+  color: $mis-text-primary;
+  margin-bottom: 2rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+
+  @media (min-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  background: $mis-surface;
+  border: 1px solid $mis-border;
+  border-radius: $mis-radius;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: $mis-shadow;
+}
+
+.stat-value {
+  font-family: $mis-font-family;
+  font-size: 2rem;
+  font-weight: 700;
+  color: $mis-secondary;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: $mis-text-secondary;
+  font-weight: 500;
+}
+
+.section-title {
+  font-family: $mis-font-family;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: $mis-text-primary;
+  margin-bottom: 1.5rem;
+}
+
+.admin-nav-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+
+  @media (min-width: 576px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.admin-nav-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: $mis-surface;
+  border: 1px solid $mis-border;
+  border-radius: $mis-radius;
+  padding: 1.25rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: $mis-text-primary;
+  transition: all 0.2s ease;
+  min-height: 44px;
+  box-shadow: $mis-shadow;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $mis-primary;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    outline: 2px solid $mis-primary;
+    outline-offset: 2px;
+  }
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+}
+
+.nav-label {
+  font-family: $mis-font-family;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 3rem;
+  color: $mis-text-secondary;
+}

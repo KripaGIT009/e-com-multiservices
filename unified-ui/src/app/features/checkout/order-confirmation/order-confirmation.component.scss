@@ -1,0 +1,99 @@
+@use '../../../shared/styles/variables' as *;
+
+.confirmation-page {
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+}
+
+.confirmation-card {
+  background: $mis-surface;
+  border: 1px solid $mis-border;
+  border-radius: $mis-radius-lg;
+  padding: 3rem 2rem;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: $mis-shadow;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: $mis-success;
+  color: $mis-surface;
+  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.confirmation-title {
+  font-family: $mis-font-family;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: $mis-text-primary;
+  margin-bottom: 1rem;
+}
+
+.confirmation-message {
+  font-size: 1rem;
+  color: $mis-text-secondary;
+  margin-bottom: 1rem;
+}
+
+.order-id {
+  font-size: 0.95rem;
+  color: $mis-text-primary;
+  margin-bottom: 2rem;
+
+  strong {
+    color: $mis-secondary;
+  }
+}
+
+.confirmation-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-primary {
+  background-color: $mis-primary;
+  color: $mis-surface;
+  border: none;
+  border-radius: $mis-radius;
+  padding: 0.875rem 2rem;
+  font-family: $mis-font-family;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  transition: background-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: $mis-primary-dark;
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: $mis-secondary;
+  border: 2px solid $mis-secondary;
+  border-radius: $mis-radius;
+  padding: 0.75rem 2rem;
+  font-family: $mis-font-family;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+
+  &:hover,
+  &:focus-visible {
+    background: $mis-secondary;
+    color: $mis-surface;
+  }
+}

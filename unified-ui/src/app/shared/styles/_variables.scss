@@ -1,0 +1,88 @@
+// =============================================================================
+// MyIndianStore — Design Tokens
+// =============================================================================
+// This file defines all CSS custom properties (for runtime theming) and matching
+// SCSS variables (for use in component stylesheets at compile time).
+// Requirements: 3.1, 3.3, 3.4, 3.7
+// =============================================================================
+
+// ---------------------------------------------------------------------------
+// CSS Custom Properties (runtime theme tokens)
+// ---------------------------------------------------------------------------
+:root {
+  // Brand Colors
+  --mis-primary:        #FF6B35;   // Saffron/orange — CTAs, buttons, links
+  --mis-primary-dark:   #E55A24;   // Hover state for primary
+  --mis-secondary:      #2D6A4F;   // Deep green — headers, accents
+  --mis-secondary-dark: #1E4D38;   // Hover state for secondary
+  --mis-background:     #FFF8F0;   // Cream — page background
+  --mis-surface:        #FFFFFF;   // Card/panel background
+  --mis-text-primary:   #1A1A1A;   // Main body text
+  --mis-text-secondary: #6B6B6B;   // Muted/secondary text
+  --mis-border:         #E8D5C4;   // Warm border color
+
+  // Semantic Colors
+  --mis-error:          #D32F2F;   // Error states
+  --mis-success:        #388E3C;   // Success states
+  --mis-warning:        #F57C00;   // Warning states
+
+  // Amazon-India inspired additions
+  --mis-header-dark:    #232F3E;   // Dark navy header background
+  --mis-header-light:   #37475A;   // Lighter navy for hover/accents
+  --mis-nav-green:      #3D8B37;   // Green navigation bar
+  --mis-cta-gold:       #FFD814;   // Gold CTA buttons
+  --mis-cta-gold-dark:  #F7CA00;   // Hover state for gold CTA
+  --mis-price-red:      #CC0C39;   // Discount/sale price color
+  --mis-link-blue:      #007185;   // Product link color
+  --mis-star-orange:    #DE7921;   // Star rating color
+  --mis-stock-green:    #067D62;   // In-stock indicator
+
+  // Typography
+  --mis-font-family:    'Poppins', 'Noto Sans', sans-serif;
+  --mis-font-size-base: 16px;
+
+  // Spacing & Shape
+  --mis-radius:         8px;
+  --mis-radius-lg:      16px;
+  --mis-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+// ---------------------------------------------------------------------------
+// SCSS Variables (compile-time tokens for component stylesheets)
+// ---------------------------------------------------------------------------
+
+// Brand Colors
+$mis-primary:        #FF6B35;
+$mis-primary-dark:   #E55A24;
+$mis-secondary:      #2D6A4F;
+$mis-secondary-dark: #1E4D38;
+$mis-background:     #FFF8F0;
+$mis-surface:        #FFFFFF;
+$mis-text-primary:   #1A1A1A;
+$mis-text-secondary: #6B6B6B;
+$mis-border:         #E8D5C4;
+
+// Semantic Colors
+$mis-error:          #D32F2F;
+$mis-success:        #388E3C;
+$mis-warning:        #F57C00;
+
+// Amazon-India inspired additions
+$mis-header-dark:    #232F3E;
+$mis-header-light:   #37475A;
+$mis-nav-green:      #3D8B37;
+$mis-cta-gold:       #FFD814;
+$mis-cta-gold-dark:  #F7CA00;
+$mis-price-red:      #CC0C39;
+$mis-link-blue:      #007185;
+$mis-star-orange:    #DE7921;
+$mis-stock-green:    #067D62;
+
+// Typography
+$mis-font-family:    'Poppins', 'Noto Sans', sans-serif;
+$mis-font-size-base: 16px;
+
+// Spacing & Shape
+$mis-radius:         8px;
+$mis-radius-lg:      16px;
+$mis-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);

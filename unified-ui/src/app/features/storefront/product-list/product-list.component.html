@@ -1,0 +1,173 @@
+<section class="product-list-page" aria-label="Product Listing">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol>
+      <li><a routerLink="/home">Home</a></li>
+      <li aria-current="page">Products</li>
+    </ol>
+  </nav>
+
+  <!-- Results Header -->
+  <div class="results-header">
+    <p class="results-count">
+      1-{{ totalResults }} of {{ totalResults }} results for
+      <strong>"{{ displayCategory }}"</strong>
+    </p>
+    <div class="sort-control">
+      <label for="sort-select">Sort by:</label>
+      <select id="sort-select" [(ngModel)]="sortBy" (change)="onSortChange()">
+        <option *ngFor="let opt of sortOptions" [value]="opt.value">{{ opt.label }}</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="content-layout">
+    <!-- Left Sidebar Filters -->
+    <aside class="filters-sidebar" aria-label="Product filters">
+      <!-- Price Filter -->
+      <div class="filter-group">
+        <h3 class="filter-title">Price</h3>
+        <div class="price-input-row">
+          <input
+            type="number"
+            class="price-input"
+            placeholder="₹ Min"
+            [(ngModel)]="priceMin"
+            aria-label="Minimum price" />
+          <input
+            type="number"
+            class="price-input"
+            placeholder="₹ Max"
+            [(ngModel)]="priceMax"
+            aria-label="Maximum price" />
+          <button
+            class="price-go-btn"
+            (click)="applyPriceFilter()"
+            aria-label="Apply price filter">
+            Go
+          </button>
+        </div>
+        <ul class="filter-options">
+          <li *ngFor="let range of priceRanges">
+            <label class="filter-checkbox">
+              <input
+                type="checkbox"
+                [checked]="selectedPriceRanges.includes(range.value)"
+                (change)="onPriceRangeChange(range.value, $any($event.target).checked)" />
+              <span>{{ range.label }}</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Deals & Discounts -->
+      <div class="filter-group">
+        <h3 class="filter-title">Deals & Discounts</h3>
+        <ul class="filter-options">
+          <li *ngFor="let discount of discountOptions">
+            <label class="filter-checkbox">
+              <input
+                type="checkbox"
+                [checked]="selectedDiscounts.includes(discount.value)"
+                (change)="onDiscountChange(discount.value, $any($event.target).checked)" />
+              <span>{{ discount.label }}</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Customer Review -->
+      <div class="filter-group">
+        <h3 class="filter-title">Customer Review</h3>
+        <ul class="filter-options rating-options">
+          <li *ngFor="let star of [4, 3, 2, 1]">
+            <label class="filter-checkbox rating-label">
+              <input
+                type="checkbox"
+                [checked]="selectedRatings.includes(star)"
+                (change)="onRatingChange(star, $any($event.target).checked)" />
+              <span class="stars" [attr.aria-label]="star + ' stars and up'">
+                <span *ngFor="let s of getStars(star)" class="star" [class.filled]="s === 1">★</span>
+              </span>
+              <span class="rating-text">& Up</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Product Grid -->
+    <main class="products-main">
+      <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+        <p>Loading products...</p>
+      </div>
+
+      <div *ngIf="!isLoading && filteredProducts.length === 0" class="empty-state">
+        <p>No products match your filters.</p>
+      </div>
+
+      <div class="product-grid" *ngIf="!isLoading && filteredProducts.length > 0">
+        <article
+          *ngFor="let product of filteredProducts"
+          class="product-card"
+          tabindex="0"
+          [attr.aria-label]="'View details for ' + product.name"
+          (click)="viewProduct(product.id)"
+          (keydown.enter)="viewProduct(product.id)">
+
+          <!-- Sponsored Badge -->
+          <span class="badge-sponsored" *ngIf="product.sponsored">Sponsored</span>
+
+          <!-- Product Image -->
+          <div class="product-image-wrapper">
+            <img
+              [src]="product.imageUrl || 'https://via.placeholder.com/300x300?text=Product'"
+              [alt]="product.name"
+              class="product-image"
+              loading="lazy" />
+          </div>
+
+          <!-- Product Details -->
+          <div class="product-details">
+            <h2 class="product-name">{{ product.name }}</h2>
+
+            <!-- Rating -->
+            <div class="product-rating" *ngIf="product.rating">
+              <span class="stars">
+                <span *ngFor="let s of getStars(product.rating)" class="star" [class.filled]="s === 1">★</span>
+              </span>
+              <span class="review-count">({{ product.reviewCount | number }})</span>
+            </div>
+
+            <!-- Price -->
+            <div class="product-pricing">
+              <span class="discount-badge" *ngIf="product.discount">-{{ product.discount }}%</span>
+              <span class="current-price">₹{{ product.price | number:'1.0-0' }}</span>
+            </div>
+            <div class="original-price" *ngIf="product.originalPrice">
+              M.R.P: <span class="strikethrough">₹{{ product.originalPrice | number:'1.0-0' }}</span>
+            </div>
+
+            <!-- Delivery -->
+            <p class="delivery-info" *ngIf="product.freeDelivery">
+              FREE Delivery by Tomorrow
+            </p>
+
+            <!-- Stock Status -->
+            <p class="stock-status in-stock" *ngIf="product.inStock">In stock</p>
+            <p class="stock-status out-of-stock" *ngIf="!product.inStock">Out of stock</p>
+
+            <!-- Add to Cart -->
+            <button
+              class="btn-add-cart"
+              (click)="addToCart(product, $event)"
+              [disabled]="!product.inStock"
+              [attr.aria-label]="'Add ' + product.name + ' to cart'">
+              Add to Cart
+            </button>
+          </div>
+        </article>
+      </div>
+    </main>
+  </div>
+</section>

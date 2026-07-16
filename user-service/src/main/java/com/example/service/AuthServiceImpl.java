@@ -159,4 +159,18 @@ public class AuthServiceImpl implements IAuthService {
         // Revoke all refresh tokens to terminate other sessions
         refreshTokenRepository.revokeAllByUser(user);
     }
+
+    @Override
+    @Transactional
+    public void resetPasswordByEmail(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with email: " + email));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+
+        // Revoke all refresh tokens
+        refreshTokenRepository.revokeAllByUser(user);
+    }
 }

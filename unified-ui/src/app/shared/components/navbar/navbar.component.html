@@ -1,0 +1,21 @@
+<nav class="secondary-nav" role="navigation" aria-label="Secondary navigation">
+  <ul class="nav-list">
+    <!-- Always visible -->
+    <li class="nav-item">
+      <a routerLink="/products" routerLinkActive="active" class="nav-link">Products</a>
+    </li>
+
+    <!-- Customer links -->
+    <li class="nav-item" *ngIf="showCustomerLinks">
+      <a routerLink="/account/orders" routerLinkActive="active" class="nav-link">My Orders</a>
+    </li>
+    <li class="nav-item" *ngIf="showCustomerLinks">
+      <a routerLink="/account/returns" routerLinkActive="active" class="nav-link">Returns</a>
+    </li>
+
+    <!-- Admin links -->
+    <li class="nav-item" *ngIf="showAdminLinks">
+      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Dashboard</a>
+    </li>
+  </ul>
+</nav>

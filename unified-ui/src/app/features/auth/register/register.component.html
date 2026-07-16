@@ -1,0 +1,55 @@
+<section class="register-page" aria-label="Register for MyIndianStore">
+  <div class="register-card">
+    <h1 class="register-title">Create Account</h1>
+    <p class="register-subtitle">Join MyIndianStore today</p>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label for="username" class="form-label">Username</label>
+        <input id="username" type="text" formControlName="username" class="form-input"
+          [class.invalid]="username?.invalid && username?.touched" placeholder="Your username" />
+        <span class="form-error" *ngIf="username?.invalid && username?.touched">
+          <span *ngIf="username?.errors?.['required']">Username is required.</span>
+          <span *ngIf="username?.errors?.['minlength']">Username must be at least 3 characters.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input id="email" type="email" formControlName="email" class="form-input"
+          [class.invalid]="email?.invalid && email?.touched" placeholder="you@example.com" />
+        <span class="form-error" *ngIf="email?.invalid && email?.touched">
+          <span *ngIf="email?.errors?.['required']">Email is required.</span>
+          <span *ngIf="email?.errors?.['email']">Please enter a valid email.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <input id="password" type="password" formControlName="password" class="form-input"
+          [class.invalid]="password?.invalid && password?.touched" placeholder="Min. 8 characters" />
+        <span class="form-error" *ngIf="password?.invalid && password?.touched">
+          <span *ngIf="password?.errors?.['required']">Password is required.</span>
+          <span *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <input id="confirmPassword" type="password" formControlName="confirmPassword" class="form-input"
+          [class.invalid]="confirmPassword?.invalid && confirmPassword?.touched" placeholder="Repeat password" />
+        <span class="form-error" *ngIf="confirmPassword?.errors?.['mismatch'] && confirmPassword?.touched">
+          Passwords do not match.
+        </span>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Creating account...' : 'Register' }}
+      </button>
+    </form>
+
+    <p class="register-footer">
+      Already have an account? <a routerLink="/login" class="link">Sign In</a>
+    </p>
+  </div>
+</section>

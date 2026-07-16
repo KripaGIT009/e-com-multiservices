@@ -46,6 +46,11 @@ LOCAL_TESTING_STATUS.md
 STARTUP_STATUS.md
 write_component.py
 
+# Unified UI specific
+unified-ui/dist/
+unified-ui/node_modules/
+unified-ui/.angular/
+
 # Temp / OS
 Thumbs.db
 

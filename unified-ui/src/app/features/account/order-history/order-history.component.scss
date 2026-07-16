@@ -1,0 +1,120 @@
+@use '../../../shared/styles/variables' as *;
+
+.order-history-page {
+  padding: 1rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-title {
+  font-family: $mis-font-family;
+  font-size: 2rem;
+  font-weight: 700;
+  color: $mis-text-primary;
+  margin-bottom: 2rem;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.order-card {
+  background: $mis-surface;
+  border: 1px solid $mis-border;
+  border-radius: $mis-radius;
+  padding: 1.25rem;
+  box-shadow: $mis-shadow;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.order-id {
+  .label {
+    font-size: 0.85rem;
+    color: $mis-text-secondary;
+  }
+
+  .value {
+    font-weight: 600;
+    color: $mis-text-primary;
+  }
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge-success {
+  background: rgba($mis-success, 0.1);
+  color: $mis-success;
+}
+
+.badge-warning {
+  background: rgba($mis-warning, 0.1);
+  color: $mis-warning;
+}
+
+.badge-error {
+  background: rgba($mis-error, 0.1);
+  color: $mis-error;
+}
+
+.badge-default {
+  background: rgba($mis-text-secondary, 0.1);
+  color: $mis-text-secondary;
+}
+
+.order-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.order-items {
+  flex: 1;
+}
+
+.order-item {
+  font-size: 0.9rem;
+  color: $mis-text-secondary;
+  margin: 0.25rem 0;
+}
+
+.order-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.order-date {
+  font-size: 0.85rem;
+  color: $mis-text-secondary;
+}
+
+.order-total {
+  font-family: $mis-font-family;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: $mis-primary;
+}
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: $mis-text-secondary;
+}

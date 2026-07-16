@@ -1,0 +1,184 @@
+<section class="checkout-page" aria-label="Checkout">
+  <h1 class="page-title">Checkout</h1>
+
+  <!-- Step Indicator -->
+  <nav class="stepper" aria-label="Checkout progress">
+    <ol class="stepper-list">
+      <li
+        *ngFor="let step of steps; let i = index"
+        class="stepper-item"
+        [class.active]="currentStep === i + 1"
+        [class.completed]="currentStep > i + 1"
+        [attr.aria-current]="currentStep === i + 1 ? 'step' : null">
+        <span class="step-number">{{ i + 1 }}</span>
+        <span class="step-label">{{ step }}</span>
+      </li>
+    </ol>
+  </nav>
+
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <p>Loading checkout...</p>
+  </div>
+
+  <div class="checkout-content" *ngIf="!isLoading">
+    <!-- Step 1: Cart Review -->
+    <div *ngIf="currentStep === 1" class="step-panel" role="tabpanel" aria-label="Cart Review">
+      <h2 class="step-title">Review Your Cart</h2>
+      <div class="cart-items" *ngIf="cartItems.length > 0">
+        <div class="cart-item" *ngFor="let item of cartItems">
+          <span class="item-name">{{ item.itemName }}</span>
+          <span class="item-qty">x{{ item.quantity }}</span>
+          <span class="item-price">₹{{ item.price * item.quantity | number:'1.2-2' }}</span>
+        </div>
+        <div class="cart-total">
+          <strong>Total: ₹{{ totalPrice | number:'1.2-2' }}</strong>
+        </div>
+      </div>
+      <p *ngIf="cartItems.length === 0" class="empty-state">Your cart is empty.</p>
+    </div>
+
+    <!-- Step 2: Shipping -->
+    <div *ngIf="currentStep === 2" class="step-panel" role="tabpanel" aria-label="Shipping Address">
+      <h2 class="step-title">Shipping Address</h2>
+      <form [formGroup]="shippingForm" class="checkout-form" autocomplete="on">
+        <div class="form-group">
+          <label for="fullName">Full Name *</label>
+          <input id="fullName" formControlName="fullName" type="text" autocomplete="name" />
+          <span class="error" *ngIf="shippingForm.get('fullName')?.touched && shippingForm.get('fullName')?.invalid">
+            Full name is required.
+          </span>
+        </div>
+        <div class="form-group">
+          <label for="addressLine1">Address Line 1 *</label>
+          <input id="addressLine1" formControlName="addressLine1" type="text" autocomplete="address-line1" />
+          <span class="error" *ngIf="shippingForm.get('addressLine1')?.touched && shippingForm.get('addressLine1')?.invalid">
+            Address is required.
+          </span>
+        </div>
+        <div class="form-group">
+          <label for="addressLine2">Address Line 2</label>
+          <input id="addressLine2" formControlName="addressLine2" type="text" autocomplete="address-line2" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="city">City *</label>
+            <input id="city" formControlName="city" type="text" autocomplete="address-level2" />
+            <span class="error" *ngIf="shippingForm.get('city')?.touched && shippingForm.get('city')?.invalid">
+              City is required.
+            </span>
+          </div>
+          <div class="form-group">
+            <label for="state">State *</label>
+            <input id="state" formControlName="state" type="text" autocomplete="address-level1" />
+            <span class="error" *ngIf="shippingForm.get('state')?.touched && shippingForm.get('state')?.invalid">
+              State is required.
+            </span>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="postalCode">PIN Code *</label>
+            <input id="postalCode" formControlName="postalCode" type="text" autocomplete="postal-code" />
+            <span class="error" *ngIf="shippingForm.get('postalCode')?.touched && shippingForm.get('postalCode')?.invalid">
+              Valid 6-digit PIN required.
+            </span>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone *</label>
+            <input id="phone" formControlName="phone" type="tel" autocomplete="tel" />
+            <span class="error" *ngIf="shippingForm.get('phone')?.touched && shippingForm.get('phone')?.invalid">
+              Valid 10-digit phone required.
+            </span>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 3: Payment -->
+    <div *ngIf="currentStep === 3" class="step-panel" role="tabpanel" aria-label="Payment Details">
+      <h2 class="step-title">Payment Details</h2>
+      <form [formGroup]="paymentForm" class="checkout-form" autocomplete="on">
+        <div class="form-group">
+          <label for="cardNumber">Card Number *</label>
+          <input id="cardNumber" formControlName="cardNumber" type="text" autocomplete="cc-number" placeholder="1234567890123456" />
+          <span class="error" *ngIf="paymentForm.get('cardNumber')?.touched && paymentForm.get('cardNumber')?.invalid">
+            Valid 16-digit card number required.
+          </span>
+        </div>
+        <div class="form-group">
+          <label for="cardHolder">Card Holder Name *</label>
+          <input id="cardHolder" formControlName="cardHolder" type="text" autocomplete="cc-name" />
+          <span class="error" *ngIf="paymentForm.get('cardHolder')?.touched && paymentForm.get('cardHolder')?.invalid">
+            Card holder name is required.
+          </span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="expiryDate">Expiry (MM/YY) *</label>
+            <input id="expiryDate" formControlName="expiryDate" type="text" autocomplete="cc-exp" placeholder="MM/YY" />
+            <span class="error" *ngIf="paymentForm.get('expiryDate')?.touched && paymentForm.get('expiryDate')?.invalid">
+              Valid expiry date (MM/YY) required.
+            </span>
+          </div>
+          <div class="form-group">
+            <label for="cvv">CVV *</label>
+            <input id="cvv" formControlName="cvv" type="password" autocomplete="cc-csc" />
+            <span class="error" *ngIf="paymentForm.get('cvv')?.touched && paymentForm.get('cvv')?.invalid">
+              Valid 3-digit CVV required.
+            </span>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Step 4: Confirm -->
+    <div *ngIf="currentStep === 4" class="step-panel" role="tabpanel" aria-label="Order Confirmation">
+      <h2 class="step-title">Confirm Your Order</h2>
+      <div class="confirm-summary">
+        <div class="summary-section">
+          <h3>Shipping To</h3>
+          <p>{{ shippingForm.value.fullName }}</p>
+          <p>{{ shippingForm.value.addressLine1 }}</p>
+          <p *ngIf="shippingForm.value.addressLine2">{{ shippingForm.value.addressLine2 }}</p>
+          <p>{{ shippingForm.value.city }}, {{ shippingForm.value.state }} - {{ shippingForm.value.postalCode }}</p>
+          <p>Phone: {{ shippingForm.value.phone }}</p>
+        </div>
+        <div class="summary-section">
+          <h3>Payment</h3>
+          <p>Card ending in {{ paymentForm.value.cardNumber?.slice(-4) }}</p>
+        </div>
+        <div class="summary-section">
+          <h3>Order Total</h3>
+          <p class="order-total">₹{{ totalPrice | number:'1.2-2' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="step-actions">
+      <button
+        *ngIf="currentStep > 1"
+        class="btn-secondary"
+        (click)="prevStep()"
+        type="button">
+        Back
+      </button>
+      <button
+        *ngIf="currentStep < 4"
+        class="btn-primary"
+        (click)="nextStep()"
+        [disabled]="currentStep === 1 && cartItems.length === 0"
+        type="button">
+        Continue
+      </button>
+      <button
+        *ngIf="currentStep === 4"
+        class="btn-primary"
+        (click)="placeOrder()"
+        [disabled]="isSubmitting"
+        type="button">
+        {{ isSubmitting ? 'Placing Order...' : 'Place Order' }}
+      </button>
+    </div>
+  </div>
+</section>

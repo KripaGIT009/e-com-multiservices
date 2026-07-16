@@ -1,0 +1,89 @@
+<!-- Hero Banner -->
+<section class="hero-banner" aria-label="Welcome to MyIndianStore">
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1 class="hero-title">Welcome to <span class="brand-highlight">My Indian Store</span></h1>
+      <p class="hero-subtitle">Shop deals on top brands and discover savings on everything you love.</p>
+      <button
+        class="btn-shop-now"
+        (click)="navigateToProducts()"
+        aria-label="Shop Now">
+        Shop Now
+      </button>
+    </div>
+    <div class="hero-image">
+      <img
+        src="https://via.placeholder.com/400x300?text=Top+Deals"
+        alt="Top deals on popular products"
+        loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<!-- Shop by Category -->
+<section class="category-section" aria-label="Shop by Category">
+  <h2 class="section-title">Shop by Category</h2>
+
+  <div class="category-grid">
+    <article
+      *ngFor="let category of shopCategories"
+      class="category-card"
+      tabindex="0"
+      role="button"
+      [attr.aria-label]="'Browse ' + category.name"
+      (click)="navigateToCategory(category.link)"
+      (keydown.enter)="navigateToCategory(category.link)">
+      <div class="category-image-wrapper">
+        <img
+          [src]="category.image"
+          [alt]="category.name"
+          class="category-image"
+          loading="lazy" />
+      </div>
+      <div class="category-info">
+        <h3 class="category-name">{{ category.name }}</h3>
+        <p class="category-subtitle">{{ category.subtitle }}</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- Featured Products -->
+<section class="featured-section" aria-label="Featured Products">
+  <h2 class="section-title">Featured Products</h2>
+
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <p>Loading products...</p>
+  </div>
+
+  <div *ngIf="!isLoading && featuredProducts.length === 0" class="empty-state">
+    <p>No products available at the moment. Check back soon!</p>
+  </div>
+
+  <div class="product-grid" *ngIf="!isLoading && featuredProducts.length > 0">
+    <article
+      *ngFor="let product of featuredProducts"
+      class="product-card"
+      tabindex="0"
+      role="button"
+      [attr.aria-label]="'View ' + product.name"
+      (click)="viewProduct(product.id)"
+      (keydown.enter)="viewProduct(product.id)">
+      <div class="product-image-wrapper">
+        <img
+          [src]="product.imageUrl || 'assets/placeholder-product.png'"
+          [alt]="product.name"
+          class="product-image"
+          loading="lazy" />
+      </div>
+      <div class="product-info">
+        <h3 class="product-name">{{ product.name }}</h3>
+        <p class="product-price">₹{{ product.price | number:'1.2-2' }}</p>
+      </div>
+    </article>
+  </div>
+
+  <div class="section-cta" *ngIf="!isLoading && featuredProducts.length > 0">
+    <button class="btn-view-all" (click)="navigateToProducts()">View All Products</button>
+  </div>
+</section>

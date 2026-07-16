@@ -3,6 +3,7 @@ package com.example.controller;
 import com.example.dto.UserRequest;
 import com.example.dto.UserResponse;
 import com.example.dto.UserUpdateRequest;
+import com.example.security.JwtTokenProvider;
 import com.example.service.IUserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,10 +21,41 @@ public class UserController {
     @Autowired
     private IUserService userService;
 
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse created = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
+     * Get the currently authenticated user's profile.
+     * Accessible by any authenticated user (CUSTOMER, ADMIN, MANAGER, GUEST).
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(@RequestHeader("Authorization") String authHeader) {
+        String token = authHeader.substring(7);
+        Long userId = jwtTokenProvider.extractUserId(token);
+        UserResponse user = userService.getUserById(userId);
+        return ResponseEntity.ok(user);
+    }
+
+    /**
+     * Update the currently authenticated user's own profile.
+     * Accessible by any authenticated user.
+     */
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMyProfile(
+            @RequestHeader("Authorization") String authHeader,
+            @Valid @RequestBody UserUpdateRequest request) {
+        String token = authHeader.substring(7);
+        Long userId = jwtTokenProvider.extractUserId(token);
+        // Prevent customers from changing their own role
+        request.setRole(null);
+        UserResponse updated = userService.updateUser(userId, request);
+        return ResponseEntity.ok(updated);
     }
 
     @GetMapping("/{id}")

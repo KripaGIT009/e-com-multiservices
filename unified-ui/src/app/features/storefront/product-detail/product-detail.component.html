@@ -1,0 +1,53 @@
+<section class="product-detail-page" aria-label="Product Detail">
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <p>Loading product...</p>
+  </div>
+
+  <div *ngIf="!isLoading && !product" class="empty-state">
+    <p>Product not found.</p>
+    <button class="btn-secondary" (click)="goBack()">Back to Products</button>
+  </div>
+
+  <article *ngIf="!isLoading && product" class="product-detail">
+    <button class="btn-back" (click)="goBack()" aria-label="Go back to product list">
+      ← Back to Products
+    </button>
+
+    <div class="product-layout">
+      <div class="product-image-section">
+        <img
+          [src]="product.imageUrl || 'assets/placeholder-product.png'"
+          [alt]="product.name"
+          class="product-image"
+          loading="lazy" />
+      </div>
+
+      <div class="product-info-section">
+        <h1 class="product-name">{{ product.name }}</h1>
+        <p class="product-category" *ngIf="product.category">{{ product.category }}</p>
+        <p class="product-price">₹{{ product.price | number:'1.2-2' }}</p>
+        <p class="product-description">{{ product.description }}</p>
+
+        <div class="quantity-selector" role="group" aria-label="Quantity">
+          <button
+            class="qty-btn"
+            (click)="updateQuantity(-1)"
+            [disabled]="quantity <= 1"
+            aria-label="Decrease quantity">−</button>
+          <span class="qty-value" aria-live="polite">{{ quantity }}</span>
+          <button
+            class="qty-btn"
+            (click)="updateQuantity(1)"
+            aria-label="Increase quantity">+</button>
+        </div>
+
+        <button
+          class="btn-add-cart"
+          (click)="addToCart()"
+          [attr.aria-label]="'Add ' + product.name + ' to cart'">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+  </article>
+</section>
