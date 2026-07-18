@@ -1,0 +1,58 @@
+@use '../../../../shared/styles/variables' as *;
+
+.earnings {
+  padding: $mis-admin-content-padding;
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-family: $mis-font-family;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0;
+  }
+
+  &__summary-card {
+    background: $mis-surface;
+    border-radius: $mis-radius;
+    box-shadow: $mis-shadow;
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    max-width: 300px;
+  }
+
+  &__summary-label {
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    color: $mis-text-secondary;
+    font-weight: 500;
+  }
+
+  &__summary-value {
+    font-family: $mis-font-family;
+    font-size: 2rem;
+    font-weight: 700;
+    color: $mis-text-primary;
+  }
+
+  &__card {
+    background: $mis-surface;
+    border-radius: $mis-radius;
+    box-shadow: $mis-shadow;
+    padding: 2rem;
+  }
+
+  &__placeholder {
+    font-family: $mis-font-family;
+    font-size: 1rem;
+    color: $mis-text-secondary;
+    margin: 0;
+    line-height: 1.6;
+  }
+}

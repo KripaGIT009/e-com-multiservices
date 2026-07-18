@@ -1,16 +1,38 @@
+@use '../../../shared/styles/variables' as *;
+
+// =============================================================================
+// Admin Dashboard — Maacko-style card layout
+// Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6
+// =============================================================================
+
 .admin-dashboard {
-  padding: 1.5rem;
+  padding: var(--mis-admin-content-padding, 24px);
   max-width: 1200px;
   margin: 0 auto;
 
-  &__title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 1.5rem;
+  // ---------------------------------------------------------------------------
+  // Header / Greeting
+  // ---------------------------------------------------------------------------
+  &__header {
+    margin-bottom: 2rem;
   }
 
-  // Error state
+  &__greeting {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: $mis-text-primary;
+    margin: 0 0 0.25rem;
+  }
+
+  &__subtitle {
+    font-size: 0.9rem;
+    color: $mis-text-secondary;
+    margin: 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Error State
+  // ---------------------------------------------------------------------------
   &__error {
     display: flex;
     flex-direction: column;
@@ -19,8 +41,14 @@
     padding: 3rem 1.5rem;
     background: #fef2f2;
     border: 1px solid #fecaca;
-    border-radius: 8px;
+    border-radius: $mis-radius;
     text-align: center;
+  }
+
+  &__error-icon {
+    font-size: 2.5rem;
+    color: $mis-error;
+    margin-bottom: 0.75rem;
   }
 
   &__error-message {
@@ -31,7 +59,7 @@
 
   &__retry-btn {
     padding: 0.5rem 1.5rem;
-    background: #dc2626;
+    background: $mis-error;
     color: #ffffff;
     border: none;
     border-radius: 6px;
@@ -43,64 +71,301 @@
 
     &:hover,
     &:focus-visible {
-      background: #b91c1c;
-      outline: 2px solid #dc2626;
+      background: darken($mis-error, 10%);
+      outline: 2px solid $mis-error;
       outline-offset: 2px;
     }
   }
 
-  // Loading state
+  // ---------------------------------------------------------------------------
+  // Loading State
+  // ---------------------------------------------------------------------------
   &__loading {
     margin-bottom: 2rem;
   }
 
-  // Chart/table grid layout
-  &__grid {
+  // ---------------------------------------------------------------------------
+  // Content Area
+  // ---------------------------------------------------------------------------
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  // ---------------------------------------------------------------------------
+  // KPI Cards Grid
+  // ---------------------------------------------------------------------------
+  &__kpi-grid {
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
 
     @media (min-width: 768px) {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 
-  &__panel {
-    background: #ffffff;
-    border: 1px solid #e5e7eb;
-    border-radius: 8px;
+  &__kpi-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     padding: 1.25rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: $mis-surface;
+    border-radius: $mis-radius-lg;
+    box-shadow: $mis-shadow;
+    border: 1px solid $mis-border;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 
-    &--wide {
-      @media (min-width: 768px) {
-        grid-column: span 2;
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      transform: translateY(-1px);
+    }
+
+    &--skeleton {
+      .admin-dashboard__kpi-icon {
+        width: 48px;
+        height: 48px;
+        background: #e5e7eb;
+        border-radius: 12px;
+      }
+
+      .admin-dashboard__kpi-label {
+        width: 80px;
+        height: 12px;
+        background: #e5e7eb;
+        border-radius: 4px;
+      }
+
+      .admin-dashboard__kpi-value {
+        width: 60px;
+        height: 20px;
+        background: #e5e7eb;
+        border-radius: 4px;
       }
     }
   }
 
-  &__panel-title {
-    font-size: 1rem;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #f3f4f6;
-  }
-
-  &__placeholder {
+  &__kpi-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 200px;
-    background: #f9fafb;
-    border: 2px dashed #d1d5db;
-    border-radius: 6px;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    flex-shrink: 0;
 
-    p {
-      color: #6b7280;
-      font-size: 0.875rem;
-      font-style: italic;
+    .material-icons {
+      font-size: 1.5rem;
+      color: #ffffff;
     }
+
+    &--orders {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    &--active {
+      background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+
+    &--sales {
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+
+    &--products {
+      background: linear-gradient(135deg, #43e97b, #38f9d7);
+    }
+  }
+
+  &__kpi-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  &__kpi-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $mis-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  &__kpi-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $mis-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Sections
+  // ---------------------------------------------------------------------------
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__section-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Quick Actions
+  // ---------------------------------------------------------------------------
+  &__quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+
+    @media (min-width: 576px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(5, 1fr);
+    }
+  }
+
+  &__action-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.25rem 1rem;
+    background: $mis-surface;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius-lg;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-height: 100px;
+    box-shadow: $mis-shadow;
+    font-family: inherit;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $mis-primary;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba($mis-primary, 0.15);
+    }
+
+    &:focus-visible {
+      outline: 2px solid $mis-primary;
+      outline-offset: 2px;
+    }
+  }
+
+  &__action-icon {
+    font-size: 1.75rem;
+    color: $mis-primary;
+  }
+
+  &__action-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Chart Card
+  // ---------------------------------------------------------------------------
+  &__chart-card {
+    background: $mis-surface;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius-lg;
+    padding: 1.5rem;
+    box-shadow: $mis-shadow;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Recent Orders
+  // ---------------------------------------------------------------------------
+  &__orders-card {
+    background: $mis-surface;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius-lg;
+    box-shadow: $mis-shadow;
+    overflow: hidden;
+  }
+
+  &__orders-table-wrapper {
+    overflow-x: auto;
+  }
+
+  &__orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    thead {
+      background: #f8f9fa;
+      border-bottom: 1px solid $mis-border;
+    }
+
+    th {
+      padding: 0.875rem 1.25rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: $mis-text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 1rem 1.25rem;
+      color: $mis-text-primary;
+      border-bottom: 1px solid #f3f4f6;
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      transition: background 0.15s ease;
+
+      &:hover {
+        background: #fafbfc;
+      }
+
+      &:last-child td {
+        border-bottom: none;
+      }
+    }
+  }
+
+  &__order-id {
+    font-weight: 600;
+    color: $mis-primary;
+  }
+
+  &__order-amount {
+    font-weight: 600;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Skeleton animation
+// ---------------------------------------------------------------------------
+.skeleton-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
   }
 }

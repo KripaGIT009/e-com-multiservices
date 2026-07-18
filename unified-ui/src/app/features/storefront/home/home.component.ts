@@ -29,52 +29,52 @@ export class HomeComponent implements OnInit {
 
   shopCategories: ShopCategory[] = [
     {
-      name: 'Electronics',
-      subtitle: 'Gadgets & Accessories',
-      image: 'https://picsum.photos/seed/electronics/300/200',
-      link: '/storefront/products?category=electronics',
-    },
-    {
-      name: 'Fashion',
-      subtitle: 'Clothing & Trends',
-      image: 'https://picsum.photos/seed/fashion/300/200',
+      name: 'Ethnic Wear',
+      subtitle: 'Sarees, Kurtas & Lehengas',
+      image: 'https://picsum.photos/seed/ethnicwear/300/200',
       link: '/storefront/products?category=fashion',
     },
     {
-      name: 'Home & Kitchen',
-      subtitle: 'Essentials & Decor',
-      image: 'https://picsum.photos/seed/kitchen/300/200',
+      name: 'Spices & Masalas',
+      subtitle: 'Authentic Indian Flavors',
+      image: 'https://picsum.photos/seed/indianspices/300/200',
       link: '/storefront/products?category=home-kitchen',
     },
     {
-      name: 'Sports & Fitness',
-      subtitle: 'Gear & Equipment',
-      image: 'https://picsum.photos/seed/sports/300/200',
-      link: '/storefront/products?category=sports-fitness',
+      name: 'Electronics',
+      subtitle: 'Phones, Laptops & Gadgets',
+      image: 'https://picsum.photos/seed/indiaelectronics/300/200',
+      link: '/storefront/products?category=electronics',
     },
     {
-      name: 'Mobiles & Tablets',
-      subtitle: 'Phones & Tablets',
-      image: 'https://picsum.photos/seed/mobiles/300/200',
-      link: '/storefront/products?category=mobiles',
+      name: 'Handcrafted Decor',
+      subtitle: 'Artisan Home Decor',
+      image: 'https://picsum.photos/seed/indiandecor/300/200',
+      link: '/storefront/products?category=home-kitchen',
     },
     {
-      name: 'Books',
-      subtitle: 'Bestsellers & New',
-      image: 'https://picsum.photos/seed/books/300/200',
-      link: '/storefront/products?category=books',
-    },
-    {
-      name: 'Beauty',
-      subtitle: 'Skincare & Makeup',
-      image: 'https://picsum.photos/seed/beauty/300/200',
+      name: 'Ayurveda & Wellness',
+      subtitle: 'Natural Health Products',
+      image: 'https://picsum.photos/seed/ayurveda/300/200',
       link: '/storefront/products?category=beauty',
     },
     {
-      name: 'Toys & Games',
-      subtitle: 'Fun for Everyone',
-      image: 'https://picsum.photos/seed/toys/300/200',
-      link: '/storefront/products?category=toys-games',
+      name: 'Jewelry & Accessories',
+      subtitle: 'Traditional & Modern',
+      image: 'https://picsum.photos/seed/indianjewelry/300/200',
+      link: '/storefront/products?category=fashion',
+    },
+    {
+      name: 'Cricket & Sports',
+      subtitle: 'Gear & Equipment',
+      image: 'https://picsum.photos/seed/cricketsports/300/200',
+      link: '/storefront/products?category=sports-fitness',
+    },
+    {
+      name: 'Books & Stationery',
+      subtitle: 'Bestsellers & More',
+      image: 'https://picsum.photos/seed/indianbooks/300/200',
+      link: '/storefront/products?category=books',
     },
   ];
 
@@ -106,14 +106,14 @@ export class HomeComponent implements OnInit {
 
   private getDummyProducts(): Product[] {
     return [
-      { id: 1, name: 'Wireless Bluetooth Headphones', description: 'Premium sound quality', price: 2499, imageUrl: 'https://picsum.photos/seed/headphones/300/300', category: 'electronics' },
-      { id: 2, name: 'Cotton Kurta Set', description: 'Traditional Indian wear', price: 1299, imageUrl: 'https://picsum.photos/seed/kurta/300/300', category: 'fashion' },
-      { id: 3, name: 'Stainless Steel Cookware Set', description: '5-piece premium set', price: 3999, imageUrl: 'https://picsum.photos/seed/cookware/300/300', category: 'home-kitchen' },
-      { id: 4, name: 'Yoga Mat Premium', description: 'Non-slip exercise mat', price: 899, imageUrl: 'https://picsum.photos/seed/yogamat/300/300', category: 'sports-fitness' },
-      { id: 5, name: 'Smart Watch Pro', description: 'Fitness tracker with GPS', price: 4999, imageUrl: 'https://picsum.photos/seed/smartwatch/300/300', category: 'electronics' },
-      { id: 6, name: 'Organic Green Tea', description: '100 tea bags pack', price: 599, imageUrl: 'https://picsum.photos/seed/greentea/300/300', category: 'home-kitchen' },
-      { id: 7, name: 'Running Shoes', description: 'Lightweight sports shoes', price: 3499, imageUrl: 'https://picsum.photos/seed/shoes/300/300', category: 'sports-fitness' },
-      { id: 8, name: 'Portable Bluetooth Speaker', description: 'Waterproof 20W speaker', price: 1999, imageUrl: 'https://picsum.photos/seed/speaker/300/300', category: 'electronics' },
+      { id: 1, name: 'Banarasi Silk Saree', description: 'Pure silk with gold zari', price: 4500, imageUrl: 'https://picsum.photos/seed/saree/300/300', category: 'fashion' },
+      { id: 2, name: 'Ethnic Kurta - Men', description: 'Cotton printed kurta', price: 899, imageUrl: 'https://picsum.photos/seed/kurta/300/300', category: 'fashion' },
+      { id: 3, name: 'Garam Masala Premium 200g', description: 'Blend of 12 spices', price: 199, imageUrl: 'https://picsum.photos/seed/garammasala/300/300', category: 'home-kitchen' },
+      { id: 4, name: 'Brass Diya Set', description: 'Traditional oil lamp set of 4', price: 650, imageUrl: 'https://picsum.photos/seed/brassdiya/300/300', category: 'home-kitchen' },
+      { id: 5, name: 'Wireless Earbuds Pro', description: 'Active noise cancellation', price: 2999, imageUrl: 'https://picsum.photos/seed/earbudsindia/300/300', category: 'electronics' },
+      { id: 6, name: 'Anarkali Suit - Women', description: 'Embroidered floor length', price: 2200, imageUrl: 'https://picsum.photos/seed/anarkali/300/300', category: 'fashion' },
+      { id: 7, name: 'Cricket Bat - English Willow', description: 'Tournament grade', price: 3499, imageUrl: 'https://picsum.photos/seed/cricketbat/300/300', category: 'sports-fitness' },
+      { id: 8, name: 'Organic Turmeric Powder 500g', description: 'Premium Lakadong turmeric', price: 349, imageUrl: 'https://picsum.photos/seed/turmeric/300/300', category: 'home-kitchen' },
     ];
   }
 

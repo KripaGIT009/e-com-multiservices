@@ -1,0 +1,31 @@
+<div class="admin-layout"
+     [class.admin-layout--collapsed]="sidebarCollapsed"
+     [class.admin-layout--mobile-open]="mobileOpen">
+  <!-- Top Bar -->
+  <header class="admin-layout__topbar">
+    <app-admin-top-bar
+      [userName]="currentUser?.username || ''"
+      (sidebarToggle)="onSidebarToggle()"
+      (logoutClicked)="onLogout()">
+    </app-admin-top-bar>
+  </header>
+
+  <!-- Mobile Overlay (backdrop when sidebar is open on mobile) -->
+  <div class="admin-layout__overlay"
+       (click)="onMobileOverlayClick()"
+       aria-hidden="true"></div>
+
+  <!-- Sidebar -->
+  <aside class="admin-layout__sidebar" [attr.aria-expanded]="!sidebarCollapsed">
+    <app-admin-sidebar
+      [collapsed]="sidebarCollapsed"
+      (collapsedChange)="sidebarCollapsed = $event"
+      (logoutClicked)="onLogout()">
+    </app-admin-sidebar>
+  </aside>
+
+  <!-- Content Area -->
+  <main class="admin-layout__content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

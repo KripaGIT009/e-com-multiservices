@@ -1,0 +1,74 @@
+// =============================================================================
+// StatusBadgeComponent — BEM Styles
+// Requirements: 10.2, 12.3
+// =============================================================================
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+
+  // ---------------------------
+  // Variant Modifiers
+  // ---------------------------
+
+  &--active {
+    background-color: var(--mis-badge-active-bg);
+    color: var(--mis-badge-active-text);
+  }
+
+  &--inactive {
+    background-color: var(--mis-badge-inactive-bg);
+    color: var(--mis-badge-inactive-text);
+  }
+
+  &--in-stock {
+    background-color: var(--mis-badge-in-stock-bg);
+    color: var(--mis-badge-in-stock-text);
+  }
+
+  &--low-stock {
+    background-color: var(--mis-badge-low-stock-bg);
+    color: var(--mis-badge-low-stock-text);
+  }
+
+  &--out-of-stock {
+    background-color: var(--mis-badge-out-of-stock-bg);
+    color: var(--mis-badge-out-of-stock-text);
+  }
+
+  &--pending {
+    background-color: var(--mis-badge-pending-bg);
+    color: var(--mis-badge-pending-text);
+  }
+
+  &--confirmed {
+    background-color: var(--mis-badge-confirmed-bg);
+    color: var(--mis-badge-confirmed-text);
+  }
+
+  &--shipped {
+    background-color: var(--mis-badge-shipped-bg);
+    color: var(--mis-badge-shipped-text);
+  }
+
+  &--delivered {
+    background-color: var(--mis-badge-delivered-bg);
+    color: var(--mis-badge-delivered-text);
+  }
+
+  &--cancelled {
+    background-color: var(--mis-badge-cancelled-bg);
+    color: var(--mis-badge-cancelled-text);
+  }
+
+  &--default {
+    background-color: var(--mis-badge-inactive-bg, #F5F5F5);
+    color: var(--mis-badge-inactive-text, #757575);
+  }
+}

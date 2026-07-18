@@ -1,0 +1,56 @@
+<nav class="admin-sidebar"
+     [class.admin-sidebar--collapsed]="collapsed"
+     role="navigation"
+     aria-label="Admin navigation">
+  <ul class="admin-sidebar__menu">
+    <ng-container *ngFor="let item of menuItems">
+      <!-- Simple menu item (no children) -->
+      <li *ngIf="!item.children"
+          class="admin-sidebar__item"
+          [routerLink]="item.route"
+          routerLinkActive="admin-sidebar__item--active"
+          [routerLinkActiveOptions]="{ exact: item.route === '/admin' }"
+          [attr.aria-label]="item.label">
+        <span class="admin-sidebar__item-icon material-icons" aria-hidden="true">{{ item.icon }}</span>
+        <span class="admin-sidebar__item-label" *ngIf="!collapsed">{{ item.label }}</span>
+      </li>
+
+      <!-- Parent group with children -->
+      <li *ngIf="item.children"
+          class="admin-sidebar__group"
+          [class.admin-sidebar__group--active]="isGroupActive(item)"
+          [class.admin-sidebar__group--expanded]="isGroupExpanded(item.label)">
+        <div class="admin-sidebar__item admin-sidebar__item--parent"
+             (click)="toggleGroup(item.label)"
+             [attr.aria-expanded]="isGroupExpanded(item.label)"
+             [attr.aria-label]="item.label">
+          <span class="admin-sidebar__item-icon material-icons" aria-hidden="true">{{ item.icon }}</span>
+          <span class="admin-sidebar__item-label" *ngIf="!collapsed">{{ item.label }}</span>
+          <span class="admin-sidebar__item-arrow material-icons" *ngIf="!collapsed" aria-hidden="true">
+            {{ isGroupExpanded(item.label) ? 'expand_less' : 'expand_more' }}
+          </span>
+        </div>
+        <!-- Sub-menu -->
+        <ul class="admin-sidebar__submenu"
+            *ngIf="isGroupExpanded(item.label) && !collapsed">
+          <li *ngFor="let child of item.children"
+              class="admin-sidebar__subitem"
+              [routerLink]="child.route"
+              routerLinkActive="admin-sidebar__subitem--active"
+              [attr.aria-label]="child.label">
+            <span class="admin-sidebar__subitem-icon material-icons" aria-hidden="true">{{ child.icon }}</span>
+            <span class="admin-sidebar__subitem-label">{{ child.label }}</span>
+          </li>
+        </ul>
+      </li>
+    </ng-container>
+
+    <!-- Logout item -->
+    <li class="admin-sidebar__item admin-sidebar__item--logout"
+        (click)="onLogout()"
+        aria-label="Logout">
+      <span class="admin-sidebar__item-icon material-icons" aria-hidden="true">logout</span>
+      <span class="admin-sidebar__item-label" *ngIf="!collapsed">Logout</span>
+    </li>
+  </ul>
+</nav>

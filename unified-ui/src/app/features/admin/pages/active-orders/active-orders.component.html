@@ -1,0 +1,267 @@
+<div class="active-orders">
+  <!-- Page Heading -->
+  <header class="active-orders__header">
+    <h1 class="active-orders__title">Active Orders</h1>
+  </header>
+
+  <!-- KPI Cards Row -->
+  <section class="active-orders__kpi-row" role="list" aria-label="Active orders statistics">
+    <div
+      *ngFor="let card of kpiCards"
+      class="active-orders__kpi-card"
+      role="listitem"
+      [attr.aria-label]="card.label + ': ' + card.value">
+      <div class="active-orders__kpi-icon" aria-hidden="true">{{ card.icon }}</div>
+      <div class="active-orders__kpi-content">
+        <span class="active-orders__kpi-value">{{ card.value }}</span>
+        <span class="active-orders__kpi-label">{{ card.label }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Error State -->
+  <div *ngIf="hasError && !isLoading" class="active-orders__error" role="alert">
+    <p>{{ errorMessage }}</p>
+    <button class="active-orders__retry-btn" (click)="retry()">Retry</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="active-orders__loading" aria-label="Loading orders">
+    <div class="active-orders__skeleton" *ngFor="let i of [1,2,3,4,5]"></div>
+  </div>
+
+  <!-- Search & Filters Bar -->
+  <section *ngIf="!isLoading && !hasError" class="active-orders__filters">
+    <div class="active-orders__search">
+      <span class="active-orders__search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="text"
+        class="active-orders__search-input"
+        placeholder="Search by order ID or customer name..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+        aria-label="Search orders by order ID or customer name" />
+    </div>
+    <div class="active-orders__filter-group">
+      <div class="active-orders__filter-date-range">
+        <span class="active-orders__filter-label">From:</span>
+        <input
+          type="date"
+          class="active-orders__filter-date"
+          [(ngModel)]="filterDateFrom"
+          (ngModelChange)="onFilterChange()"
+          aria-label="Filter from date" />
+        <span class="active-orders__filter-label">To:</span>
+        <input
+          type="date"
+          class="active-orders__filter-date"
+          [(ngModel)]="filterDateTo"
+          (ngModelChange)="onFilterChange()"
+          aria-label="Filter to date" />
+      </div>
+      <select
+        class="active-orders__filter-select"
+        [(ngModel)]="filterStatus"
+        (ngModelChange)="onFilterChange()"
+        aria-label="Filter by status">
+        <option value="">All Statuses</option>
+        <option *ngFor="let s of orderStatuses" [value]="s.value">{{ s.label }}</option>
+      </select>
+      <select
+        class="active-orders__filter-select"
+        [(ngModel)]="filterPaymentMethod"
+        (ngModelChange)="onFilterChange()"
+        aria-label="Filter by payment method">
+        <option value="">All Payment Methods</option>
+        <option *ngFor="let pm of paymentMethods" [value]="pm">{{ pm }}</option>
+      </select>
+    </div>
+  </section>
+
+  <!-- Orders Data Table -->
+  <div *ngIf="!isLoading && !hasError" class="active-orders__table-container">
+    <div class="active-orders__table-wrapper table-responsive">
+      <table class="active-orders__table" aria-label="Active orders table">
+        <thead>
+          <tr>
+            <th scope="col" class="active-orders__th">Order ID</th>
+            <th scope="col" class="active-orders__th active-orders__th--product">Product</th>
+            <th scope="col" class="active-orders__th">Customer</th>
+            <th scope="col" class="active-orders__th">Amount</th>
+            <th scope="col" class="active-orders__th">Order Date</th>
+            <th scope="col" class="active-orders__th">Status</th>
+            <th scope="col" class="active-orders__th active-orders__th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="paginatedOrders.length === 0">
+            <td colspan="7" class="active-orders__empty">No active orders found.</td>
+          </tr>
+          <ng-container *ngFor="let order of paginatedOrders">
+            <tr class="active-orders__row" [class.active-orders__row--expanded]="isExpanded(order.orderId)">
+              <td class="active-orders__td">
+                <span class="active-orders__order-id">{{ order.orderId }}</span>
+              </td>
+              <td class="active-orders__td active-orders__td--product">
+                <div class="active-orders__product-cell">
+                  <img
+                    [src]="order.productImage"
+                    [alt]="order.productName + ' thumbnail'"
+                    class="active-orders__product-thumb"
+                    loading="lazy" />
+                  <div class="active-orders__product-info">
+                    <span class="active-orders__product-name">{{ order.productName }}</span>
+                    <span class="active-orders__product-meta">{{ order.productSku }} · Qty: {{ order.quantity }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="active-orders__td">
+                <div class="active-orders__customer-cell">
+                  <span class="active-orders__customer-name">{{ order.customerName }}</span>
+                  <span class="active-orders__customer-phone">{{ order.customerPhone }}</span>
+                </div>
+              </td>
+              <td class="active-orders__td">
+                <div class="active-orders__amount-cell">
+                  <span class="active-orders__amount">{{ formatCurrency(order.amount) }}</span>
+                  <span class="active-orders__payment-badge">{{ order.paymentMethod }}</span>
+                </div>
+              </td>
+              <td class="active-orders__td">{{ formatDate(order.orderDate) }}</td>
+              <td class="active-orders__td">
+                <app-status-badge
+                  [text]="getStatusText(order.status)"
+                  [variant]="getStatusVariant(order.status)"
+                  label="Order">
+                </app-status-badge>
+              </td>
+              <td class="active-orders__td active-orders__td--actions">
+                <button
+                  class="active-orders__action-btn"
+                  (click)="toggleDetails(order.orderId)"
+                  [attr.aria-expanded]="isExpanded(order.orderId)"
+                  [attr.aria-controls]="'details-' + order.orderId"
+                  [attr.aria-label]="'View details for order ' + order.orderId">
+                  {{ isExpanded(order.orderId) ? 'Hide Details' : 'View Details' }}
+                </button>
+              </td>
+            </tr>
+            <!-- Expandable Details Panel -->
+            <tr *ngIf="isExpanded(order.orderId)" class="active-orders__details-row">
+              <td colspan="7" class="active-orders__details-cell">
+                <div
+                  class="active-orders__details-panel"
+                  [id]="'details-' + order.orderId"
+                  role="region"
+                  [attr.aria-label]="'Details for order ' + order.orderId">
+                  <div class="active-orders__details-grid">
+                    <!-- Product Details -->
+                    <div class="active-orders__details-section">
+                      <h4 class="active-orders__details-heading">Product Details</h4>
+                      <div class="active-orders__details-content">
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Product</span>
+                          <span class="active-orders__detail-value">{{ order.productName }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">SKU</span>
+                          <span class="active-orders__detail-value">{{ order.productSku }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Quantity</span>
+                          <span class="active-orders__detail-value">{{ order.quantity }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Amount</span>
+                          <span class="active-orders__detail-value">{{ formatCurrency(order.amount) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Delivery & Customer Details -->
+                    <div class="active-orders__details-section">
+                      <h4 class="active-orders__details-heading">Delivery &amp; Customer</h4>
+                      <div class="active-orders__details-content">
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Customer</span>
+                          <span class="active-orders__detail-value">{{ order.customerName }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Phone</span>
+                          <span class="active-orders__detail-value">{{ order.customerPhone }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Email</span>
+                          <span class="active-orders__detail-value">{{ order.customerEmail }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Address</span>
+                          <span class="active-orders__detail-value">{{ order.deliveryAddress }}</span>
+                        </div>
+                        <div class="active-orders__detail-row">
+                          <span class="active-orders__detail-label">Expected</span>
+                          <span class="active-orders__detail-value">{{ formatDate(order.expectedDelivery) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <!-- Order Status Update -->
+                    <div class="active-orders__details-section">
+                      <h4 class="active-orders__details-heading">Update Status</h4>
+                      <div class="active-orders__status-update">
+                        <label class="active-orders__status-label" [for]="'status-select-' + order.orderId">Order Status</label>
+                        <select
+                          class="active-orders__status-select"
+                          [id]="'status-select-' + order.orderId"
+                          [ngModel]="order.status"
+                          (ngModelChange)="updateOrderStatus(order, $event)"
+                          [disabled]="statusUpdateLoading === order.orderId"
+                          [attr.aria-label]="'Update status for order ' + order.orderId">
+                          <option *ngFor="let s of orderStatuses" [value]="s.value">{{ s.label }}</option>
+                        </select>
+                        <span *ngIf="statusUpdateLoading === order.orderId" class="active-orders__status-loading">Updating...</span>
+                        <div *ngIf="statusUpdateError && expandedOrderId === order.orderId" class="active-orders__status-error" role="alert">
+                          {{ statusUpdateError }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
+    <nav *ngIf="totalPages > 1" class="active-orders__pagination" aria-label="Active orders pagination">
+      <button
+        class="active-orders__pagination-btn"
+        (click)="prevPage()"
+        [disabled]="currentPage === 1"
+        aria-label="Previous page">
+        ‹ Prev
+      </button>
+      <div class="active-orders__pagination-pages">
+        <button
+          *ngFor="let page of pageNumbers"
+          class="active-orders__pagination-btn active-orders__pagination-btn--page"
+          [class.active-orders__pagination-btn--active]="page === currentPage"
+          (click)="goToPage(page)"
+          [attr.aria-label]="'Page ' + page"
+          [attr.aria-current]="page === currentPage ? 'page' : null">
+          {{ page }}
+        </button>
+      </div>
+      <button
+        class="active-orders__pagination-btn"
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        aria-label="Next page">
+        Next ›
+      </button>
+      <span class="active-orders__pagination-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage === totalPages ? totalOrders : currentPage * pageSize }} of {{ totalOrders }}
+      </span>
+    </nav>
+  </div>
+</div>

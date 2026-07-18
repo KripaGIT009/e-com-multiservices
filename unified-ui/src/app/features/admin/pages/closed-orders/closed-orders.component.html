@@ -1,0 +1,325 @@
+<div class="closed-orders">
+  <!-- Page Heading -->
+  <header class="closed-orders__header">
+    <h1 class="closed-orders__title">Closed Orders</h1>
+  </header>
+
+  <!-- KPI Cards Row -->
+  <section class="closed-orders__kpi-row" role="list" aria-label="Closed orders statistics">
+    <div
+      *ngFor="let card of kpiCards"
+      class="closed-orders__kpi-card"
+      role="listitem"
+      [attr.aria-label]="card.label + ': ' + card.value">
+      <div class="closed-orders__kpi-icon" aria-hidden="true">{{ card.icon }}</div>
+      <div class="closed-orders__kpi-content">
+        <span class="closed-orders__kpi-value">{{ card.value }}</span>
+        <span class="closed-orders__kpi-label">{{ card.label }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Delivered Orders Section -->
+  <section class="closed-orders__section" aria-labelledby="delivered-heading">
+    <h2 id="delivered-heading" class="closed-orders__section-title">Delivered Orders</h2>
+
+    <div class="closed-orders__table-container">
+      <div class="closed-orders__table-wrapper table-responsive">
+        <table class="closed-orders__table" aria-label="Delivered orders table">
+          <thead>
+            <tr>
+              <th scope="col" class="closed-orders__th">Order ID</th>
+              <th scope="col" class="closed-orders__th closed-orders__th--product">Product</th>
+              <th scope="col" class="closed-orders__th">Customer</th>
+              <th scope="col" class="closed-orders__th">Amount</th>
+              <th scope="col" class="closed-orders__th">Order Date</th>
+              <th scope="col" class="closed-orders__th">Delivery Date</th>
+              <th scope="col" class="closed-orders__th">Status</th>
+              <th scope="col" class="closed-orders__th closed-orders__th--actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="deliveredPaginated.length === 0">
+              <td colspan="8" class="closed-orders__empty">No delivered orders found.</td>
+            </tr>
+            <ng-container *ngFor="let order of deliveredPaginated">
+              <tr class="closed-orders__row">
+                <td class="closed-orders__td">
+                  <span class="closed-orders__order-id">{{ order.orderId }}</span>
+                </td>
+                <td class="closed-orders__td closed-orders__td--product">
+                  <div class="closed-orders__product-cell">
+                    <img
+                      [src]="order.productImage"
+                      [alt]="order.productName + ' thumbnail'"
+                      class="closed-orders__product-thumb"
+                      loading="lazy" />
+                    <div class="closed-orders__product-info">
+                      <span class="closed-orders__product-name">{{ order.productName }}</span>
+                      <span class="closed-orders__product-sku">{{ order.productSku }} · Qty: {{ order.quantity }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="closed-orders__td">
+                  <div class="closed-orders__customer-cell">
+                    <span class="closed-orders__customer-name">{{ order.customerName }}</span>
+                    <span class="closed-orders__customer-phone">{{ order.customerPhone }}</span>
+                  </div>
+                </td>
+                <td class="closed-orders__td">
+                  <div class="closed-orders__amount-cell">
+                    <span class="closed-orders__amount">{{ formatCurrency(order.amount) }}</span>
+                    <span class="closed-orders__payment-method">{{ order.paymentMethod }}</span>
+                  </div>
+                </td>
+                <td class="closed-orders__td">{{ order.orderDate }}</td>
+                <td class="closed-orders__td">{{ order.deliveryDate || '—' }}</td>
+                <td class="closed-orders__td">
+                  <app-status-badge
+                    [text]="getStatusText(order.status)"
+                    [variant]="getStatusVariant(order.status)"
+                    label="Order">
+                  </app-status-badge>
+                </td>
+                <td class="closed-orders__td closed-orders__td--actions">
+                  <button
+                    class="closed-orders__action-btn"
+                    (click)="toggleDetails(order.orderId)"
+                    [attr.aria-expanded]="isExpanded(order.orderId)"
+                    [attr.aria-controls]="'details-' + order.orderId"
+                    [attr.aria-label]="'View details for order ' + order.orderId">
+                    {{ isExpanded(order.orderId) ? 'Hide Details' : 'View Details' }}
+                  </button>
+                </td>
+              </tr>
+              <!-- Expandable Details Panel -->
+              <tr *ngIf="isExpanded(order.orderId)" class="closed-orders__details-row">
+                <td colspan="8" class="closed-orders__details-cell">
+                  <div
+                    class="closed-orders__details-panel"
+                    [id]="'details-' + order.orderId"
+                    role="region"
+                    [attr.aria-label]="'Details for order ' + order.orderId">
+                    <div class="closed-orders__details-grid">
+                      <div class="closed-orders__details-section">
+                        <h4 class="closed-orders__details-heading">Product Details</h4>
+                        <dl class="closed-orders__details-list">
+                          <dt>Product</dt>
+                          <dd>{{ order.productName }}</dd>
+                          <dt>SKU</dt>
+                          <dd>{{ order.productSku }}</dd>
+                          <dt>Quantity</dt>
+                          <dd>{{ order.quantity }}</dd>
+                          <dt>Amount</dt>
+                          <dd>{{ formatCurrency(order.amount) }}</dd>
+                        </dl>
+                      </div>
+                      <div class="closed-orders__details-section">
+                        <h4 class="closed-orders__details-heading">Customer &amp; Delivery</h4>
+                        <dl class="closed-orders__details-list">
+                          <dt>Customer</dt>
+                          <dd>{{ order.customerName }}</dd>
+                          <dt>Phone</dt>
+                          <dd>{{ order.customerPhone }}</dd>
+                          <dt>Payment</dt>
+                          <dd>{{ order.paymentMethod }}</dd>
+                          <dt>Delivered On</dt>
+                          <dd>{{ order.deliveryDate || '—' }}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Delivered Pagination -->
+      <nav *ngIf="deliveredTotalPages > 1" class="closed-orders__pagination" aria-label="Delivered orders pagination">
+        <button
+          class="closed-orders__pagination-btn"
+          (click)="prevDeliveredPage()"
+          [disabled]="deliveredPage === 1"
+          aria-label="Previous page">
+          ‹ Prev
+        </button>
+        <div class="closed-orders__pagination-pages">
+          <button
+            *ngFor="let page of deliveredPageNumbers"
+            class="closed-orders__pagination-btn closed-orders__pagination-btn--page"
+            [class.closed-orders__pagination-btn--active]="page === deliveredPage"
+            (click)="goToDeliveredPage(page)"
+            [attr.aria-label]="'Page ' + page"
+            [attr.aria-current]="page === deliveredPage ? 'page' : null">
+            {{ page }}
+          </button>
+        </div>
+        <button
+          class="closed-orders__pagination-btn"
+          (click)="nextDeliveredPage()"
+          [disabled]="deliveredPage === deliveredTotalPages"
+          aria-label="Next page">
+          Next ›
+        </button>
+        <span class="closed-orders__pagination-info">
+          Page {{ deliveredPage }} of {{ deliveredTotalPages }}
+        </span>
+      </nav>
+    </div>
+  </section>
+
+  <!-- Cancelled Orders Section -->
+  <section class="closed-orders__section" aria-labelledby="cancelled-heading">
+    <h2 id="cancelled-heading" class="closed-orders__section-title">Cancelled Orders</h2>
+
+    <div class="closed-orders__table-container">
+      <div class="closed-orders__table-wrapper table-responsive">
+        <table class="closed-orders__table" aria-label="Cancelled orders table">
+          <thead>
+            <tr>
+              <th scope="col" class="closed-orders__th">Order ID</th>
+              <th scope="col" class="closed-orders__th closed-orders__th--product">Product</th>
+              <th scope="col" class="closed-orders__th">Customer</th>
+              <th scope="col" class="closed-orders__th">Amount</th>
+              <th scope="col" class="closed-orders__th">Order Date</th>
+              <th scope="col" class="closed-orders__th">Reason</th>
+              <th scope="col" class="closed-orders__th">Status</th>
+              <th scope="col" class="closed-orders__th closed-orders__th--actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="cancelledPaginated.length === 0">
+              <td colspan="8" class="closed-orders__empty">No cancelled orders found.</td>
+            </tr>
+            <ng-container *ngFor="let order of cancelledPaginated">
+              <tr class="closed-orders__row">
+                <td class="closed-orders__td">
+                  <span class="closed-orders__order-id">{{ order.orderId }}</span>
+                </td>
+                <td class="closed-orders__td closed-orders__td--product">
+                  <div class="closed-orders__product-cell">
+                    <img
+                      [src]="order.productImage"
+                      [alt]="order.productName + ' thumbnail'"
+                      class="closed-orders__product-thumb"
+                      loading="lazy" />
+                    <div class="closed-orders__product-info">
+                      <span class="closed-orders__product-name">{{ order.productName }}</span>
+                      <span class="closed-orders__product-sku">{{ order.productSku }} · Qty: {{ order.quantity }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="closed-orders__td">
+                  <div class="closed-orders__customer-cell">
+                    <span class="closed-orders__customer-name">{{ order.customerName }}</span>
+                    <span class="closed-orders__customer-phone">{{ order.customerPhone }}</span>
+                  </div>
+                </td>
+                <td class="closed-orders__td">
+                  <div class="closed-orders__amount-cell">
+                    <span class="closed-orders__amount">{{ formatCurrency(order.amount) }}</span>
+                    <span class="closed-orders__payment-method">{{ order.paymentMethod }}</span>
+                  </div>
+                </td>
+                <td class="closed-orders__td">{{ order.orderDate }}</td>
+                <td class="closed-orders__td">
+                  <span class="closed-orders__cancel-reason">{{ order.cancelReason || '—' }}</span>
+                </td>
+                <td class="closed-orders__td">
+                  <app-status-badge
+                    [text]="getStatusText(order.status)"
+                    [variant]="getStatusVariant(order.status)"
+                    label="Order">
+                  </app-status-badge>
+                </td>
+                <td class="closed-orders__td closed-orders__td--actions">
+                  <button
+                    class="closed-orders__action-btn"
+                    (click)="toggleDetails(order.orderId)"
+                    [attr.aria-expanded]="isExpanded(order.orderId)"
+                    [attr.aria-controls]="'details-' + order.orderId"
+                    [attr.aria-label]="'View details for order ' + order.orderId">
+                    {{ isExpanded(order.orderId) ? 'Hide Details' : 'View Details' }}
+                  </button>
+                </td>
+              </tr>
+              <!-- Expandable Details Panel -->
+              <tr *ngIf="isExpanded(order.orderId)" class="closed-orders__details-row">
+                <td colspan="8" class="closed-orders__details-cell">
+                  <div
+                    class="closed-orders__details-panel"
+                    [id]="'details-' + order.orderId"
+                    role="region"
+                    [attr.aria-label]="'Details for order ' + order.orderId">
+                    <div class="closed-orders__details-grid">
+                      <div class="closed-orders__details-section">
+                        <h4 class="closed-orders__details-heading">Product Details</h4>
+                        <dl class="closed-orders__details-list">
+                          <dt>Product</dt>
+                          <dd>{{ order.productName }}</dd>
+                          <dt>SKU</dt>
+                          <dd>{{ order.productSku }}</dd>
+                          <dt>Quantity</dt>
+                          <dd>{{ order.quantity }}</dd>
+                          <dt>Amount</dt>
+                          <dd>{{ formatCurrency(order.amount) }}</dd>
+                        </dl>
+                      </div>
+                      <div class="closed-orders__details-section">
+                        <h4 class="closed-orders__details-heading">Cancellation Details</h4>
+                        <dl class="closed-orders__details-list">
+                          <dt>Customer</dt>
+                          <dd>{{ order.customerName }}</dd>
+                          <dt>Phone</dt>
+                          <dd>{{ order.customerPhone }}</dd>
+                          <dt>Payment</dt>
+                          <dd>{{ order.paymentMethod }}</dd>
+                          <dt>Cancel Reason</dt>
+                          <dd>{{ order.cancelReason || 'Not specified' }}</dd>
+                        </dl>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Cancelled Pagination -->
+      <nav *ngIf="cancelledTotalPages > 1" class="closed-orders__pagination" aria-label="Cancelled orders pagination">
+        <button
+          class="closed-orders__pagination-btn"
+          (click)="prevCancelledPage()"
+          [disabled]="cancelledPage === 1"
+          aria-label="Previous page">
+          ‹ Prev
+        </button>
+        <div class="closed-orders__pagination-pages">
+          <button
+            *ngFor="let page of cancelledPageNumbers"
+            class="closed-orders__pagination-btn closed-orders__pagination-btn--page"
+            [class.closed-orders__pagination-btn--active]="page === cancelledPage"
+            (click)="goToCancelledPage(page)"
+            [attr.aria-label]="'Page ' + page"
+            [attr.aria-current]="page === cancelledPage ? 'page' : null">
+            {{ page }}
+          </button>
+        </div>
+        <button
+          class="closed-orders__pagination-btn"
+          (click)="nextCancelledPage()"
+          [disabled]="cancelledPage === cancelledTotalPages"
+          aria-label="Next page">
+          Next ›
+        </button>
+        <span class="closed-orders__pagination-info">
+          Page {{ cancelledPage }} of {{ cancelledTotalPages }}
+        </span>
+      </nav>
+    </div>
+  </section>
+</div>

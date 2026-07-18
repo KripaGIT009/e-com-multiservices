@@ -1,108 +1,315 @@
 @import '../../../shared/styles/variables';
 
-.login-page {
+// =============================================================================
+// Auth Page — Gradient background container
+// =============================================================================
+.auth-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 70vh;
+  min-height: 100vh;
   padding: 2rem 1rem;
+  background: linear-gradient(
+    135deg,
+    var(--mis-auth-gradient-start, $mis-auth-gradient-start),
+    var(--mis-auth-gradient-end, $mis-auth-gradient-end)
+  );
 }
 
-.login-card {
-  background: $mis-surface;
-  border-radius: $mis-radius-lg;
-  box-shadow: $mis-shadow;
-  padding: 2.5rem;
+// =============================================================================
+// Auth Card — BEM Block
+// =============================================================================
+.auth-card {
+  background: var(--mis-auth-card-bg, $mis-auth-card-bg);
+  border-radius: var(--mis-auth-card-radius, $mis-auth-card-radius);
+  box-shadow: var(--mis-auth-card-shadow, $mis-auth-card-shadow);
+  padding: var(--mis-auth-card-padding, $mis-auth-card-padding);
   width: 100%;
-  max-width: 420px;
-}
+  max-width: 440px;
 
-.login-title {
-  font-family: $mis-font-family;
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: $mis-secondary;
-  margin-bottom: 0.25rem;
-}
-
-.login-subtitle {
-  color: $mis-text-secondary;
-  margin-bottom: 2rem;
-  font-size: 0.9375rem;
-}
-
-.form-group {
-  margin-bottom: 1.25rem;
-}
-
-.form-label {
-  display: block;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: $mis-text-primary;
-  margin-bottom: 0.375rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  min-height: 44px;
-  border: 1px solid $mis-border;
-  border-radius: $mis-radius;
-  font-family: $mis-font-family;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: $mis-primary;
-    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+  // --------------------------------------------------------------------------
+  // Logo
+  // --------------------------------------------------------------------------
+  &__logo {
+    text-align: center;
+    margin-bottom: 1rem;
   }
 
-  &.invalid {
-    border-color: $mis-error;
+  &__logo-img {
+    max-height: 48px;
+    width: auto;
+  }
+
+  // --------------------------------------------------------------------------
+  // Header (icon + heading)
+  // --------------------------------------------------------------------------
+  &__header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  &__icon {
+    display: block;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__heading {
+    font-family: $mis-font-family;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $mis-secondary;
+    margin: 0;
+  }
+
+  // --------------------------------------------------------------------------
+  // Announcements (aria-live region)
+  // --------------------------------------------------------------------------
+  &__announcements {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  // --------------------------------------------------------------------------
+  // Form
+  // --------------------------------------------------------------------------
+  &__form {
+    width: 100%;
+  }
+
+  // --------------------------------------------------------------------------
+  // Field
+  // --------------------------------------------------------------------------
+  &__field {
+    margin-bottom: 1.25rem;
+  }
+
+  &__label {
+    display: block;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: $mis-text-primary;
+    margin-bottom: 0.375rem;
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  &__field-icon {
+    position: absolute;
+    left: 0.75rem;
+    font-size: 1.125rem;
+    line-height: 1;
+    pointer-events: none;
+    color: $mis-text-secondary;
+  }
+
+  &__input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    min-height: 44px;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius;
+    font-family: $mis-font-family;
+    font-size: 1rem;
+    color: $mis-text-primary;
+    background: #fff;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &::placeholder {
+      color: $mis-text-secondary;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $mis-primary;
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.15);
+    }
+
+    &--invalid {
+      border-color: $mis-error;
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.15);
+      }
+    }
+
+    &--with-toggle {
+      padding-right: 2.75rem;
+    }
+  }
+
+  &__toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.125rem;
+    line-height: 1;
+    padding: 0.25rem;
+    color: $mis-text-secondary;
+    display: flex;
+    align-items: center;
+
+    &:hover {
+      color: $mis-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $mis-primary;
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  }
+
+  &__error {
+    display: block;
+    color: $mis-error;
+    font-size: 0.8125rem;
+    margin-top: 0.25rem;
+  }
+
+  // --------------------------------------------------------------------------
+  // Forgot Password
+  // --------------------------------------------------------------------------
+  &__forgot {
+    text-align: right;
+    margin-bottom: 1.5rem;
+    margin-top: -0.5rem;
+  }
+
+  // --------------------------------------------------------------------------
+  // Buttons
+  // --------------------------------------------------------------------------
+  &__btn {
+    width: 100%;
+    padding: 0.875rem;
+    min-height: 44px;
+    border-radius: $mis-radius;
+    font-family: $mis-font-family;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+
+    &--primary {
+      background-color: $mis-primary;
+      color: #fff;
+      border: 2px solid $mis-primary;
+
+      &:hover:not(:disabled) {
+        background-color: $mis-primary-dark;
+        border-color: $mis-primary-dark;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $mis-secondary;
+        outline-offset: 2px;
+      }
+    }
+
+    &--outlined {
+      background-color: transparent;
+      color: $mis-text-primary;
+      border: 2px solid $mis-border;
+
+      &:hover {
+        border-color: $mis-primary;
+        color: $mis-primary;
+      }
+
+      &:focus-visible {
+        outline: 2px solid $mis-secondary;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Divider
+  // --------------------------------------------------------------------------
+  &__divider {
+    display: flex;
+    align-items: center;
+    margin: 1.25rem 0;
+  }
+
+  &__divider-text {
+    flex-shrink: 0;
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    color: $mis-text-secondary;
+    font-weight: 500;
+
+    &::before,
+    &::after {
+      content: '';
+    }
+  }
+
+  &__divider::before,
+  &__divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: $mis-border;
+  }
+
+  // --------------------------------------------------------------------------
+  // Links
+  // --------------------------------------------------------------------------
+  &__link {
+    color: $mis-primary;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-decoration: none;
+
+    &:hover {
+      color: $mis-primary-dark;
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $mis-primary;
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Footer
+  // --------------------------------------------------------------------------
+  &__footer {
+    text-align: center;
+    margin-top: 1.5rem;
+    font-size: 0.875rem;
+    color: $mis-text-secondary;
   }
 }
 
-.form-error {
-  display: block;
-  color: $mis-error;
-  font-size: 0.8125rem;
-  margin-top: 0.25rem;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 0.875rem;
-  min-height: 44px;
-  background-color: $mis-primary;
-  color: #fff;
-  border: none;
-  border-radius: $mis-radius;
-  font-family: $mis-font-family;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 0.5rem;
-
-  &:hover:not(:disabled) { background-color: $mis-primary-dark; }
-  &:disabled { opacity: 0.6; cursor: not-allowed; }
-  &:focus-visible {
-    outline: 2px solid $mis-secondary;
-    outline-offset: 2px;
+// =============================================================================
+// Responsive — Auth card full width below 480px
+// =============================================================================
+@media (max-width: 480px) {
+  .auth-card {
+    max-width: 100%;
+    padding: 1.5rem;
+    border-radius: $mis-radius;
   }
-}
-
-.login-footer {
-  text-align: center;
-  margin-top: 1.5rem;
-  font-size: 0.875rem;
-  color: $mis-text-secondary;
-}
-
-.link {
-  color: $mis-primary;
-  font-weight: 500;
-  &:hover { color: $mis-primary-dark; }
 }

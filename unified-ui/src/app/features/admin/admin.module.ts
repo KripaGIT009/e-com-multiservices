@@ -10,6 +10,7 @@ import { OrderStatusChartComponent } from './components/order-status-chart/order
 import { TopProductsTableComponent } from './components/top-products-table/top-products-table.component';
 import { LowStockAlertsComponent } from './components/low-stock-alerts/low-stock-alerts.component';
 import { ActivityFeedComponent } from './components/activity-feed/activity-feed.component';
+import { StatusBadgeComponent } from './components/status-badge/status-badge.component';
 
 @NgModule({
   declarations: [AdminDashboardComponent],
@@ -24,6 +25,7 @@ import { ActivityFeedComponent } from './components/activity-feed/activity-feed.
     TopProductsTableComponent,
     LowStockAlertsComponent,
     ActivityFeedComponent,
+    StatusBadgeComponent,
   ],
 })
 export class AdminModule {}

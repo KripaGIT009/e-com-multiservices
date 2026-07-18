@@ -6,8 +6,12 @@
 
 .main-content {
   flex: 1;
-  padding: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0;
+  max-width: none;
   width: 100%;
+
+  &.admin-active {
+    padding: 0;
+    max-width: none;
+  }
 }

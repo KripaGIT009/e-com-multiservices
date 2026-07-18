@@ -1,8 +1,13 @@
 <section class="admin-dashboard" aria-label="Admin Dashboard">
-  <h1 class="admin-dashboard__title">Admin Dashboard</h1>
+  <!-- Welcome Greeting -->
+  <div class="admin-dashboard__header">
+    <h1 class="admin-dashboard__greeting">Welcome back, {{ userName }}</h1>
+    <p class="admin-dashboard__subtitle">Here's what's happening with your store today.</p>
+  </div>
 
   <!-- Error State -->
   <div *ngIf="errorMessage" class="admin-dashboard__error" role="alert">
+    <span class="admin-dashboard__error-icon material-icons" aria-hidden="true">error_outline</span>
     <p class="admin-dashboard__error-message">{{ errorMessage }}</p>
     <button
       class="admin-dashboard__retry-btn"
@@ -14,46 +19,116 @@
 
   <!-- Loading State -->
   <div *ngIf="isLoading && !errorMessage" class="admin-dashboard__loading" role="status" aria-live="polite">
-    <app-kpi-cards [isLoading]="true"></app-kpi-cards>
+    <div class="admin-dashboard__kpi-grid">
+      <div *ngFor="let i of [1, 2, 3, 4]" class="admin-dashboard__kpi-card admin-dashboard__kpi-card--skeleton">
+        <div class="admin-dashboard__kpi-icon skeleton-pulse"></div>
+        <div class="admin-dashboard__kpi-content">
+          <div class="admin-dashboard__kpi-label skeleton-pulse"></div>
+          <div class="admin-dashboard__kpi-value skeleton-pulse"></div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Dashboard Content -->
-  <div *ngIf="!isLoading && !errorMessage">
-    <!-- KPI Cards -->
-    <app-kpi-cards [data]="dashboardSummary" [isLoading]="false"></app-kpi-cards>
-
-    <!-- Quick Actions -->
-    <app-quick-actions></app-quick-actions>
-
-    <!-- Charts and Data Visualizations -->
-    <div class="admin-dashboard__grid">
-      <!-- Revenue Chart -->
-      <div class="admin-dashboard__panel admin-dashboard__panel--wide">
-        <app-revenue-chart></app-revenue-chart>
+  <div *ngIf="!isLoading && !errorMessage" class="admin-dashboard__content">
+    <!-- KPI Cards Row -->
+    <div class="admin-dashboard__kpi-grid" role="list" aria-label="Key performance indicators">
+      <div class="admin-dashboard__kpi-card" role="listitem" [attr.aria-label]="'Total Orders: ' + totalOrders">
+        <div class="admin-dashboard__kpi-icon admin-dashboard__kpi-icon--orders" aria-hidden="true">
+          <span class="material-icons">shopping_cart</span>
+        </div>
+        <div class="admin-dashboard__kpi-content">
+          <span class="admin-dashboard__kpi-label">Total Orders</span>
+          <span class="admin-dashboard__kpi-value">{{ totalOrders }}</span>
+        </div>
       </div>
 
-      <!-- Order Status Chart -->
-      <div class="admin-dashboard__panel">
-        <app-order-status-chart></app-order-status-chart>
+      <div class="admin-dashboard__kpi-card" role="listitem" [attr.aria-label]="'Active Orders: ' + activeOrders">
+        <div class="admin-dashboard__kpi-icon admin-dashboard__kpi-icon--active" aria-hidden="true">
+          <span class="material-icons">pending_actions</span>
+        </div>
+        <div class="admin-dashboard__kpi-content">
+          <span class="admin-dashboard__kpi-label">Active Orders</span>
+          <span class="admin-dashboard__kpi-value">{{ activeOrders }}</span>
+        </div>
       </div>
 
-      <!-- Top Products Table -->
-      <div class="admin-dashboard__panel">
-        <app-top-products-table></app-top-products-table>
+      <div class="admin-dashboard__kpi-card" role="listitem" [attr.aria-label]="'Total Sales: ' + totalSales">
+        <div class="admin-dashboard__kpi-icon admin-dashboard__kpi-icon--sales" aria-hidden="true">
+          <span class="material-icons">currency_rupee</span>
+        </div>
+        <div class="admin-dashboard__kpi-content">
+          <span class="admin-dashboard__kpi-label">Total Sales</span>
+          <span class="admin-dashboard__kpi-value">{{ totalSales }}</span>
+        </div>
       </div>
 
-      <!-- Low Stock Alerts -->
-      <div class="admin-dashboard__panel">
-        <app-low-stock-alerts
-          [lowStockCount]="dashboardSummary?.lowStockCount || 0"
-          [isLoading]="isLoading">
-        </app-low-stock-alerts>
-      </div>
-
-      <!-- Activity Feed -->
-      <div class="admin-dashboard__panel">
-        <app-activity-feed></app-activity-feed>
+      <div class="admin-dashboard__kpi-card" role="listitem" [attr.aria-label]="'Total Products: ' + totalProducts">
+        <div class="admin-dashboard__kpi-icon admin-dashboard__kpi-icon--products" aria-hidden="true">
+          <span class="material-icons">inventory_2</span>
+        </div>
+        <div class="admin-dashboard__kpi-content">
+          <span class="admin-dashboard__kpi-label">Total Products</span>
+          <span class="admin-dashboard__kpi-value">{{ totalProducts }}</span>
+        </div>
       </div>
     </div>
+
+    <!-- Quick Actions -->
+    <section class="admin-dashboard__section" aria-label="Quick Actions">
+      <h2 class="admin-dashboard__section-title">Quick Actions</h2>
+      <div class="admin-dashboard__quick-actions">
+        <button
+          *ngFor="let action of quickActions"
+          class="admin-dashboard__action-card"
+          (click)="navigateTo(action.route)"
+          [attr.aria-label]="'Navigate to ' + action.label">
+          <span class="admin-dashboard__action-icon material-icons" aria-hidden="true">{{ action.icon }}</span>
+          <span class="admin-dashboard__action-label">{{ action.label }}</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Order Overview Chart -->
+    <section class="admin-dashboard__section" aria-label="Order Overview">
+      <h2 class="admin-dashboard__section-title">Order Overview</h2>
+      <div class="admin-dashboard__chart-card">
+        <app-revenue-chart></app-revenue-chart>
+      </div>
+    </section>
+
+    <!-- Recent Orders -->
+    <section class="admin-dashboard__section" aria-label="Recent Orders">
+      <h2 class="admin-dashboard__section-title">Recent Orders</h2>
+      <div class="admin-dashboard__orders-card">
+        <div class="admin-dashboard__orders-table-wrapper">
+          <table class="admin-dashboard__orders-table" aria-label="Recent orders list">
+            <thead>
+              <tr>
+                <th scope="col">Order ID</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of recentOrders">
+                <td class="admin-dashboard__order-id">{{ order.orderId }}</td>
+                <td>{{ order.customerName }}</td>
+                <td class="admin-dashboard__order-amount">{{ formatCurrency(order.amount) }}</td>
+                <td>
+                  <app-status-badge
+                    [text]="order.status"
+                    [variant]="getStatusVariant(order.status)"
+                    label="Order">
+                  </app-status-badge>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 </section>

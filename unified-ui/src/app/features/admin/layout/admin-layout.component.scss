@@ -1,0 +1,189 @@
+@use '../../../shared/styles/variables' as *;
+
+// =============================================================================
+// AdminLayoutComponent — CSS Grid Shell
+// Requirements: 3.1, 3.6, 11.1, 11.2, 11.3
+// =============================================================================
+
+.admin-layout {
+  display: grid;
+  grid-template-rows: var(--mis-admin-topbar-height) 1fr;
+  grid-template-columns: var(--mis-sidebar-width) 1fr;
+  grid-template-areas:
+    "topbar topbar"
+    "sidebar content";
+  min-height: 100vh;
+  transition: grid-template-columns 0.3s ease;
+
+  &--collapsed {
+    grid-template-columns: var(--mis-sidebar-width-collapsed) 1fr;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Responsive: Tablet (768px – 1023px) — sidebar collapsed to icons only
+  // Requirement: 11.2
+  // ---------------------------------------------------------------------------
+  @media (min-width: 768px) and (max-width: 1023px) {
+    grid-template-columns: var(--mis-sidebar-width-collapsed) 1fr;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Responsive: Mobile (<768px) — sidebar hidden, full-width content
+  // Requirement: 11.3
+  // ---------------------------------------------------------------------------
+  @media (max-width: 767px) {
+    grid-template-columns: 0 1fr;
+    grid-template-areas:
+      "topbar topbar"
+      "content content";
+
+    // When mobile sidebar overlay is open
+    &--mobile-open {
+      .admin-layout__sidebar {
+        transform: translateX(0);
+      }
+
+      .admin-layout__overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Top Bar
+// ---------------------------------------------------------------------------
+.admin-layout__topbar {
+  grid-area: topbar;
+  background-color: var(--mis-surface);
+  border-bottom: 1px solid var(--mis-border);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--mis-admin-content-padding);
+  z-index: 100;
+}
+
+.admin-layout__topbar-placeholder {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 16px;
+}
+
+.admin-layout__toggle-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: $mis-radius;
+  color: var(--mis-text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--mis-primary);
+    outline-offset: 2px;
+  }
+}
+
+.admin-layout__store-name {
+  font-family: var(--mis-font-family);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--mis-text-primary);
+}
+
+.admin-layout__topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-layout__user-name {
+  font-family: var(--mis-font-family);
+  font-size: 0.875rem;
+  color: var(--mis-text-secondary);
+}
+
+// ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
+.admin-layout__sidebar {
+  grid-area: sidebar;
+  background-color: var(--mis-sidebar-bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.3s ease, transform 0.3s ease;
+
+  // Tablet: force collapsed width
+  @media (min-width: 768px) and (max-width: 1023px) {
+    width: var(--mis-sidebar-width-collapsed);
+  }
+
+  // Mobile: overlay sidebar off-screen by default
+  @media (max-width: 767px) {
+    position: fixed;
+    top: var(--mis-admin-topbar-height);
+    left: 0;
+    bottom: 0;
+    width: var(--mis-sidebar-width);
+    z-index: 500;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+}
+
+.admin-layout__sidebar-placeholder {
+  padding: 24px 16px;
+}
+
+.admin-layout__sidebar-label {
+  color: var(--mis-sidebar-text);
+  font-family: var(--mis-font-family);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+.admin-layout__content {
+  grid-area: content;
+  padding: var(--mis-admin-content-padding);
+  background-color: var(--mis-background);
+  overflow-y: auto;
+
+  @media (max-width: 767px) {
+    padding: 16px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mobile Overlay (backdrop when sidebar is open on mobile)
+// Requirement: 11.3
+// ---------------------------------------------------------------------------
+.admin-layout__overlay {
+  display: none;
+
+  @media (max-width: 767px) {
+    display: block;
+    position: fixed;
+    top: var(--mis-admin-topbar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 400;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+}

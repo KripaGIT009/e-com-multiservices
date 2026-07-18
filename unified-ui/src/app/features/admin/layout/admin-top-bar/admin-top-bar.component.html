@@ -1,0 +1,61 @@
+<header class="admin-top-bar" role="banner">
+  <!-- Hamburger menu toggle (visible on mobile) -->
+  <button
+    class="admin-top-bar__hamburger"
+    type="button"
+    aria-label="Toggle sidebar navigation"
+    (click)="onSidebarToggle()">
+    <span class="material-icons">menu</span>
+  </button>
+
+  <!-- Brand / Logo area -->
+  <div class="admin-top-bar__brand">
+    <img
+      src="assets/images/logo.png"
+      alt="MyIndianStore logo"
+      class="admin-top-bar__logo"
+      (error)="$any($event.target).style.display='none'" />
+    <span class="admin-top-bar__store-name">{{ storeName }}</span>
+  </div>
+
+  <!-- Right-side actions -->
+  <div class="admin-top-bar__actions">
+    <!-- Notification bell -->
+    <button
+      class="admin-top-bar__notification"
+      type="button"
+      aria-label="Notifications">
+      <span class="material-icons">notifications</span>
+      <span
+        *ngIf="notificationCount > 0"
+        class="admin-top-bar__notification-badge"
+        [attr.aria-label]="notificationCount + ' unread notifications'">
+        {{ notificationCount }}
+      </span>
+    </button>
+
+    <!-- Profile dropdown -->
+    <div class="admin-top-bar__profile" (click)="toggleProfileDropdown()">
+      <span class="admin-top-bar__profile-icon material-icons">account_circle</span>
+      <span class="admin-top-bar__profile-name">{{ userName }}</span>
+      <span class="material-icons admin-top-bar__profile-arrow">
+        {{ profileDropdownOpen ? 'expand_less' : 'expand_more' }}
+      </span>
+
+      <!-- Dropdown menu -->
+      <div
+        class="admin-top-bar__dropdown"
+        *ngIf="profileDropdownOpen"
+        role="menu">
+        <button
+          class="admin-top-bar__dropdown-item"
+          type="button"
+          role="menuitem"
+          (click)="onLogout()">
+          <span class="material-icons">logout</span>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

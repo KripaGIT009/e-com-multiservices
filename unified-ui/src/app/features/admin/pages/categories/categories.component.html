@@ -1,0 +1,16 @@
+<div class="categories">
+  <header class="categories__header">
+    <h1 class="categories__title">Categories</h1>
+    <button class="categories__btn categories__btn--add" aria-label="Add category">
+      + Add Category
+    </button>
+  </header>
+
+  <div class="categories__card">
+    <ul class="categories__list" role="list">
+      <li *ngFor="let category of categories" class="categories__item" role="listitem">
+        <span class="categories__item-name">{{ category }}</span>
+      </li>
+    </ul>
+  </div>
+</div>

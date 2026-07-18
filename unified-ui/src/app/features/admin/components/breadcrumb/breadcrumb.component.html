@@ -1,0 +1,25 @@
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <ol class="breadcrumb__list">
+    <li
+      *ngFor="let segment of segments; let i = index; let last = last"
+      class="breadcrumb__item"
+      [class.breadcrumb__item--current]="last"
+    >
+      <a
+        *ngIf="!last && segment.routerLink"
+        class="breadcrumb__link"
+        [routerLink]="segment.routerLink"
+      >
+        {{ segment.label }}
+      </a>
+      <span
+        *ngIf="last"
+        class="breadcrumb__current"
+        aria-current="page"
+      >
+        {{ segment.label }}
+      </span>
+      <span *ngIf="!last" class="breadcrumb__separator" aria-hidden="true">&gt;</span>
+    </li>
+  </ol>
+</nav>

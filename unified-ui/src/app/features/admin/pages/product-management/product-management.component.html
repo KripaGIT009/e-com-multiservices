@@ -1,278 +1,30 @@
 <div class="product-management">
+  <!-- Page Heading -->
   <header class="product-management__header">
-    <h2 class="product-management__title">Product Management</h2>
+    <h1 class="product-management__title">Manage Products</h1>
     <button
-      class="product-management__btn product-management__btn--scanner-toggle"
-      (click)="toggleScanner()"
-      [class.product-management__btn--scanner-active]="isScannerActive"
-      [attr.aria-pressed]="isScannerActive"
-      aria-label="Toggle barcode scanner">
-      <span class="product-management__scanner-icon" aria-hidden="true">📷</span>
-      {{ isScannerActive ? 'Close Scanner' : 'Scan Barcode' }}
+      class="product-management__btn product-management__btn--add"
+      (click)="goToAddProduct()"
+      aria-label="Add new product">
+      <span class="product-management__add-icon" aria-hidden="true">+</span>
+      Add Product
     </button>
   </header>
 
-  <!-- Barcode Scanner Panel -->
-  <div *ngIf="isScannerActive" class="product-management__scanner-panel" role="region" aria-label="Barcode scanner panel">
-    <app-barcode-scanner
-      [isActive]="isScannerActive"
-      (barcodeScanned)="onBarcodeScanned($event)"
-      (scannerError)="onScannerError($event)">
-    </app-barcode-scanner>
-
-    <!-- Continuous scanning indicator: scanner remains ready after lookup -->
+  <!-- KPI Cards Row -->
+  <section class="product-management__kpi-row" role="list" aria-label="Product statistics">
     <div
-      *ngIf="!isLookingUp"
-      class="product-management__scanner-ready"
-      role="status"
-      aria-live="polite"
-      aria-label="Scanner is active and listening for barcodes">
-      <span class="product-management__scanner-ready-dot" aria-hidden="true"></span>
-      Scanner ready — scan next barcode or enter SKU
-    </div>
-  </div>
-
-  <!-- Lookup Loading State -->
-  <div *ngIf="isLookingUp" class="product-management__lookup-loading" role="status" aria-label="Looking up product">
-    <span class="product-management__lookup-spinner" aria-hidden="true"></span>
-    Looking up product...
-  </div>
-
-  <!-- Lookup Result: Product Found -->
-  <div *ngIf="lookupResult && lookupResult.found && lookupResult.product" class="product-management__lookup-result product-management__lookup-result--found" role="region" aria-label="Product lookup result">
-    <div class="product-management__lookup-header">
-      <h3 class="product-management__lookup-title">Product Found</h3>
-      <button class="product-management__lookup-dismiss" (click)="dismissLookupResult()" aria-label="Dismiss lookup result">×</button>
-    </div>
-    <div class="product-management__lookup-details">
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Name</span>
-        <span class="product-management__lookup-value">{{ lookupResult.product.name }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">SKU</span>
-        <span class="product-management__lookup-value">{{ lookupResult.product.sku }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Price</span>
-        <span class="product-management__lookup-value">{{ formatCurrency(lookupResult.product.price) }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Description</span>
-        <span class="product-management__lookup-value">{{ lookupResult.product.description || 'N/A' }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Stock Level</span>
-        <span class="product-management__lookup-value" [ngClass]="getStockClass(lookupResult.product.quantity)">
-          {{ lookupResult.product.quantity }}
-        </span>
+      *ngFor="let card of kpiCards"
+      class="product-management__kpi-card"
+      role="listitem"
+      [attr.aria-label]="card.label + ': ' + card.value">
+      <div class="product-management__kpi-icon" aria-hidden="true">{{ card.icon }}</div>
+      <div class="product-management__kpi-content">
+        <span class="product-management__kpi-value">{{ card.value }}</span>
+        <span class="product-management__kpi-label">{{ card.label }}</span>
       </div>
     </div>
-
-    <!-- Inline Stock Update Form -->
-    <div class="product-management__stock-update" role="form" aria-label="Update stock level">
-      <h4 class="product-management__stock-update-title">Update Stock Level</h4>
-
-      <!-- Success message -->
-      <div *ngIf="stockUpdateSuccess" class="product-management__stock-update-success" role="status" aria-live="polite">
-        <span aria-hidden="true">✓</span> Stock level updated successfully.
-      </div>
-
-      <!-- Error message -->
-      <div *ngIf="stockUpdateError" class="product-management__stock-update-error" role="alert">
-        {{ stockUpdateError }}
-      </div>
-
-      <div class="product-management__stock-update-form">
-        <div class="product-management__stock-update-field">
-          <label for="stock-update-quantity" class="product-management__label">New Stock Level</label>
-          <input
-            id="stock-update-quantity"
-            type="number"
-            class="product-management__input"
-            [(ngModel)]="stockUpdateQuantity"
-            [class.product-management__input--error]="stockUpdateError && !stockUpdateSuccess"
-            min="0"
-            step="1"
-            [disabled]="isUpdatingStock"
-            aria-required="true"
-            [attr.aria-invalid]="stockUpdateError ? 'true' : null"
-            [attr.aria-describedby]="stockUpdateError ? 'stock-update-error-msg' : null" />
-        </div>
-        <button
-          class="product-management__btn product-management__btn--primary product-management__stock-update-btn"
-          (click)="submitStockUpdate()"
-          [disabled]="isUpdatingStock"
-          aria-label="Update stock level">
-          <span *ngIf="isUpdatingStock" class="product-management__stock-update-spinner" aria-hidden="true"></span>
-          {{ isUpdatingStock ? 'Updating...' : 'Update Stock' }}
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Lookup Result: Not Found -->
-  <div *ngIf="lookupResult && !lookupResult.found && !lookupResult.error" class="product-management__lookup-result product-management__lookup-result--not-found" role="region" aria-label="Product not found">
-    <div class="product-management__lookup-header">
-      <h3 class="product-management__lookup-title">Product Not Found</h3>
-      <button class="product-management__lookup-dismiss" (click)="dismissLookupResult()" aria-label="Dismiss lookup result">×</button>
-    </div>
-    <p class="product-management__lookup-message">No product found for SKU: <strong>{{ lastScannedBarcode }}</strong></p>
-    <button class="product-management__btn product-management__btn--primary" (click)="showCreateProductForm()" aria-label="Create new product with scanned SKU">
-      Create New Product
-    </button>
-  </div>
-
-  <!-- Lookup Result: Error -->
-  <div *ngIf="lookupResult && lookupResult.error" class="product-management__lookup-result product-management__lookup-result--error" role="alert">
-    <div class="product-management__lookup-header">
-      <h3 class="product-management__lookup-title">Lookup Error</h3>
-      <button class="product-management__lookup-dismiss" (click)="dismissLookupResult()" aria-label="Dismiss lookup result">×</button>
-    </div>
-    <p class="product-management__lookup-message">{{ lookupResult.error }}</p>
-    <button class="product-management__btn product-management__btn--primary" (click)="retryLookup()" aria-label="Retry product lookup">
-      Retry
-    </button>
-  </div>
-
-  <!-- Product Creation Form -->
-  <div *ngIf="showCreateForm" class="product-management__create-form" role="dialog" aria-label="Create New Product">
-    <h3 class="product-management__form-title">Create New Product</h3>
-
-    <div *ngIf="createError" class="product-management__form-error" role="alert">
-      {{ createError }}
-      <button *ngIf="isDuplicateSku" class="product-management__btn product-management__btn--link" (click)="lookupDuplicateSku()" aria-label="Look up existing product with this SKU">
-        Look Up
-      </button>
-    </div>
-
-    <div class="product-management__form-group">
-      <label for="create-sku" class="product-management__label">SKU</label>
-      <input
-        id="create-sku"
-        type="text"
-        class="product-management__input product-management__input--readonly"
-        [ngModel]="createForm.sku"
-        readonly
-        aria-required="true"
-        aria-label="SKU (pre-filled, read-only)" />
-      <span *ngIf="createFormErrors['sku']" id="create-sku-error" class="product-management__field-error">
-        {{ createFormErrors['sku'] }}
-      </span>
-    </div>
-
-    <div class="product-management__form-group">
-      <label for="create-name" class="product-management__label">Product Name</label>
-      <input
-        id="create-name"
-        type="text"
-        class="product-management__input"
-        [(ngModel)]="createForm.name"
-        [class.product-management__input--error]="createFormErrors['name']"
-        aria-required="true"
-        [attr.aria-invalid]="createFormErrors['name'] ? 'true' : null"
-        [attr.aria-describedby]="createFormErrors['name'] ? 'create-name-error' : null"
-        placeholder="Enter product name" />
-      <span *ngIf="createFormErrors['name']" id="create-name-error" class="product-management__field-error">
-        {{ createFormErrors['name'] }}
-      </span>
-    </div>
-
-    <div class="product-management__form-group">
-      <label for="create-description" class="product-management__label">Description</label>
-      <input
-        id="create-description"
-        type="text"
-        class="product-management__input"
-        [(ngModel)]="createForm.description"
-        placeholder="Enter product description (optional)" />
-    </div>
-
-    <div class="product-management__form-group">
-      <label for="create-price" class="product-management__label">Price (₹)</label>
-      <input
-        id="create-price"
-        type="number"
-        class="product-management__input"
-        [(ngModel)]="createForm.price"
-        [class.product-management__input--error]="createFormErrors['price']"
-        min="0"
-        step="0.01"
-        aria-required="true"
-        [attr.aria-invalid]="createFormErrors['price'] ? 'true' : null"
-        [attr.aria-describedby]="createFormErrors['price'] ? 'create-price-error' : null"
-        placeholder="0.00" />
-      <span *ngIf="createFormErrors['price']" id="create-price-error" class="product-management__field-error">
-        {{ createFormErrors['price'] }}
-      </span>
-    </div>
-
-    <div class="product-management__form-group">
-      <label for="create-quantity" class="product-management__label">Quantity</label>
-      <input
-        id="create-quantity"
-        type="number"
-        class="product-management__input"
-        [(ngModel)]="createForm.quantity"
-        [class.product-management__input--error]="createFormErrors['quantity']"
-        min="0"
-        step="1"
-        aria-required="true"
-        [attr.aria-invalid]="createFormErrors['quantity'] ? 'true' : null"
-        [attr.aria-describedby]="createFormErrors['quantity'] ? 'create-quantity-error' : null"
-        placeholder="0" />
-      <span *ngIf="createFormErrors['quantity']" id="create-quantity-error" class="product-management__field-error">
-        {{ createFormErrors['quantity'] }}
-      </span>
-    </div>
-
-    <div class="product-management__form-actions">
-      <button
-        class="product-management__btn product-management__btn--primary"
-        (click)="submitCreate()"
-        [disabled]="isCreatingProduct"
-        aria-label="Submit new product">
-        {{ isCreatingProduct ? 'Creating...' : 'Create Product' }}
-      </button>
-      <button
-        class="product-management__btn product-management__btn--secondary"
-        (click)="cancelCreate()"
-        [disabled]="isCreatingProduct"
-        aria-label="Cancel product creation">
-        Cancel
-      </button>
-    </div>
-  </div>
-
-  <!-- Product Creation Success -->
-  <div *ngIf="createSuccess && createdProduct" class="product-management__lookup-result product-management__lookup-result--found" role="region" aria-label="Product created successfully">
-    <div class="product-management__lookup-header">
-      <h3 class="product-management__lookup-title">Product Created Successfully</h3>
-      <button class="product-management__lookup-dismiss" (click)="dismissCreateSuccess()" aria-label="Dismiss success message">×</button>
-    </div>
-    <div class="product-management__lookup-details">
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Name</span>
-        <span class="product-management__lookup-value">{{ createdProduct.name }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">SKU</span>
-        <span class="product-management__lookup-value">{{ createdProduct.sku }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Price</span>
-        <span class="product-management__lookup-value">{{ formatCurrency(createdProduct.price) }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Description</span>
-        <span class="product-management__lookup-value">{{ createdProduct.description || 'N/A' }}</span>
-      </div>
-      <div class="product-management__lookup-field">
-        <span class="product-management__lookup-label">Quantity</span>
-        <span class="product-management__lookup-value">{{ createdProduct.quantity }}</span>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- Success Confirmation -->
   <div *ngIf="showSuccess" class="product-management__success" role="alert">
@@ -295,153 +47,204 @@
   <!-- Edit Form -->
   <div *ngIf="editingProduct" class="product-management__edit-form" role="dialog" aria-label="Edit Product">
     <h3 class="product-management__form-title">Edit Product #{{ editingProduct.id }}</h3>
-
-    <div *ngIf="formError" class="product-management__form-error" role="alert">
-      {{ formError }}
-    </div>
-
+    <div *ngIf="formError" class="product-management__form-error" role="alert">{{ formError }}</div>
     <div class="product-management__form-group">
       <label for="edit-name" class="product-management__label">Product Name</label>
-      <input
-        id="edit-name"
-        type="text"
-        class="product-management__input"
-        [(ngModel)]="editForm.name"
-        [class.product-management__input--error]="validationErrors['name']"
-        aria-required="true"
-        [attr.aria-invalid]="validationErrors['name'] ? 'true' : null"
-        [attr.aria-describedby]="validationErrors['name'] ? 'name-error' : null" />
-      <span *ngIf="validationErrors['name']" id="name-error" class="product-management__field-error">
-        {{ validationErrors['name'] }}
-      </span>
+      <input id="edit-name" type="text" class="product-management__input" [(ngModel)]="editForm.name" [class.product-management__input--error]="validationErrors['name']" aria-required="true" [attr.aria-invalid]="validationErrors['name'] ? 'true' : null" [attr.aria-describedby]="validationErrors['name'] ? 'name-error' : null" />
+      <span *ngIf="validationErrors['name']" id="name-error" class="product-management__field-error">{{ validationErrors['name'] }}</span>
     </div>
-
     <div class="product-management__form-group">
       <label for="edit-category" class="product-management__label">Category</label>
-      <input
-        id="edit-category"
-        type="text"
-        class="product-management__input"
-        [(ngModel)]="editForm.category"
-        [class.product-management__input--error]="validationErrors['category']"
-        aria-required="true"
-        [attr.aria-invalid]="validationErrors['category'] ? 'true' : null"
-        [attr.aria-describedby]="validationErrors['category'] ? 'category-error' : null" />
-      <span *ngIf="validationErrors['category']" id="category-error" class="product-management__field-error">
-        {{ validationErrors['category'] }}
-      </span>
+      <input id="edit-category" type="text" class="product-management__input" [(ngModel)]="editForm.category" [class.product-management__input--error]="validationErrors['category']" aria-required="true" [attr.aria-invalid]="validationErrors['category'] ? 'true' : null" [attr.aria-describedby]="validationErrors['category'] ? 'category-error' : null" />
+      <span *ngIf="validationErrors['category']" id="category-error" class="product-management__field-error">{{ validationErrors['category'] }}</span>
     </div>
-
     <div class="product-management__form-group">
       <label for="edit-price" class="product-management__label">Price (₹)</label>
-      <input
-        id="edit-price"
-        type="number"
-        class="product-management__input"
-        [(ngModel)]="editForm.price"
-        [class.product-management__input--error]="validationErrors['price']"
-        min="0"
-        step="0.01"
-        aria-required="true"
-        [attr.aria-invalid]="validationErrors['price'] ? 'true' : null"
-        [attr.aria-describedby]="validationErrors['price'] ? 'price-error' : null" />
-      <span *ngIf="validationErrors['price']" id="price-error" class="product-management__field-error">
-        {{ validationErrors['price'] }}
-      </span>
+      <input id="edit-price" type="number" class="product-management__input" [(ngModel)]="editForm.price" [class.product-management__input--error]="validationErrors['price']" min="0" step="0.01" aria-required="true" [attr.aria-invalid]="validationErrors['price'] ? 'true' : null" [attr.aria-describedby]="validationErrors['price'] ? 'price-error' : null" />
+      <span *ngIf="validationErrors['price']" id="price-error" class="product-management__field-error">{{ validationErrors['price'] }}</span>
     </div>
-
     <div class="product-management__form-group">
       <label for="edit-stock" class="product-management__label">Stock Quantity</label>
-      <input
-        id="edit-stock"
-        type="number"
-        class="product-management__input"
-        [(ngModel)]="editForm.stockLevel"
-        [class.product-management__input--error]="validationErrors['stockLevel']"
-        min="0"
-        step="1"
-        aria-required="true"
-        [attr.aria-invalid]="validationErrors['stockLevel'] ? 'true' : null"
-        [attr.aria-describedby]="validationErrors['stockLevel'] ? 'stock-error' : null" />
-      <span *ngIf="validationErrors['stockLevel']" id="stock-error" class="product-management__field-error">
-        {{ validationErrors['stockLevel'] }}
-      </span>
+      <input id="edit-stock" type="number" class="product-management__input" [(ngModel)]="editForm.stockLevel" [class.product-management__input--error]="validationErrors['stockLevel']" min="0" step="1" aria-required="true" [attr.aria-invalid]="validationErrors['stockLevel'] ? 'true' : null" [attr.aria-describedby]="validationErrors['stockLevel'] ? 'stock-error' : null" />
+      <span *ngIf="validationErrors['stockLevel']" id="stock-error" class="product-management__field-error">{{ validationErrors['stockLevel'] }}</span>
     </div>
-
     <div class="product-management__form-actions">
-      <button
-        class="product-management__btn product-management__btn--primary"
-        (click)="submitEdit()"
-        [disabled]="isSubmitting">
+      <button class="product-management__btn product-management__btn--primary" (click)="submitEdit()" [disabled]="isSubmitting">
         {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
       </button>
-      <button
-        class="product-management__btn product-management__btn--secondary"
-        (click)="cancelEdit()"
-        [disabled]="isSubmitting">
+      <button class="product-management__btn product-management__btn--secondary" (click)="cancelEdit()" [disabled]="isSubmitting">
         Cancel
       </button>
     </div>
   </div>
 
-  <!-- Products Table -->
-  <div *ngIf="!isLoading && !hasError && !editingProduct" class="product-management__table-wrapper">
-    <table class="product-management__table" aria-label="Products table">
-      <thead>
-        <tr>
-          <th scope="col">Product ID</th>
-          <th scope="col">Name</th>
-          <th scope="col">Category</th>
-          <th scope="col">Price</th>
-          <th scope="col">Stock Level</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="products.length === 0">
-          <td colspan="6" class="product-management__empty">No products found.</td>
-        </tr>
-        <tr *ngFor="let product of products">
-          <td>{{ product.id }}</td>
-          <td>{{ product.name }}</td>
-          <td>{{ product.category }}</td>
-          <td>{{ formatCurrency(product.price) }}</td>
-          <td>
-            <span class="product-management__stock" [ngClass]="getStockClass(product.stockLevel)">
-              {{ product.stockLevel }}
-            </span>
-          </td>
-          <td>
-            <button
-              class="product-management__btn product-management__btn--edit"
-              (click)="startEdit(product)"
-              [attr.aria-label]="'Edit product ' + product.name">
-              Edit
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Search & Filters Bar -->
+  <section *ngIf="!isLoading && !hasError && !editingProduct" class="product-management__filters">
+    <div class="product-management__search">
+      <span class="product-management__search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="text"
+        class="product-management__search-input"
+        placeholder="Search by product name or SKU..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+        aria-label="Search products by name or SKU" />
+    </div>
+    <div class="product-management__filter-group">
+      <select
+        class="product-management__filter-select"
+        [(ngModel)]="filterCategory"
+        (ngModelChange)="onFilterChange()"
+        aria-label="Filter by category">
+        <option value="">All Categories</option>
+        <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+      </select>
+      <select
+        class="product-management__filter-select"
+        [(ngModel)]="filterStatus"
+        (ngModelChange)="onFilterChange()"
+        aria-label="Filter by status">
+        <option value="">All Statuses</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <select
+        class="product-management__filter-select"
+        [(ngModel)]="filterStock"
+        (ngModelChange)="onFilterChange()"
+        aria-label="Filter by stock level">
+        <option value="">All Stock Levels</option>
+        <option value="in-stock">In Stock</option>
+        <option value="low-stock">Low Stock</option>
+        <option value="out-of-stock">Out of Stock</option>
+      </select>
+    </div>
+  </section>
 
-    <!-- Pagination -->
+  <!-- Products Data Table -->
+  <div *ngIf="!isLoading && !hasError && !editingProduct" class="product-management__table-container">
+    <div class="product-management__table-wrapper table-responsive">
+      <table class="product-management__table" aria-label="Products table">
+        <thead>
+          <tr>
+            <th scope="col" class="product-management__th product-management__th--checkbox">
+              <input
+                type="checkbox"
+                [(ngModel)]="selectAll"
+                (change)="toggleSelectAll()"
+                aria-label="Select all products" />
+            </th>
+            <th scope="col" class="product-management__th product-management__th--product">Product</th>
+            <th scope="col" class="product-management__th">SKU</th>
+            <th scope="col" class="product-management__th">Category</th>
+            <th scope="col" class="product-management__th">Price</th>
+            <th scope="col" class="product-management__th">Stock</th>
+            <th scope="col" class="product-management__th">Status</th>
+            <th scope="col" class="product-management__th product-management__th--actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngIf="products.length === 0">
+            <td colspan="8" class="product-management__empty">No products found.</td>
+          </tr>
+          <tr *ngFor="let product of products" class="product-management__row">
+            <td class="product-management__td product-management__td--checkbox">
+              <input
+                type="checkbox"
+                [checked]="isSelected(product.id)"
+                (change)="toggleProductSelection(product.id)"
+                [attr.aria-label]="'Select ' + product.name" />
+            </td>
+            <td class="product-management__td product-management__td--product">
+              <div class="product-management__product-cell">
+                <img
+                  [src]="product.thumbnail"
+                  [alt]="product.name + ' thumbnail'"
+                  class="product-management__product-thumb"
+                  loading="lazy" />
+                <div class="product-management__product-info">
+                  <span class="product-management__product-name">{{ product.name }}</span>
+                  <span class="product-management__product-price">{{ formatCurrency(product.price) }}</span>
+                </div>
+              </div>
+            </td>
+            <td class="product-management__td">{{ product.sku }}</td>
+            <td class="product-management__td">{{ product.category }}</td>
+            <td class="product-management__td">{{ formatCurrency(product.price) }}</td>
+            <td class="product-management__td">
+              <app-status-badge
+                [text]="getStockText(product.stockLevel)"
+                [variant]="getStockVariant(product.stockLevel)"
+                label="Stock">
+              </app-status-badge>
+            </td>
+            <td class="product-management__td">
+              <app-status-badge
+                [text]="getStatusText(product.status)"
+                [variant]="getStatusVariant(product.status)"
+                label="Product">
+              </app-status-badge>
+            </td>
+            <td class="product-management__td product-management__td--actions">
+              <div class="product-management__action-icons">
+                <button
+                  class="product-management__action-btn"
+                  (click)="startEdit(product)"
+                  [attr.aria-label]="'Edit ' + product.name"
+                  title="Edit">
+                  <span aria-hidden="true">✏️</span>
+                </button>
+                <button
+                  class="product-management__action-btn"
+                  (click)="duplicateProduct(product)"
+                  [attr.aria-label]="'Duplicate ' + product.name"
+                  title="Duplicate">
+                  <span aria-hidden="true">📋</span>
+                </button>
+                <button
+                  class="product-management__action-btn product-management__action-btn--danger"
+                  (click)="deleteProduct(product)"
+                  [attr.aria-label]="'Delete ' + product.name"
+                  title="Delete">
+                  <span aria-hidden="true">🗑️</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination Controls -->
     <nav *ngIf="totalPages > 1" class="product-management__pagination" aria-label="Product table pagination">
       <button
-        class="product-management__btn product-management__btn--page"
+        class="product-management__pagination-btn"
         (click)="prevPage()"
         [disabled]="currentPage === 1"
         aria-label="Previous page">
-        ← Previous
+        ‹ Prev
       </button>
-      <span class="product-management__page-info">
-        Page {{ currentPage }} of {{ totalPages }}
-      </span>
+      <div class="product-management__pagination-pages">
+        <button
+          *ngFor="let page of pageNumbers"
+          class="product-management__pagination-btn product-management__pagination-btn--page"
+          [class.product-management__pagination-btn--active]="page === currentPage"
+          (click)="goToPage(page)"
+          [attr.aria-label]="'Page ' + page"
+          [attr.aria-current]="page === currentPage ? 'page' : null">
+          {{ page }}
+        </button>
+      </div>
       <button
-        class="product-management__btn product-management__btn--page"
+        class="product-management__pagination-btn"
         (click)="nextPage()"
         [disabled]="currentPage === totalPages"
         aria-label="Next page">
-        Next →
+        Next ›
       </button>
+      <span class="product-management__pagination-info">
+        Showing {{ (currentPage - 1) * pageSize + 1 }}–{{ currentPage === totalPages ? totalProducts : currentPage * pageSize }} of {{ totalProducts }}
+      </span>
     </nav>
   </div>
 </div>

@@ -1,0 +1,67 @@
+<div class="profile">
+  <header class="profile__header">
+    <h1 class="profile__title">My Profile</h1>
+  </header>
+
+  <div class="profile__card">
+    <h2 class="profile__section-title">User Information</h2>
+    <div class="profile__info-grid">
+      <div class="profile__info-item">
+        <span class="profile__info-label">Username</span>
+        <span class="profile__info-value">{{ username || '—' }}</span>
+      </div>
+      <div class="profile__info-item">
+        <span class="profile__info-label">Email</span>
+        <span class="profile__info-value">{{ email || '—' }}</span>
+      </div>
+      <div class="profile__info-item">
+        <span class="profile__info-label">Role</span>
+        <span class="profile__info-value">{{ role || '—' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile__card">
+    <h2 class="profile__section-title">Change Password</h2>
+    <form class="profile__form" (ngSubmit)="onUpdateProfile()">
+      <div class="profile__field">
+        <label class="profile__label" for="oldPassword">Current Password</label>
+        <input
+          id="oldPassword"
+          type="password"
+          class="profile__input"
+          [(ngModel)]="oldPassword"
+          name="oldPassword"
+          placeholder="Enter current password" />
+      </div>
+
+      <div class="profile__field">
+        <label class="profile__label" for="newPassword">New Password</label>
+        <input
+          id="newPassword"
+          type="password"
+          class="profile__input"
+          [(ngModel)]="newPassword"
+          name="newPassword"
+          placeholder="Enter new password" />
+      </div>
+
+      <div class="profile__field">
+        <label class="profile__label" for="confirmPassword">Confirm New Password</label>
+        <input
+          id="confirmPassword"
+          type="password"
+          class="profile__input"
+          [(ngModel)]="confirmPassword"
+          name="confirmPassword"
+          placeholder="Confirm new password" />
+      </div>
+
+      <div class="profile__actions">
+        <button type="submit" class="profile__btn profile__btn--update">
+          Update Profile
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

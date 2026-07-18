@@ -1,0 +1,69 @@
+@use '../../../../shared/styles/variables' as *;
+
+.categories {
+  padding: $mis-admin-content-padding;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-family: $mis-font-family;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0;
+  }
+
+  &__btn {
+    padding: 0.625rem 1.25rem;
+    border: none;
+    border-radius: $mis-radius;
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &--add {
+      background-color: $mis-primary;
+      color: #fff;
+
+      &:hover {
+        background-color: $mis-primary-dark;
+      }
+    }
+  }
+
+  &__card {
+    background: $mis-surface;
+    border-radius: $mis-radius;
+    box-shadow: $mis-shadow;
+    padding: 1.5rem;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  &__item {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid $mis-border;
+    font-family: $mis-font-family;
+    font-size: 0.9375rem;
+    color: $mis-text-primary;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__item-name {
+    font-weight: 500;
+  }
+}

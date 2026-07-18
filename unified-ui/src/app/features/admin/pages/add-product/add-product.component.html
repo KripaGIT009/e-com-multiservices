@@ -1,0 +1,430 @@
+<div class="add-product">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [segments]="breadcrumbSegments"></app-breadcrumb>
+
+  <div class="add-product__header">
+    <h1 class="add-product__title">Add New Product</h1>
+    <button
+      type="button"
+      class="add-product__btn add-product__btn--scanner"
+      (click)="toggleScanner()"
+      [class.add-product__btn--scanner-active]="isScannerActive"
+      [attr.aria-pressed]="isScannerActive"
+      aria-label="Toggle barcode scanner">
+      <span aria-hidden="true">📷</span>
+      {{ isScannerActive ? 'Close Scanner' : 'Scan Barcode' }}
+    </button>
+  </div>
+
+  <!-- Barcode Scanner Panel -->
+  <div *ngIf="isScannerActive" class="add-product__scanner-panel" role="region" aria-label="Barcode scanner panel">
+    <app-barcode-scanner
+      [isActive]="isScannerActive"
+      (barcodeScanned)="onBarcodeScanned($event)"
+      (scannerError)="onScannerError($event)">
+    </app-barcode-scanner>
+  </div>
+
+  <!-- Submit Error -->
+  <div *ngIf="submitError" class="add-product__error" role="alert" aria-live="polite">
+    {{ submitError }}
+  </div>
+
+  <form [formGroup]="productForm" class="add-product__form" (ngSubmit)="onPublish()">
+
+    <!-- ═══ Basic Information ═══ -->
+    <section class="add-product__section">
+      <h2 class="add-product__section-title">Basic Information</h2>
+      <div class="add-product__section-body">
+        <div class="add-product__field">
+          <label class="add-product__label" for="productName">Product Name <span class="add-product__required">*</span></label>
+          <input
+            id="productName"
+            type="text"
+            class="add-product__input"
+            formControlName="name"
+            placeholder="Enter product name"
+            [attr.aria-describedby]="isFieldInvalid('name') ? 'productName-error' : null"
+            [class.add-product__input--error]="isFieldInvalid('name')"
+          />
+          <span *ngIf="isFieldInvalid('name')" id="productName-error" class="add-product__error-text" role="alert">
+            {{ getFieldError('name') }}
+          </span>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="productSku">SKU <span class="add-product__required">*</span></label>
+          <input
+            id="productSku"
+            type="text"
+            class="add-product__input"
+            formControlName="sku"
+            placeholder="Enter SKU code"
+            [attr.aria-describedby]="isFieldInvalid('sku') ? 'productSku-error' : null"
+            [class.add-product__input--error]="isFieldInvalid('sku')"
+          />
+          <span *ngIf="isFieldInvalid('sku')" id="productSku-error" class="add-product__error-text" role="alert">
+            {{ getFieldError('sku') }}
+          </span>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="productCategory">Category <span class="add-product__required">*</span></label>
+          <select
+            id="productCategory"
+            class="add-product__select"
+            formControlName="category"
+            [attr.aria-describedby]="isFieldInvalid('category') ? 'productCategory-error' : null"
+            [class.add-product__select--error]="isFieldInvalid('category')"
+          >
+            <option value="">Select a category</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+          <span *ngIf="isFieldInvalid('category')" id="productCategory-error" class="add-product__error-text" role="alert">
+            {{ getFieldError('category') }}
+          </span>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="productSubCategory">Sub Category</label>
+          <input
+            id="productSubCategory"
+            type="text"
+            class="add-product__input"
+            formControlName="subCategory"
+            placeholder="Enter sub category"
+          />
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="productBrand">Brand</label>
+          <input
+            id="productBrand"
+            type="text"
+            class="add-product__input"
+            formControlName="brand"
+            placeholder="Enter brand name"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Pricing & Stock ═══ -->
+    <section class="add-product__section">
+      <h2 class="add-product__section-title">Pricing &amp; Stock</h2>
+      <div class="add-product__section-body add-product__section-body--grid">
+        <div class="add-product__field">
+          <label class="add-product__label" for="productPrice">Price (₹) <span class="add-product__required">*</span></label>
+          <input
+            id="productPrice"
+            type="number"
+            class="add-product__input"
+            formControlName="price"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+            [attr.aria-describedby]="isFieldInvalid('price') ? 'productPrice-error' : null"
+            [class.add-product__input--error]="isFieldInvalid('price')"
+          />
+          <span *ngIf="isFieldInvalid('price')" id="productPrice-error" class="add-product__error-text" role="alert">
+            {{ getFieldError('price') }}
+          </span>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="compareAtPrice">Compare at Price (₹)</label>
+          <input
+            id="compareAtPrice"
+            type="number"
+            class="add-product__input"
+            formControlName="compareAtPrice"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="costPrice">Cost Price (₹)</label>
+          <input
+            id="costPrice"
+            type="number"
+            class="add-product__input"
+            formControlName="costPrice"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="stockQuantity">Stock Quantity <span class="add-product__required">*</span></label>
+          <input
+            id="stockQuantity"
+            type="number"
+            class="add-product__input"
+            formControlName="stockQuantity"
+            placeholder="0"
+            min="0"
+            step="1"
+            [attr.aria-describedby]="isFieldInvalid('stockQuantity') ? 'stockQuantity-error' : null"
+            [class.add-product__input--error]="isFieldInvalid('stockQuantity')"
+          />
+          <span *ngIf="isFieldInvalid('stockQuantity')" id="stockQuantity-error" class="add-product__error-text" role="alert">
+            {{ getFieldError('stockQuantity') }}
+          </span>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="lowStockAlert">Low Stock Alert</label>
+          <input
+            id="lowStockAlert"
+            type="number"
+            class="add-product__input"
+            formControlName="lowStockAlert"
+            placeholder="10"
+            min="0"
+            step="1"
+          />
+        </div>
+
+        <div class="add-product__field add-product__field--full">
+          <span class="add-product__label">Stock Status</span>
+          <div class="add-product__radio-group" role="radiogroup" aria-label="Stock Status">
+            <label class="add-product__radio">
+              <input type="radio" formControlName="stockStatus" value="in-stock" />
+              <span class="add-product__radio-label">In Stock</span>
+            </label>
+            <label class="add-product__radio">
+              <input type="radio" formControlName="stockStatus" value="low-stock" />
+              <span class="add-product__radio-label">Low Stock</span>
+            </label>
+            <label class="add-product__radio">
+              <input type="radio" formControlName="stockStatus" value="out-of-stock" />
+              <span class="add-product__radio-label">Out of Stock</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Product Description ═══ -->
+    <section class="add-product__section">
+      <h2 class="add-product__section-title">Product Description</h2>
+      <div class="add-product__section-body">
+        <div class="add-product__field">
+          <label class="add-product__label" for="shortDescription">Short Description</label>
+          <textarea
+            id="shortDescription"
+            class="add-product__textarea"
+            formControlName="shortDescription"
+            placeholder="Brief product description (max 500 characters)"
+            rows="3"
+            [attr.maxlength]="shortDescriptionMaxLength"
+          ></textarea>
+          <span class="add-product__char-count" [class.add-product__char-count--warning]="shortDescriptionRemaining < 50">
+            {{ shortDescriptionLength }}/{{ shortDescriptionMaxLength }} characters
+          </span>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="fullDescription">Full Description</label>
+          <textarea
+            id="fullDescription"
+            class="add-product__textarea add-product__textarea--large"
+            formControlName="fullDescription"
+            placeholder="Detailed product description. Supports plain text formatting."
+            rows="8"
+          ></textarea>
+          <span class="add-product__helper-text">Rich text editor coming soon. Use plain text for now.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Product Images ═══ -->
+    <section class="add-product__section">
+      <h2 class="add-product__section-title">Product Images</h2>
+      <div class="add-product__section-body">
+        <div
+          class="add-product__dropzone"
+          [class.add-product__dropzone--active]="isDragOver"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          role="button"
+          tabindex="0"
+          aria-label="Drop images here or click to upload"
+          (keydown.enter)="fileInput.click()"
+          (keydown.space)="fileInput.click()"
+          (click)="fileInput.click()"
+        >
+          <span class="add-product__dropzone-icon" aria-hidden="true">📷</span>
+          <p class="add-product__dropzone-text">Drag and drop images here, or <strong>click to browse</strong></p>
+          <p class="add-product__dropzone-hint">Supports: JPG, PNG, WebP, GIF (max 5MB each)</p>
+          <input
+            #fileInput
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            multiple
+            class="add-product__file-input"
+            (change)="onFileSelected($event)"
+            aria-hidden="true"
+            tabindex="-1"
+          />
+        </div>
+
+        <div *ngIf="images.length > 0" class="add-product__image-grid">
+          <div
+            *ngFor="let image of images; let i = index"
+            class="add-product__image-card"
+            [class.add-product__image-card--primary]="image.isPrimary"
+          >
+            <img [src]="image.url" [alt]="'Product image ' + (i + 1)" class="add-product__image-preview" />
+            <div class="add-product__image-actions">
+              <button
+                type="button"
+                class="add-product__image-btn add-product__image-btn--primary"
+                (click)="setPrimaryImage(i)"
+                [disabled]="image.isPrimary"
+                [attr.aria-label]="'Set image ' + (i + 1) + ' as primary'"
+              >
+                {{ image.isPrimary ? '★ Primary' : '☆ Set Primary' }}
+              </button>
+              <button
+                type="button"
+                class="add-product__image-btn add-product__image-btn--remove"
+                (click)="removeImage(i)"
+                [attr.aria-label]="'Remove image ' + (i + 1)"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Other Information ═══ -->
+    <section class="add-product__section">
+      <h2 class="add-product__section-title">Other Information</h2>
+      <div class="add-product__section-body add-product__section-body--grid">
+        <div class="add-product__field">
+          <label class="add-product__label" for="productWeight">Weight (kg)</label>
+          <input
+            id="productWeight"
+            type="number"
+            class="add-product__input"
+            formControlName="weight"
+            placeholder="0.00"
+            min="0"
+            step="0.01"
+          />
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="dimLength">Length (cm)</label>
+          <input
+            id="dimLength"
+            type="number"
+            class="add-product__input"
+            formControlName="dimensionLength"
+            placeholder="0"
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="dimWidth">Width (cm)</label>
+          <input
+            id="dimWidth"
+            type="number"
+            class="add-product__input"
+            formControlName="dimensionWidth"
+            placeholder="0"
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="dimHeight">Height (cm)</label>
+          <input
+            id="dimHeight"
+            type="number"
+            class="add-product__input"
+            formControlName="dimensionHeight"
+            placeholder="0"
+            min="0"
+            step="0.1"
+          />
+        </div>
+
+        <div class="add-product__field add-product__field--full">
+          <label class="add-product__label" for="productTags">Tags</label>
+          <div class="add-product__tags-container">
+            <div class="add-product__tags-list" *ngIf="tags.length > 0">
+              <span *ngFor="let tag of tags; let i = index" class="add-product__tag">
+                {{ tag }}
+                <button
+                  type="button"
+                  class="add-product__tag-remove"
+                  (click)="removeTag(i)"
+                  [attr.aria-label]="'Remove tag: ' + tag"
+                >✕</button>
+              </span>
+            </div>
+            <input
+              id="productTags"
+              type="text"
+              class="add-product__input"
+              [(ngModel)]="tagInput"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="Type a tag and press Enter"
+              (keydown)="onTagKeydown($event)"
+              (blur)="addTag()"
+            />
+          </div>
+        </div>
+
+        <div class="add-product__field">
+          <label class="add-product__label" for="productStatusSelect">Product Status</label>
+          <select
+            id="productStatusSelect"
+            class="add-product__select"
+            formControlName="productStatus"
+          >
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Action Buttons ═══ -->
+    <div class="add-product__actions">
+      <button
+        type="button"
+        class="add-product__btn add-product__btn--cancel"
+        (click)="onCancel()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="add-product__btn add-product__btn--draft"
+        (click)="onSaveAsDraft()"
+        [disabled]="isSubmitting"
+      >
+        Save as Draft
+      </button>
+      <button
+        type="submit"
+        class="add-product__btn add-product__btn--publish"
+        [disabled]="isSubmitting"
+      >
+        {{ isSubmitting ? 'Publishing...' : 'Publish Product' }}
+      </button>
+    </div>
+  </form>
+</div>

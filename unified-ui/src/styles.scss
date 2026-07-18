@@ -7,7 +7,7 @@
 }
 
 body {
-  background: #E3E6E6;
+  background: #EAEDED;
   font-family: var(--mis-font-family);
   font-size: var(--mis-font-size-base);
   color: var(--mis-text-primary);
@@ -34,4 +34,10 @@ button {
 // Smooth scrolling
 html {
   scroll-behavior: smooth;
+}
+
+// Responsive table utility — horizontal scroll below 768px
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }

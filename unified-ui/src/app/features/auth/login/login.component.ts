@@ -12,6 +12,7 @@ import { NotificationService } from '../../../core/services/notification.service
 export class LoginComponent {
   loginForm: FormGroup;
   isSubmitting = false;
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -23,6 +24,14 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
     });
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/home']);
   }
 
   onSubmit(): void {

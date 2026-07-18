@@ -45,6 +45,56 @@
   --mis-radius:         8px;
   --mis-radius-lg:      16px;
   --mis-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
+
+  // ---------------------------------------------------------------------------
+  // Admin Layout Tokens
+  // Requirements: 10.1
+  // ---------------------------------------------------------------------------
+  --mis-sidebar-width:            250px;
+  --mis-sidebar-width-collapsed:  64px;
+  --mis-sidebar-bg:               #1A1A2E;
+  --mis-sidebar-text:             #CCCCCC;
+  --mis-sidebar-active-bg:        #FF6B35;
+  --mis-sidebar-active-text:      #FFFFFF;
+  --mis-sidebar-hover-bg:         #2A2A4A;
+  --mis-admin-topbar-height:      60px;
+  --mis-admin-content-padding:    24px;
+
+  // ---------------------------------------------------------------------------
+  // Auth Card Tokens
+  // Requirements: 10.3
+  // ---------------------------------------------------------------------------
+  --mis-auth-card-bg:             #FFFFFF;
+  --mis-auth-card-radius:         16px;
+  --mis-auth-card-shadow:         0 8px 32px rgba(0, 0, 0, 0.12);
+  --mis-auth-card-padding:        40px;
+  --mis-auth-gradient-start:      #667eea;
+  --mis-auth-gradient-end:        #764ba2;
+
+  // ---------------------------------------------------------------------------
+  // Status Badge Color Tokens
+  // Requirements: 10.2
+  // ---------------------------------------------------------------------------
+  --mis-badge-active-bg:          #E8F5E9;
+  --mis-badge-active-text:        #2E7D32;
+  --mis-badge-inactive-bg:        #F5F5F5;
+  --mis-badge-inactive-text:      #757575;
+  --mis-badge-in-stock-bg:        #E8F5E9;
+  --mis-badge-in-stock-text:      #2E7D32;
+  --mis-badge-low-stock-bg:       #FFF3E0;
+  --mis-badge-low-stock-text:     #E65100;
+  --mis-badge-out-of-stock-bg:    #FFEBEE;
+  --mis-badge-out-of-stock-text:  #C62828;
+  --mis-badge-pending-bg:         #E3F2FD;
+  --mis-badge-pending-text:       #1565C0;
+  --mis-badge-confirmed-bg:       #E0F2F1;
+  --mis-badge-confirmed-text:     #00695C;
+  --mis-badge-shipped-bg:         #F3E5F5;
+  --mis-badge-shipped-text:       #6A1B9A;
+  --mis-badge-delivered-bg:       #E8F5E9;
+  --mis-badge-delivered-text:     #2E7D32;
+  --mis-badge-cancelled-bg:       #FFEBEE;
+  --mis-badge-cancelled-text:     #C62828;
 }
 
 // ---------------------------------------------------------------------------
@@ -86,3 +136,75 @@ $mis-font-size-base: 16px;
 $mis-radius:         8px;
 $mis-radius-lg:      16px;
 $mis-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
+
+// ---------------------------------------------------------------------------
+// Admin Layout Tokens (compile-time)
+// Requirements: 10.1
+// ---------------------------------------------------------------------------
+$mis-sidebar-width:            250px;
+$mis-sidebar-width-collapsed:  64px;
+$mis-sidebar-bg:               #1A1A2E;
+$mis-sidebar-text:             #CCCCCC;
+$mis-sidebar-active-bg:        #FF6B35;
+$mis-sidebar-active-text:      #FFFFFF;
+$mis-sidebar-hover-bg:         #2A2A4A;
+$mis-admin-topbar-height:      60px;
+$mis-admin-content-padding:    24px;
+
+// ---------------------------------------------------------------------------
+// Auth Card Tokens (compile-time)
+// Requirements: 10.3
+// ---------------------------------------------------------------------------
+$mis-auth-card-bg:             #FFFFFF;
+$mis-auth-card-radius:         16px;
+$mis-auth-card-shadow:         0 8px 32px rgba(0, 0, 0, 0.12);
+$mis-auth-card-padding:        40px;
+$mis-auth-gradient-start:      #667eea;
+$mis-auth-gradient-end:        #764ba2;
+
+// ---------------------------------------------------------------------------
+// Status Badge Color Map (compile-time)
+// Requirements: 10.2
+// ---------------------------------------------------------------------------
+$mis-badge-colors: (
+  'active': (
+    bg: #E8F5E9,
+    text: #2E7D32
+  ),
+  'inactive': (
+    bg: #F5F5F5,
+    text: #757575
+  ),
+  'in-stock': (
+    bg: #E8F5E9,
+    text: #2E7D32
+  ),
+  'low-stock': (
+    bg: #FFF3E0,
+    text: #E65100
+  ),
+  'out-of-stock': (
+    bg: #FFEBEE,
+    text: #C62828
+  ),
+  'pending': (
+    bg: #E3F2FD,
+    text: #1565C0
+  ),
+  'confirmed': (
+    bg: #E0F2F1,
+    text: #00695C
+  ),
+  'shipped': (
+    bg: #F3E5F5,
+    text: #6A1B9A
+  ),
+  'delivered': (
+    bg: #E8F5E9,
+    text: #2E7D32
+  ),
+  'cancelled': (
+    bg: #FFEBEE,
+    text: #C62828
+  )
+);

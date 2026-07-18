@@ -6,3 +6,5 @@ export { LowStockAlertsComponent, LowStockItem } from './low-stock-alerts/low-st
 export { ActivityFeedComponent } from './activity-feed/activity-feed.component';
 export { TopProductsTableComponent } from './top-products-table/top-products-table.component';
 export { BarcodeScannerComponent } from './barcode-scanner/barcode-scanner.component';
+export { BreadcrumbComponent, BreadcrumbSegment } from './breadcrumb/breadcrumb.component';
+export { StatusBadgeComponent, StatusVariant } from './status-badge/status-badge.component';

@@ -1,0 +1,41 @@
+@use '../../../../shared/styles/variables' as *;
+
+.payouts {
+  padding: $mis-admin-content-padding;
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-family: $mis-font-family;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0;
+  }
+
+  &__card {
+    background: $mis-surface;
+    border-radius: $mis-radius;
+    box-shadow: $mis-shadow;
+    padding: 3rem 2rem;
+  }
+
+  &__empty {
+    text-align: center;
+  }
+
+  &__empty-icon {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  &__empty-message {
+    font-family: $mis-font-family;
+    font-size: 1rem;
+    color: $mis-text-secondary;
+    margin: 0;
+  }
+}

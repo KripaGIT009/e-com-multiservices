@@ -1,0 +1,124 @@
+@use '../../../../shared/styles/variables' as *;
+
+.profile {
+  padding: $mis-admin-content-padding;
+
+  &__header {
+    margin-bottom: 1.5rem;
+  }
+
+  &__title {
+    font-family: $mis-font-family;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0;
+  }
+
+  &__card {
+    background: $mis-surface;
+    border-radius: $mis-radius;
+    box-shadow: $mis-shadow;
+    padding: 2rem;
+    max-width: 600px;
+    margin-bottom: 1.5rem;
+  }
+
+  &__section-title {
+    font-family: $mis-font-family;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0 0 1.25rem;
+  }
+
+  &__info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__info-label {
+    font-family: $mis-font-family;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $mis-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &__info-value {
+    font-family: $mis-font-family;
+    font-size: 1rem;
+    color: $mis-text-primary;
+    font-weight: 500;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  &__label {
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $mis-text-primary;
+  }
+
+  &__input {
+    font-family: $mis-font-family;
+    font-size: 0.9375rem;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius;
+    color: $mis-text-primary;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: $mis-primary;
+    }
+
+    &::placeholder {
+      color: $mis-text-secondary;
+    }
+  }
+
+  &__actions {
+    padding-top: 0.5rem;
+  }
+
+  &__btn {
+    padding: 0.625rem 1.5rem;
+    border: none;
+    border-radius: $mis-radius;
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+
+    &--update {
+      background-color: $mis-primary;
+      color: #fff;
+
+      &:hover {
+        background-color: $mis-primary-dark;
+      }
+    }
+  }
+}

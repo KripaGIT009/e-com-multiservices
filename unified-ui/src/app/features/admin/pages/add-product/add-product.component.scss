@@ -1,0 +1,443 @@
+@use '../../../../shared/styles/variables' as *;
+
+// =============================================================================
+// Add Product Page — BEM Structure
+// Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8, 6.9
+// =============================================================================
+
+.add-product {
+  padding: var(--mis-admin-content-padding, 24px);
+  max-width: 960px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 16px 0 24px;
+  }
+
+  &__title {
+    font-family: $mis-font-family;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    margin: 0;
+  }
+
+  &__btn--scanner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius;
+    background: $mis-surface;
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $mis-text-primary;
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    &:hover {
+      background: #f5f5f5;
+      border-color: $mis-primary;
+    }
+
+    &-active {
+      background: $mis-primary;
+      color: #fff;
+      border-color: $mis-primary;
+
+      &:hover {
+        background: $mis-primary-dark;
+      }
+    }
+  }
+
+  &__scanner-panel {
+    background: $mis-surface;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__error {
+    background: #ffebee;
+    border: 1px solid $mis-error;
+    border-radius: $mis-radius;
+    padding: 12px 16px;
+    color: $mis-error;
+    font-size: 0.875rem;
+    margin-bottom: 16px;
+  }
+
+  // ─── Section Cards ──────────────────────────────────────────────────────────
+
+  &__section {
+    background: $mis-surface;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius-lg;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  &__section-title {
+    font-family: $mis-font-family;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $mis-text-primary;
+    padding: 20px 24px;
+    margin: 0;
+    border-bottom: 1px solid $mis-border;
+    background: #fafafa;
+  }
+
+  &__section-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    &--grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+    }
+  }
+
+  // ─── Form Fields ────────────────────────────────────────────────────────────
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    &--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $mis-text-primary;
+  }
+
+  &__required {
+    color: $mis-error;
+  }
+
+  &__input,
+  &__select,
+  &__textarea {
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    padding: 10px 14px;
+    border: 1px solid $mis-border;
+    border-radius: $mis-radius;
+    background: $mis-surface;
+    color: $mis-text-primary;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $mis-primary;
+      box-shadow: 0 0 0 3px rgba($mis-primary, 0.12);
+    }
+
+    &::placeholder {
+      color: $mis-text-secondary;
+    }
+
+    &--error {
+      border-color: $mis-error;
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba($mis-error, 0.12);
+      }
+    }
+  }
+
+  &__select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6B6B' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 80px;
+
+    &--large {
+      min-height: 180px;
+    }
+  }
+
+  &__error-text {
+    font-size: 0.75rem;
+    color: $mis-error;
+  }
+
+  &__char-count {
+    font-size: 0.75rem;
+    color: $mis-text-secondary;
+    text-align: right;
+
+    &--warning {
+      color: $mis-warning;
+    }
+  }
+
+  &__helper-text {
+    font-size: 0.75rem;
+    color: $mis-text-secondary;
+    font-style: italic;
+  }
+
+  // ─── Radio Group ────────────────────────────────────────────────────────────
+
+  &__radio-group {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  &__radio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: $mis-text-primary;
+
+    input[type='radio'] {
+      accent-color: $mis-primary;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  &__radio-label {
+    user-select: none;
+  }
+
+  // ─── Image Upload ───────────────────────────────────────────────────────────
+
+  &__dropzone {
+    border: 2px dashed $mis-border;
+    border-radius: $mis-radius-lg;
+    padding: 40px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+
+    &:hover,
+    &:focus {
+      border-color: $mis-primary;
+      background: rgba($mis-primary, 0.02);
+    }
+
+    &--active {
+      border-color: $mis-primary;
+      background: rgba($mis-primary, 0.05);
+    }
+  }
+
+  &__dropzone-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 12px;
+  }
+
+  &__dropzone-text {
+    font-size: 0.9375rem;
+    color: $mis-text-primary;
+    margin: 0 0 8px;
+
+    strong {
+      color: $mis-primary;
+    }
+  }
+
+  &__dropzone-hint {
+    font-size: 0.75rem;
+    color: $mis-text-secondary;
+    margin: 0;
+  }
+
+  &__file-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  &__image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  &__image-card {
+    border: 2px solid $mis-border;
+    border-radius: $mis-radius;
+    overflow: hidden;
+    position: relative;
+
+    &--primary {
+      border-color: $mis-primary;
+    }
+  }
+
+  &__image-preview {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__image-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    gap: 4px;
+  }
+
+  &__image-btn {
+    font-size: 0.6875rem;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &--primary {
+      background: transparent;
+      color: $mis-primary;
+      font-weight: 500;
+
+      &:disabled {
+        color: $mis-text-secondary;
+        cursor: default;
+      }
+    }
+
+    &--remove {
+      background: #ffebee;
+      color: $mis-error;
+      font-weight: 700;
+      line-height: 1;
+
+      &:hover {
+        background: #ffcdd2;
+      }
+    }
+  }
+
+  // ─── Tags ───────────────────────────────────────────────────────────────────
+
+  &__tags-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba($mis-primary, 0.08);
+    color: $mis-primary-dark;
+    font-size: 0.8125rem;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-weight: 500;
+  }
+
+  &__tag-remove {
+    background: none;
+    border: none;
+    color: $mis-primary-dark;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 0 2px;
+    line-height: 1;
+    opacity: 0.7;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  // ─── Action Buttons ─────────────────────────────────────────────────────────
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 24px 0;
+    flex-wrap: wrap;
+  }
+
+  &__btn {
+    font-family: $mis-font-family;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: $mis-radius;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &--cancel {
+      background: transparent;
+      border-color: $mis-border;
+      color: $mis-text-secondary;
+
+      &:hover:not(:disabled) {
+        border-color: $mis-text-secondary;
+        color: $mis-text-primary;
+      }
+    }
+
+    &--draft {
+      background: $mis-surface;
+      border-color: $mis-primary;
+      color: $mis-primary;
+
+      &:hover:not(:disabled) {
+        background: rgba($mis-primary, 0.05);
+      }
+    }
+
+    &--publish {
+      background: $mis-primary;
+      color: #ffffff;
+      border-color: $mis-primary;
+
+      &:hover:not(:disabled) {
+        background: $mis-primary-dark;
+        border-color: $mis-primary-dark;
+      }
+    }
+  }
+}

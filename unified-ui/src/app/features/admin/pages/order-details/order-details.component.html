@@ -1,0 +1,249 @@
+<div class="order-details">
+  <!-- Breadcrumb -->
+  <app-breadcrumb [segments]="breadcrumbSegments"></app-breadcrumb>
+
+  <!-- Page Header -->
+  <header class="order-details__header">
+    <div class="order-details__header-left">
+      <h1 class="order-details__title">Order #{{ order.orderId }}</h1>
+      <app-status-badge
+        [text]="getStatusDisplayText(order.status)"
+        [variant]="order.statusVariant"
+        label="Order">
+      </app-status-badge>
+    </div>
+    <div class="order-details__header-right">
+      <a class="order-details__back-link" routerLink="/admin/orders/active">
+        <span class="material-icons" aria-hidden="true">arrow_back</span>
+        Back to Active Orders
+      </a>
+      <div class="order-details__status-update">
+        <label for="statusDropdown" class="order-details__status-label">Update Order Status</label>
+        <select
+          id="statusDropdown"
+          class="order-details__status-select"
+          [ngModel]="selectedStatus"
+          (ngModelChange)="onStatusChange($event)">
+          <option *ngFor="let opt of statusOptions" [value]="opt.value">
+            {{ opt.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- Content Grid -->
+  <div class="order-details__content">
+    <!-- Product Details Section -->
+    <section class="order-details__section order-details__section--product" aria-labelledby="productDetailsHeading">
+      <h2 id="productDetailsHeading" class="order-details__section-title">Product Details</h2>
+      <div class="order-details__product-card">
+        <div class="order-details__product-image">
+          <img [src]="order.productImage" [alt]="order.productName" />
+        </div>
+        <div class="order-details__product-info">
+          <dl class="order-details__product-dl">
+            <div class="order-details__product-dl-row">
+              <dt>Product Name</dt>
+              <dd>{{ order.productName }}</dd>
+            </div>
+            <div class="order-details__product-dl-row">
+              <dt>SKU</dt>
+              <dd>{{ order.productSku }}</dd>
+            </div>
+            <div class="order-details__product-dl-row">
+              <dt>Category</dt>
+              <dd>{{ order.category }}</dd>
+            </div>
+            <div class="order-details__product-dl-row">
+              <dt>Brand</dt>
+              <dd>{{ order.brand }}</dd>
+            </div>
+            <div class="order-details__product-dl-row">
+              <dt>Unit Price</dt>
+              <dd>₹{{ order.unitPrice | number:'1.2-2' }}</dd>
+            </div>
+            <div class="order-details__product-dl-row">
+              <dt>Quantity</dt>
+              <dd>{{ order.quantity }}</dd>
+            </div>
+            <div class="order-details__product-dl-row">
+              <dt>Total</dt>
+              <dd class="order-details__product-total">₹{{ order.productTotal | number:'1.2-2' }}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- Price Breakdown Section -->
+    <section class="order-details__section order-details__section--price" aria-labelledby="priceBreakdownHeading">
+      <h2 id="priceBreakdownHeading" class="order-details__section-title">Price Breakdown</h2>
+      <div class="order-details__price-card">
+        <dl class="order-details__price-dl">
+          <div class="order-details__price-row">
+            <dt>Item Total</dt>
+            <dd>₹{{ order.itemTotal | number:'1.2-2' }}</dd>
+          </div>
+          <div class="order-details__price-row">
+            <dt>Shipping</dt>
+            <dd>₹{{ order.shipping | number:'1.2-2' }}</dd>
+          </div>
+          <div class="order-details__price-row">
+            <dt>Tax (GST 5%)</dt>
+            <dd>₹{{ order.tax | number:'1.2-2' }}</dd>
+          </div>
+          <div class="order-details__price-row order-details__price-row--total">
+            <dt>Total Amount</dt>
+            <dd>₹{{ order.grandTotal | number:'1.2-2' }}</dd>
+          </div>
+          <div class="order-details__price-row">
+            <dt>Payment Method</dt>
+            <dd>{{ order.paymentMethod }}</dd>
+          </div>
+          <div class="order-details__price-row">
+            <dt>Payment Status</dt>
+            <dd>
+              <app-status-badge
+                [text]="order.paymentStatus"
+                [variant]="order.paymentStatus === 'Paid' ? 'delivered' : 'pending'"
+                label="Payment">
+              </app-status-badge>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Delivery & Customer Details Section -->
+    <section class="order-details__section order-details__section--delivery" aria-labelledby="deliveryDetailsHeading">
+      <h2 id="deliveryDetailsHeading" class="order-details__section-title">Delivery &amp; Customer Details</h2>
+      <div class="order-details__delivery-card">
+        <dl class="order-details__delivery-dl">
+          <div class="order-details__delivery-row">
+            <dt>Customer Name</dt>
+            <dd>{{ order.customerName }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Phone</dt>
+            <dd>{{ order.customerPhone }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Email</dt>
+            <dd>{{ order.customerEmail }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Delivery Address</dt>
+            <dd>{{ order.deliveryAddress }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Order ID</dt>
+            <dd>{{ order.orderId }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Order Date</dt>
+            <dd>{{ order.orderDate }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Expected Delivery</dt>
+            <dd>{{ order.expectedDelivery }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Courier Partner</dt>
+            <dd>{{ order.courierPartner }}</dd>
+          </div>
+          <div class="order-details__delivery-row">
+            <dt>Tracking ID</dt>
+            <dd>
+              {{ order.trackingId }}
+              <a class="order-details__track-link"
+                 href="https://www.delhivery.com/track/package/{{ order.trackingId }}"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                Track Order
+                <span class="material-icons" aria-hidden="true">open_in_new</span>
+              </a>
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- Order Timeline Section -->
+    <section class="order-details__section order-details__section--timeline" aria-labelledby="orderTimelineHeading">
+      <h2 id="orderTimelineHeading" class="order-details__section-title">Order Timeline</h2>
+      <div class="order-details__timeline-card">
+        <ol class="order-details__timeline" aria-label="Order progress timeline">
+          <li
+            *ngFor="let step of order.timeline; let last = last"
+            class="order-details__timeline-step"
+            [class.order-details__timeline-step--completed]="step.completed"
+            [class.order-details__timeline-step--current]="step.current"
+            [class.order-details__timeline-step--pending]="!step.completed && !step.current"
+            [attr.aria-current]="step.current ? 'step' : null">
+            <div class="order-details__timeline-indicator">
+              <span class="order-details__timeline-circle">
+                <span *ngIf="step.completed && !step.current" class="material-icons" aria-hidden="true">check</span>
+              </span>
+              <span *ngIf="!last" class="order-details__timeline-line"></span>
+            </div>
+            <div class="order-details__timeline-content">
+              <span class="order-details__timeline-stage">{{ step.stage }}</span>
+              <span *ngIf="step.date" class="order-details__timeline-date">{{ step.date }}</span>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Order Items Table Section -->
+    <section class="order-details__section order-details__section--items" aria-labelledby="orderItemsHeading">
+      <h2 id="orderItemsHeading" class="order-details__section-title">Order Items</h2>
+      <div class="order-details__items-card">
+        <div class="order-details__table-responsive">
+          <table class="order-details__table">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">SKU</th>
+                <th scope="col">Price</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of order.orderItems">
+                <td class="order-details__table-product">
+                  <img [src]="item.productImage" [alt]="item.productName" class="order-details__table-thumb" />
+                  <span>{{ item.productName }}</span>
+                </td>
+                <td>{{ item.sku }}</td>
+                <td>₹{{ item.unitPrice | number:'1.2-2' }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>₹{{ item.total | number:'1.2-2' }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr class="order-details__table-summary">
+                <td colspan="4" class="order-details__table-summary-label">Subtotal</td>
+                <td>₹{{ orderSubtotal | number:'1.2-2' }}</td>
+              </tr>
+              <tr class="order-details__table-summary">
+                <td colspan="4" class="order-details__table-summary-label">Tax (GST 5%)</td>
+                <td>₹{{ orderTax | number:'1.2-2' }}</td>
+              </tr>
+              <tr class="order-details__table-summary">
+                <td colspan="4" class="order-details__table-summary-label">Shipping</td>
+                <td>₹{{ orderShipping | number:'1.2-2' }}</td>
+              </tr>
+              <tr class="order-details__table-summary order-details__table-summary--grand">
+                <td colspan="4" class="order-details__table-summary-label">Grand Total</td>
+                <td>₹{{ orderGrandTotal | number:'1.2-2' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

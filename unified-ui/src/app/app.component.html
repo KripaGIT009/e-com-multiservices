@@ -1,7 +1,7 @@
-<app-header></app-header>
-<main class="main-content">
+<app-header *ngIf="showStorefrontShell"></app-header>
+<main class="main-content" [class.admin-active]="!showStorefrontShell">
   <router-outlet></router-outlet>
 </main>
-<app-footer></app-footer>
+<app-footer *ngIf="showStorefrontShell"></app-footer>
 <app-notification-toast></app-notification-toast>
 <app-loading-spinner></app-loading-spinner>

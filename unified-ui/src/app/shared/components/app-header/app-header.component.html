@@ -160,4 +160,68 @@
       </ul>
     </div>
   </nav>
+
+  <!-- Side Menu Overlay -->
+  <div
+    *ngIf="sideMenuOpen"
+    class="side-menu-overlay"
+    (click)="closeSideMenu()"
+    aria-hidden="true">
+  </div>
+
+  <!-- Side Menu Panel -->
+  <aside
+    *ngIf="sideMenuOpen"
+    class="side-menu"
+    role="dialog"
+    aria-label="Browse categories"
+    aria-modal="true">
+    <!-- Side Menu Header -->
+    <div class="side-menu__header">
+      <div class="side-menu__user-icon">👤</div>
+      <span class="side-menu__greeting">Hello, {{ isAuthenticated ? displayName : 'Sign in' }}</span>
+      <button
+        class="side-menu__close"
+        (click)="closeSideMenu()"
+        aria-label="Close menu">
+        ✕
+      </button>
+    </div>
+
+    <!-- Side Menu Sections -->
+    <div class="side-menu__content">
+      <div *ngFor="let section of sideMenuSections" class="side-menu__section">
+        <h3 class="side-menu__section-title">{{ section.title }}</h3>
+        <ul class="side-menu__list">
+          <li *ngFor="let item of section.items" class="side-menu__item">
+            <a
+              class="side-menu__link"
+              (click)="onSideMenuItemClick(item.link)"
+              (keydown.enter)="onSideMenuItemClick(item.link)"
+              tabindex="0">
+              {{ item.label }}
+              <span class="side-menu__arrow">›</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Sign in/out -->
+      <div class="side-menu__section">
+        <ul class="side-menu__list">
+          <li class="side-menu__item" *ngIf="!isAuthenticated">
+            <a class="side-menu__link" (click)="onSideMenuItemClick('/login')" tabindex="0">
+              Sign in
+              <span class="side-menu__arrow">›</span>
+            </a>
+          </li>
+          <li class="side-menu__item" *ngIf="isAuthenticated">
+            <a class="side-menu__link" (click)="closeSideMenu(); logout()" tabindex="0">
+              Sign out
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </aside>
 </header>

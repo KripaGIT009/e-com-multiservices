@@ -1,0 +1,192 @@
+:host {
+  display: block;
+  grid-area: topbar;
+}
+
+.admin-top-bar {
+  display: flex;
+  align-items: center;
+  height: var(--mis-admin-topbar-height, 60px);
+  padding: 0 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  position: relative;
+  z-index: 100;
+
+  // Hamburger toggle
+  &__hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin-right: 8px;
+    border-radius: 4px;
+    color: #333;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mis-sidebar-active-bg, #ff6b35);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 767px) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  // Brand area
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  &__logo {
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  &__store-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    letter-spacing: -0.02em;
+  }
+
+  // Actions area (right side)
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+  }
+
+  // Notification bell
+  &__notification {
+    position: relative;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    color: #555;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mis-sidebar-active-bg, #ff6b35);
+      outline-offset: 2px;
+    }
+
+    .material-icons {
+      font-size: 22px;
+    }
+  }
+
+  &__notification-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 16px;
+    text-align: center;
+    color: #fff;
+    background-color: #e53935;
+    border-radius: 8px;
+  }
+
+  // Profile area
+  &__profile {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+  }
+
+  &__profile-icon {
+    font-size: 28px;
+    color: #666;
+  }
+
+  &__profile-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #333;
+
+    @media (max-width: 599px) {
+      display: none;
+    }
+  }
+
+  &__profile-arrow {
+    font-size: 18px;
+    color: #888;
+  }
+
+  // Dropdown menu
+  &__dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    min-width: 160px;
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    padding: 4px 0;
+    z-index: 200;
+  }
+
+  &__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.875rem;
+    color: #333;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--mis-sidebar-active-bg, #ff6b35);
+      outline-offset: -2px;
+    }
+
+    .material-icons {
+      font-size: 18px;
+      color: #666;
+    }
+  }
+}

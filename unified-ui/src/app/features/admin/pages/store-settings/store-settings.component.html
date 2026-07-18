@@ -1,0 +1,63 @@
+<div class="store-settings">
+  <header class="store-settings__header">
+    <h1 class="store-settings__title">Store Settings</h1>
+  </header>
+
+  <div *ngIf="showSuccess" class="store-settings__success" role="alert" aria-live="polite">
+    <span aria-hidden="true">✓</span> Settings saved successfully.
+  </div>
+
+  <div class="store-settings__card">
+    <form class="store-settings__form" (ngSubmit)="onSave()">
+      <div class="store-settings__field">
+        <label class="store-settings__label" for="storeName">Store Name</label>
+        <input
+          id="storeName"
+          type="text"
+          class="store-settings__input"
+          [(ngModel)]="storeName"
+          name="storeName"
+          placeholder="Enter store name" />
+      </div>
+
+      <div class="store-settings__field">
+        <label class="store-settings__label" for="storeEmail">Store Email</label>
+        <input
+          id="storeEmail"
+          type="email"
+          class="store-settings__input"
+          [(ngModel)]="storeEmail"
+          name="storeEmail"
+          placeholder="Enter store email" />
+      </div>
+
+      <div class="store-settings__field">
+        <label class="store-settings__label" for="storePhone">Store Phone</label>
+        <input
+          id="storePhone"
+          type="tel"
+          class="store-settings__input"
+          [(ngModel)]="storePhone"
+          name="storePhone"
+          placeholder="Enter store phone number" />
+      </div>
+
+      <div class="store-settings__field">
+        <label class="store-settings__label" for="storeAddress">Store Address</label>
+        <textarea
+          id="storeAddress"
+          class="store-settings__textarea"
+          [(ngModel)]="storeAddress"
+          name="storeAddress"
+          placeholder="Enter store address"
+          rows="3"></textarea>
+      </div>
+
+      <div class="store-settings__actions">
+        <button type="submit" class="store-settings__btn store-settings__btn--save">
+          Save Settings
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
