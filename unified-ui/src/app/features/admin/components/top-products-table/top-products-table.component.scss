@@ -1,0 +1,141 @@
+.top-products-table {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.table-title {
+  margin: 0 0 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+// Loading state
+.loading-state {
+  .skeleton-table {
+    opacity: 0.6;
+  }
+}
+
+.skeleton-cell {
+  display: inline-block;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-rank {
+  width: 20px;
+}
+
+.skeleton-name {
+  width: 120px;
+}
+
+.skeleton-qty {
+  width: 50px;
+}
+
+.skeleton-revenue {
+  width: 80px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Empty state
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+
+  p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+}
+
+// Table content
+.products-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    tr {
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    th {
+      padding: 0.75rem 0.5rem;
+      text-align: left;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+
+      &:first-child {
+        width: 40px;
+        text-align: center;
+      }
+
+      &:nth-child(3),
+      &:nth-child(4) {
+        text-align: right;
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: #f8fafc;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 0.75rem 0.5rem;
+      color: #334155;
+    }
+  }
+}
+
+.rank-cell {
+  text-align: center;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.name-cell {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.qty-cell {
+  text-align: right;
+  font-weight: 500;
+}
+
+.revenue-cell {
+  text-align: right;
+  font-weight: 600;
+  color: #047857;
+}

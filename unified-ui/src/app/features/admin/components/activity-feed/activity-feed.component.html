@@ -1,0 +1,47 @@
+<div class="activity-feed" role="region" aria-label="Recent activity feed">
+  <h3 class="activity-feed__title">Recent Activity</h3>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="activity-feed__loading" aria-busy="true" aria-label="Loading activity feed">
+    <div *ngFor="let i of [1, 2, 3, 4, 5]" class="activity-feed__item activity-feed__item--skeleton">
+      <div class="skeleton-line skeleton-line--short skeleton-pulse"></div>
+      <div class="skeleton-line skeleton-line--long skeleton-pulse"></div>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="hasError && !isLoading" class="activity-feed__error" role="alert">
+    <span>Failed to load activity feed.</span>
+    <button class="activity-feed__retry-btn" (click)="retry()" aria-label="Retry loading activity feed">
+      Retry
+    </button>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && !hasError && entries.length === 0" class="activity-feed__empty">
+    <span>No recent activity.</span>
+  </div>
+
+  <!-- Activity list -->
+  <ul
+    *ngIf="!isLoading && !hasError && entries.length > 0"
+    class="activity-feed__list"
+    role="list"
+    aria-label="Audit log entries"
+  >
+    <li *ngFor="let entry of entries" class="activity-feed__item" role="listitem">
+      <div class="activity-feed__item-header">
+        <span class="activity-feed__username">{{ entry.adminUsername }}</span>
+        <span class="activity-feed__badge" [ngClass]="getActionBadgeClass(entry.action)">
+          {{ entry.action }}
+        </span>
+      </div>
+      <div class="activity-feed__item-body">
+        <span class="activity-feed__entity">{{ entry.entityType }} #{{ entry.entityId }}</span>
+        <span class="activity-feed__timestamp" [attr.aria-label]="entry.timestamp">
+          {{ getRelativeTime(entry.timestamp) }}
+        </span>
+      </div>
+    </li>
+  </ul>
+</div>

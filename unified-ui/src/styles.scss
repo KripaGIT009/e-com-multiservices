@@ -7,18 +7,31 @@
 }
 
 body {
-  background: var(--mis-background);
+  background: #E3E6E6;
   font-family: var(--mis-font-family);
   font-size: var(--mis-font-size-base);
   color: var(--mis-text-primary);
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 a {
-  color: var(--mis-primary);
+  color: var(--mis-link-blue);
   text-decoration: none;
 
   &:hover {
     color: var(--mis-primary-dark);
+    text-decoration: underline;
   }
+}
+
+// Professional button reset
+button {
+  font-family: inherit;
+}
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
 }

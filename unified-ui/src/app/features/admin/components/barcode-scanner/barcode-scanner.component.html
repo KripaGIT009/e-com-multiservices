@@ -1,0 +1,128 @@
+<div class="barcode-scanner" role="region" aria-label="Barcode scanner panel">
+  <!-- Panel header with collapse toggle and active indicator -->
+  <div class="barcode-scanner__header">
+    <div class="barcode-scanner__header-left">
+      <h3 class="barcode-scanner__title">Barcode Scanner</h3>
+      <span
+        *ngIf="isActive && scannerState === 'active'"
+        class="barcode-scanner__status barcode-scanner__status--active"
+        aria-label="Scanner is active and ready"
+      >
+        <span class="barcode-scanner__status-dot"></span>
+        Active
+      </span>
+      <span
+        *ngIf="!isActive || scannerState !== 'active'"
+        class="barcode-scanner__status barcode-scanner__status--idle"
+        aria-label="Scanner is idle"
+      >
+        Idle
+      </span>
+    </div>
+    <button
+      class="barcode-scanner__collapse-btn"
+      (click)="toggleCollapse()"
+      [attr.aria-expanded]="!isCollapsed"
+      aria-controls="scanner-panel-content"
+      aria-label="Toggle scanner panel"
+    >
+      {{ isCollapsed ? '▼' : '▲' }}
+    </button>
+  </div>
+
+  <!-- Collapsible panel content -->
+  <div
+    *ngIf="!isCollapsed"
+    id="scanner-panel-content"
+    class="barcode-scanner__content"
+  >
+    <!-- Camera permission denied message -->
+    <div
+      *ngIf="cameraPermissionDenied"
+      class="barcode-scanner__alert barcode-scanner__alert--warning"
+      role="alert"
+    >
+      Camera access denied. Use manual entry or a hardware scanner.
+    </div>
+
+    <!-- No camera device message -->
+    <div
+      *ngIf="noCameraDevice && !cameraPermissionDenied"
+      class="barcode-scanner__alert barcode-scanner__alert--warning"
+      role="alert"
+    >
+      No camera found. Use manual entry or a hardware scanner.
+    </div>
+
+    <!-- Camera area -->
+    <div class="barcode-scanner__camera-area" [class.barcode-scanner__camera-area--active]="cameraActive">
+      <!-- Camera video container (QuaggaJS renders into this) -->
+      <div
+        *ngIf="cameraActive"
+        #cameraContainer
+        class="barcode-scanner__video-container"
+        [class.barcode-scanner__video-container--detected]="scanDetected"
+      >
+        <!-- QuaggaJS injects video and canvas elements here -->
+      </div>
+
+      <!-- Camera placeholder (shown when camera is not active) -->
+      <div *ngIf="!cameraActive" class="barcode-scanner__camera-placeholder">
+        <button
+          class="barcode-scanner__camera-btn"
+          (click)="activateCamera()"
+          [disabled]="cameraPermissionDenied"
+          aria-label="Activate camera scanner"
+        >
+          📷 Start Camera
+        </button>
+      </div>
+
+      <!-- Stop camera button (shown when camera is active) -->
+      <button
+        *ngIf="cameraActive"
+        class="barcode-scanner__stop-btn"
+        (click)="deactivateCamera()"
+        aria-label="Stop camera scanner"
+      >
+        ⏹ Stop Camera
+      </button>
+
+      <!-- Scan detected overlay feedback -->
+      <div
+        *ngIf="scanDetected"
+        class="barcode-scanner__scan-feedback"
+        aria-live="polite"
+        aria-label="Barcode detected"
+      >
+        ✓ Barcode Detected
+      </div>
+    </div>
+
+    <!-- Manual SKU entry -->
+    <div class="barcode-scanner__manual-entry">
+      <label for="manual-sku-input" class="barcode-scanner__label">
+        Manual SKU Entry
+      </label>
+      <div class="barcode-scanner__input-group">
+        <input
+          id="manual-sku-input"
+          type="text"
+          class="barcode-scanner__input"
+          [(ngModel)]="manualSkuValue"
+          placeholder="Enter barcode or SKU"
+          (keydown.enter)="onManualSubmit()"
+          aria-label="Enter barcode or SKU manually"
+        />
+        <button
+          class="barcode-scanner__submit-btn"
+          (click)="onManualSubmit()"
+          [disabled]="!manualSkuValue.trim()"
+          aria-label="Submit SKU for lookup"
+        >
+          Look Up
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

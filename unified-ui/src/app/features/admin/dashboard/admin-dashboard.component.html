@@ -1,42 +1,59 @@
 <section class="admin-dashboard" aria-label="Admin Dashboard">
-  <h1 class="page-title">Admin Dashboard</h1>
+  <h1 class="admin-dashboard__title">Admin Dashboard</h1>
 
-  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
-    <p>Loading dashboard...</p>
+  <!-- Error State -->
+  <div *ngIf="errorMessage" class="admin-dashboard__error" role="alert">
+    <p class="admin-dashboard__error-message">{{ errorMessage }}</p>
+    <button
+      class="admin-dashboard__retry-btn"
+      (click)="retry()"
+      aria-label="Retry loading dashboard data">
+      Retry
+    </button>
   </div>
 
-  <div *ngIf="!isLoading">
-    <!-- Summary Cards -->
-    <div class="stats-grid" role="group" aria-label="Dashboard Statistics">
-      <div class="stat-card">
-        <p class="stat-value">{{ stats.totalOrders }}</p>
-        <p class="stat-label">Total Orders</p>
+  <!-- Loading State -->
+  <div *ngIf="isLoading && !errorMessage" class="admin-dashboard__loading" role="status" aria-live="polite">
+    <app-kpi-cards [isLoading]="true"></app-kpi-cards>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!isLoading && !errorMessage">
+    <!-- KPI Cards -->
+    <app-kpi-cards [data]="dashboardSummary" [isLoading]="false"></app-kpi-cards>
+
+    <!-- Quick Actions -->
+    <app-quick-actions></app-quick-actions>
+
+    <!-- Charts and Data Visualizations -->
+    <div class="admin-dashboard__grid">
+      <!-- Revenue Chart -->
+      <div class="admin-dashboard__panel admin-dashboard__panel--wide">
+        <app-revenue-chart></app-revenue-chart>
       </div>
-      <div class="stat-card">
-        <p class="stat-value">{{ stats.totalUsers }}</p>
-        <p class="stat-label">Total Users</p>
+
+      <!-- Order Status Chart -->
+      <div class="admin-dashboard__panel">
+        <app-order-status-chart></app-order-status-chart>
       </div>
-      <div class="stat-card">
-        <p class="stat-value">{{ stats.totalItems }}</p>
-        <p class="stat-label">Total Products</p>
+
+      <!-- Top Products Table -->
+      <div class="admin-dashboard__panel">
+        <app-top-products-table></app-top-products-table>
       </div>
-      <div class="stat-card">
-        <p class="stat-value">₹{{ stats.totalRevenue | number:'1.0-0' }}</p>
-        <p class="stat-label">Total Revenue</p>
+
+      <!-- Low Stock Alerts -->
+      <div class="admin-dashboard__panel">
+        <app-low-stock-alerts
+          [lowStockCount]="dashboardSummary?.lowStockCount || 0"
+          [isLoading]="isLoading">
+        </app-low-stock-alerts>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="admin-dashboard__panel">
+        <app-activity-feed></app-activity-feed>
       </div>
     </div>
-
-    <!-- Admin Navigation -->
-    <h2 class="section-title">Management</h2>
-    <nav class="admin-nav-grid" aria-label="Admin navigation">
-      <a
-        *ngFor="let link of adminLinks"
-        class="admin-nav-card"
-        [routerLink]="link.path"
-        [attr.aria-label]="link.label">
-        <span class="nav-icon" aria-hidden="true">{{ link.icon }}</span>
-        <span class="nav-label">{{ link.label }}</span>
-      </a>
-    </nav>
   </div>
 </section>

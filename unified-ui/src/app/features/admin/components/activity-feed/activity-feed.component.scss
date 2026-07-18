@@ -1,0 +1,167 @@
+.activity-feed {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 1rem 0;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &--skeleton {
+      padding: 0.75rem 0;
+    }
+  }
+
+  &__item-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__item-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  &__username {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  &__badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    letter-spacing: 0.025em;
+  }
+
+  &__entity {
+    font-size: 0.8rem;
+    color: #4b5563;
+  }
+
+  &__timestamp {
+    font-size: 0.75rem;
+    color: #9ca3af;
+    white-space: nowrap;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #fef2f2;
+    border-radius: 6px;
+    color: #991b1b;
+    font-size: 0.875rem;
+  }
+
+  &__retry-btn {
+    background: #ef4444;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: #dc2626;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 2rem;
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+}
+
+// Action badge color classes
+.badge--create {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge--update {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.badge--delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badge--view {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+// Skeleton loading
+.skeleton-line {
+  height: 14px;
+  background: #e5e7eb;
+  border-radius: 4px;
+
+  &--short {
+    width: 40%;
+  }
+
+  &--long {
+    width: 70%;
+  }
+}
+
+.skeleton-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}

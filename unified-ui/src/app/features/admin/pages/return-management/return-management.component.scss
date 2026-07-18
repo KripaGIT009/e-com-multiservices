@@ -1,0 +1,327 @@
+.return-management {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-title {
+  margin: 0 0 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+// Toast notification
+.toast {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+
+  .toast-icon {
+    flex-shrink: 0;
+  }
+}
+
+.toast-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.toast-error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Error banner
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: #991b1b;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+
+  .error-icon {
+    flex-shrink: 0;
+  }
+
+  .retry-btn {
+    margin-left: auto;
+    padding: 0.25rem 0.75rem;
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #b91c1c;
+    }
+  }
+}
+
+// Loading state
+.loading-state {
+  .skeleton-table {
+    opacity: 0.6;
+  }
+}
+
+.skeleton-cell {
+  display: inline-block;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.skeleton-id {
+  width: 50px;
+}
+
+.skeleton-reason {
+  width: 140px;
+}
+
+.skeleton-status {
+  width: 80px;
+}
+
+.skeleton-date {
+  width: 90px;
+}
+
+.skeleton-actions {
+  width: 120px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Empty state
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #64748b;
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+// Table container
+.table-container {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+// Returns table
+.returns-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+
+  thead {
+    tr {
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    th {
+      padding: 0.875rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #64748b;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  tbody {
+    .return-row {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: #f8fafc;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+
+    td {
+      padding: 0.875rem 1rem;
+      color: #334155;
+    }
+  }
+}
+
+.id-cell {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.order-id-cell {
+  font-weight: 500;
+  color: #475569;
+}
+
+.reason-cell {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-cell {
+  color: #64748b;
+}
+
+.status-cell {
+  white-space: nowrap;
+}
+
+.actions-cell {
+  white-space: nowrap;
+}
+
+.no-actions {
+  color: #94a3b8;
+}
+
+// Status badges
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-default {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+// Action buttons
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.approve-btn,
+.reject-btn {
+  padding: 0.375rem 0.875rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.approve-btn {
+  background: #059669;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #047857;
+  }
+}
+
+.reject-btn {
+  background: #dc2626;
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    background: #b91c1c;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .return-management {
+    padding: 1rem;
+  }
+
+  .returns-table {
+    font-size: 0.8rem;
+
+    thead th,
+    tbody td {
+      padding: 0.625rem 0.5rem;
+    }
+  }
+
+  .reason-cell {
+    max-width: 120px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

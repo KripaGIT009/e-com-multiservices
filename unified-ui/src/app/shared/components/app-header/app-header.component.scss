@@ -4,14 +4,14 @@
   position: sticky;
   top: 0;
   z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 // =============================================================================
-// Row 1: Main Header (Dark Navy)
+// Row 1: Main Header (Dark Navy — Amazon India style)
 // =============================================================================
 .header-row-1 {
-  background-color: $mis-header-dark;
+  background-color: #131921;
   color: #ffffff;
 }
 
@@ -51,12 +51,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   background-color: $mis-primary;
   color: #ffffff;
-  font-weight: 700;
-  font-size: 0.75rem;
+  font-weight: 800;
+  font-size: 0.85rem;
   border-radius: 4px;
 }
 
@@ -122,6 +122,7 @@
   cursor: pointer;
   border-right: 1px solid #cdcdcd;
   min-width: 50px;
+  border-radius: 4px 0 0 4px;
 
   &:focus-visible {
     outline: 2px solid $mis-cta-gold;
@@ -151,15 +152,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: $mis-primary;
+  background-color: #FEBD69;
   border: none;
-  padding: 0 0.75rem;
+  padding: 0 0.85rem;
   cursor: pointer;
   color: #111111;
   transition: background-color 0.15s ease;
+  border-radius: 0 4px 4px 0;
 
   &:hover {
-    background-color: $mis-primary-dark;
+    background-color: #F3A847;
   }
 
   &:focus-visible {
@@ -246,15 +248,15 @@
   right: -4px;
   background-color: $mis-primary;
   color: #ffffff;
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  min-width: 16px;
-  height: 16px;
-  border-radius: 8px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 3px;
+  padding: 0 4px;
 }
 
 .cart-text {
@@ -292,10 +294,10 @@
 }
 
 // =============================================================================
-// Row 2: Category Navigation (Green)
+// Row 2: Category Navigation (Dark Teal — Amazon India style)
 // =============================================================================
 .header-row-2 {
-  background-color: $mis-nav-green;
+  background-color: #232F3E;
 }
 
 .nav-container {
@@ -408,5 +410,34 @@
 @media (min-width: 768px) and (max-width: 1023px) {
   .delivery-location {
     display: none;
+  }
+}
+
+// =============================================================================
+// Admin-specific styles
+// =============================================================================
+.admin-badge {
+  display: flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  margin-left: 1rem;
+}
+
+.admin-badge-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fbbf24;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.header-row-2--admin {
+  .nav-cat-link {
+    &.active {
+      color: #ffffff;
+      font-weight: 700;
+      border-bottom: 2px solid #ffffff;
+      padding-bottom: 0.15rem;
+    }
   }
 }

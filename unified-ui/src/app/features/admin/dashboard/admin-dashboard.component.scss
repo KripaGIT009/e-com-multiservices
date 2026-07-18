@@ -1,116 +1,106 @@
-@use '../../../shared/styles/variables' as *;
-
 .admin-dashboard {
-  padding: 1rem;
-  max-width: 1000px;
-  margin: 0 auto;
-}
-
-.page-title {
-  font-family: $mis-font-family;
-  font-size: 2rem;
-  font-weight: 700;
-  color: $mis-text-primary;
-  margin-bottom: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-  margin-bottom: 2.5rem;
-
-  @media (min-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 992px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.stat-card {
-  background: $mis-surface;
-  border: 1px solid $mis-border;
-  border-radius: $mis-radius;
   padding: 1.5rem;
-  text-align: center;
-  box-shadow: $mis-shadow;
-}
+  max-width: 1200px;
+  margin: 0 auto;
 
-.stat-value {
-  font-family: $mis-font-family;
-  font-size: 2rem;
-  font-weight: 700;
-  color: $mis-secondary;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.9rem;
-  color: $mis-text-secondary;
-  font-weight: 500;
-}
-
-.section-title {
-  font-family: $mis-font-family;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: $mis-text-primary;
-  margin-bottom: 1.5rem;
-}
-
-.admin-nav-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-
-  @media (min-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
+  &__title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
   }
 
-  @media (min-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
+  // Error state
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    text-align: center;
   }
-}
 
-.admin-nav-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: $mis-surface;
-  border: 1px solid $mis-border;
-  border-radius: $mis-radius;
-  padding: 1.25rem;
-  cursor: pointer;
-  text-decoration: none;
-  color: $mis-text-primary;
-  transition: all 0.2s ease;
-  min-height: 44px;
-  box-shadow: $mis-shadow;
-
-  &:hover,
-  &:focus-visible {
-    border-color: $mis-primary;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    outline: 2px solid $mis-primary;
-    outline-offset: 2px;
+  &__error-message {
+    font-size: 1rem;
+    color: #991b1b;
+    margin-bottom: 1rem;
   }
-}
 
-.nav-icon {
-  font-size: 1.5rem;
-}
+  &__retry-btn {
+    padding: 0.5rem 1.5rem;
+    background: #dc2626;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    min-height: 44px;
+    transition: background 0.2s ease;
 
-.nav-label {
-  font-family: $mis-font-family;
-  font-weight: 600;
-  font-size: 1rem;
-}
+    &:hover,
+    &:focus-visible {
+      background: #b91c1c;
+      outline: 2px solid #dc2626;
+      outline-offset: 2px;
+    }
+  }
 
-.loading-state {
-  text-align: center;
-  padding: 3rem;
-  color: $mis-text-secondary;
+  // Loading state
+  &__loading {
+    margin-bottom: 2rem;
+  }
+
+  // Chart/table grid layout
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__panel {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &--wide {
+      @media (min-width: 768px) {
+        grid-column: span 2;
+      }
+    }
+  }
+
+  &__panel-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  &__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    background: #f9fafb;
+    border: 2px dashed #d1d5db;
+    border-radius: 6px;
+
+    p {
+      color: #6b7280;
+      font-size: 0.875rem;
+      font-style: italic;
+    }
+  }
 }

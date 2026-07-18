@@ -3,20 +3,25 @@
   <div class="header-row-1">
     <div class="header-container">
       <!-- Logo -->
-      <a class="brand" routerLink="/home" aria-label="MyIndianStore home">
+      <a class="brand" [routerLink]="isAdmin ? '/admin' : '/home'" aria-label="MyIndianStore home">
         <span class="brand-icon">W</span>
         <span class="brand-title">myindianstore</span>
       </a>
 
-      <!-- Delivery Location -->
-      <div class="delivery-location" aria-label="Delivery location">
+      <!-- Delivery Location (customers only) -->
+      <div *ngIf="!isAdmin" class="delivery-location" aria-label="Delivery location">
         <span class="delivery-label">Delivering to</span>
         <span class="delivery-address">India</span>
         <a href="javascript:void(0)" class="update-location">Update location</a>
       </div>
 
-      <!-- Search Bar -->
-      <div class="search-bar" role="search" aria-label="Search products">
+      <!-- Admin Badge (admins only) -->
+      <div *ngIf="isAdmin" class="admin-badge" aria-label="Admin panel">
+        <span class="admin-badge-text">Admin Panel</span>
+      </div>
+
+      <!-- Search Bar (customers only) -->
+      <div *ngIf="!isAdmin" class="search-bar" role="search" aria-label="Search products">
         <select
           class="search-category"
           [(ngModel)]="selectedCategory"
@@ -44,7 +49,7 @@
       <!-- Right Actions -->
       <div class="header-actions">
         <!-- Language -->
-        <div class="header-action lang-selector" aria-label="Language selector">
+        <div *ngIf="!isAdmin" class="header-action lang-selector" aria-label="Language selector">
           <span class="flag-icon">🇮🇳</span>
           <span class="action-text">EN</span>
         </div>
@@ -52,9 +57,9 @@
         <!-- Account -->
         <div class="header-action account-action">
           <ng-container *ngIf="isAuthenticated; else guestAccount">
-            <a routerLink="/account" class="action-link" aria-label="Your account">
+            <a [routerLink]="isAdmin ? '/admin' : '/account'" class="action-link" aria-label="Your account">
               <span class="action-label">Hello, {{ displayName }}</span>
-              <span class="action-text">Account & Lists</span>
+              <span class="action-text">{{ isAdmin ? 'Admin Dashboard' : 'Account & Lists' }}</span>
             </a>
           </ng-container>
           <ng-template #guestAccount>
@@ -65,16 +70,24 @@
           </ng-template>
         </div>
 
-        <!-- Returns & Orders -->
-        <div class="header-action">
+        <!-- Returns & Orders (customers only) -->
+        <div *ngIf="!isAdmin" class="header-action">
           <a routerLink="/account/orders" class="action-link" aria-label="Returns and orders">
             <span class="action-label">Returns</span>
             <span class="action-text">& Orders</span>
           </a>
         </div>
 
-        <!-- Cart -->
-        <a class="header-action cart-action" routerLink="/cart" [attr.aria-label]="'Shopping cart with ' + cartCount + ' items'">
+        <!-- Logout (admin only) -->
+        <div *ngIf="isAdmin" class="header-action">
+          <a (click)="logout()" class="action-link" style="cursor:pointer" aria-label="Logout">
+            <span class="action-label">Sign out</span>
+            <span class="action-text">Logout</span>
+          </a>
+        </div>
+
+        <!-- Cart (customers only) -->
+        <a *ngIf="!isAdmin" class="header-action cart-action" routerLink="/cart" [attr.aria-label]="'Shopping cart with ' + cartCount + ' items'">
           <span class="cart-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="9" cy="21" r="1"></circle>
@@ -86,8 +99,9 @@
           <span class="action-text cart-text">Cart</span>
         </a>
 
-        <!-- Mobile menu toggle -->
+        <!-- Mobile menu toggle (customers only) -->
         <button
+          *ngIf="!isAdmin"
           class="mobile-menu-toggle"
           (click)="toggleMobileMenu()"
           [attr.aria-expanded]="mobileMenuOpen"
@@ -101,8 +115,9 @@
     </div>
   </div>
 
-  <!-- Row 2: Navigation Categories -->
+  <!-- Row 2: Navigation Categories (customers only) -->
   <nav
+    *ngIf="!isAdmin"
     id="nav-categories"
     class="header-row-2"
     [class.open]="mobileMenuOpen"
@@ -125,6 +140,23 @@
             {{ cat.label }}
           </a>
         </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Row 2: Admin Navigation (admin only) -->
+  <nav
+    *ngIf="isAdmin"
+    class="header-row-2 header-row-2--admin"
+    role="navigation"
+    aria-label="Admin navigation">
+    <div class="nav-container">
+      <ul class="nav-categories">
+        <li class="nav-cat-item"><a class="nav-cat-link" routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Dashboard</a></li>
+        <li class="nav-cat-item"><a class="nav-cat-link" routerLink="/admin/orders" routerLinkActive="active">Orders</a></li>
+        <li class="nav-cat-item"><a class="nav-cat-link" routerLink="/admin/users" routerLinkActive="active">Users</a></li>
+        <li class="nav-cat-item"><a class="nav-cat-link" routerLink="/admin/products" routerLinkActive="active">Products</a></li>
+        <li class="nav-cat-item"><a class="nav-cat-link" routerLink="/admin/returns" routerLinkActive="active">Returns</a></li>
       </ul>
     </div>
   </nav>

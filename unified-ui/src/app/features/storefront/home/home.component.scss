@@ -4,10 +4,11 @@
 // Hero Banner
 // =============================================================================
 .hero-banner {
-  background: linear-gradient(135deg, $mis-header-dark 0%, #394b59 50%, $mis-header-light 100%);
+  background: linear-gradient(to bottom, #232F3E 0%, #37475A 100%);
   color: #ffffff;
-  padding: 3rem 2rem;
-  margin-bottom: 3rem;
+  padding: 2rem 2rem 6rem;
+  margin-bottom: -4rem;
+  position: relative;
 }
 
 .hero-content {
@@ -26,10 +27,11 @@
 
 .hero-title {
   font-family: $mis-font-family;
-  font-size: 2.5rem;
-  font-weight: 700;
+  font-size: 2.75rem;
+  font-weight: 800;
   margin-bottom: 1rem;
-  line-height: 1.2;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
 }
 
 .brand-highlight {
@@ -40,27 +42,32 @@
   font-size: 1.125rem;
   opacity: 0.9;
   margin-bottom: 2rem;
-  line-height: 1.6;
-  color: #cccccc;
+  line-height: 1.7;
+  color: #d1d5db;
 }
 
 .btn-shop-now {
-  display: inline-block;
-  background-color: $mis-cta-gold;
-  color: #111111;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: $mis-primary;
+  color: #ffffff;
   border: none;
   border-radius: $mis-radius;
-  padding: 0.875rem 2.5rem;
+  padding: 1rem 2.5rem;
   font-family: $mis-font-family;
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  min-height: 44px;
-  transition: background-color 0.2s ease;
+  min-height: 48px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+  box-shadow: 0 4px 14px rgba($mis-primary, 0.4);
 
   &:hover,
   &:focus-visible {
-    background-color: $mis-cta-gold-dark;
+    background-color: $mis-primary-dark;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba($mis-primary, 0.5);
     outline: 2px solid $mis-cta-gold;
     outline-offset: 2px;
   }
@@ -81,48 +88,53 @@
 // Shop by Category
 // =============================================================================
 .category-section {
-  padding: 0 2rem 3rem;
-  max-width: 1200px;
+  padding: 0 1rem 2rem;
+  max-width: 1400px;
   margin: 0 auto;
+  position: relative;
+  z-index: 1;
 }
 
 .section-title {
   font-family: $mis-font-family;
-  font-size: 1.75rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: $mis-text-primary;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 0;
+  border-bottom: none;
 }
 
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 1.25rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
 
   @media (max-width: 1023px) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 
   @media (max-width: 575px) {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 1fr);
   }
 }
 
 .category-card {
-  background: $mis-surface;
-  border: 1px solid $mis-border;
-  border-radius: $mis-radius-lg;
+  background: #ffffff;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: $mis-shadow;
+  box-shadow: none;
+  padding: 1.25rem;
 
   &:hover,
   &:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    outline: 2px solid $mis-link-blue;
-    outline-offset: 2px;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: transparent;
+    outline: none;
   }
 }
 
@@ -145,24 +157,30 @@
 
 .category-name {
   font-family: $mis-font-family;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 700;
   color: $mis-text-primary;
   margin-bottom: 0.25rem;
 }
 
 .category-subtitle {
   font-size: 0.8rem;
-  color: $mis-text-secondary;
+  color: #007185;
   margin: 0;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+    color: #C7511F;
+  }
 }
 
 // =============================================================================
 // Featured Products
 // =============================================================================
 .featured-section {
-  padding: 0 2rem 3rem;
-  max-width: 1200px;
+  padding: 0 1rem 2rem;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
@@ -182,20 +200,21 @@
 }
 
 .product-card {
-  background: $mis-surface;
-  border: 1px solid $mis-border;
-  border-radius: $mis-radius;
+  background: #ffffff;
+  border: none;
+  border-radius: 0;
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: $mis-shadow;
+  transition: box-shadow 0.2s ease;
+  box-shadow: none;
+  padding: 1rem;
 
   &:hover,
   &:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    outline: 2px solid $mis-link-blue;
-    outline-offset: 2px;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border-color: transparent;
+    outline: none;
   }
 }
 
@@ -218,46 +237,56 @@
 
 .product-name {
   font-family: $mis-font-family;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: $mis-link-blue;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #007185;
   margin-bottom: 0.5rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+
+  &:hover {
+    color: #C7511F;
+    text-decoration: underline;
+  }
 }
 
 .product-price {
   font-family: $mis-font-family;
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 400;
   color: $mis-text-primary;
+
+  &::before {
+    content: '';
+    font-size: 0.75rem;
+    vertical-align: top;
+  }
 }
 
 // View All Button
 .section-cta {
   text-align: center;
-  margin-top: 1rem;
+  margin-top: 1.5rem;
 }
 
 .btn-view-all {
-  background-color: $mis-surface;
+  background-color: #ffffff;
   color: $mis-text-primary;
-  border: 1px solid #cdcdcd;
-  border-radius: $mis-radius;
-  padding: 0.75rem 2rem;
+  border: 1px solid #d5d9d9;
+  border-radius: 20px;
+  padding: 0.5rem 1.5rem;
   font-family: $mis-font-family;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 400;
   cursor: pointer;
-  min-height: 44px;
+  min-height: 36px;
   transition: background-color 0.15s ease;
 
   &:hover,
   &:focus-visible {
-    background-color: #f5f5f5;
-    outline: 2px solid $mis-link-blue;
-    outline-offset: 2px;
+    background-color: #f7fafa;
+    outline: none;
   }
 }
 

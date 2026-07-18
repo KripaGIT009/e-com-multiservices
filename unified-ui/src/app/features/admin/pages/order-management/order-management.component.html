@@ -1,0 +1,211 @@
+<section class="order-management" aria-label="Order Management">
+  <h1 class="page-title">Order Management</h1>
+
+  <!-- Error banner -->
+  <div *ngIf="errorMessage" class="error-banner" role="alert">
+    <span class="error-icon">⚠️</span>
+    <span>{{ errorMessage }}</span>
+    <button class="retry-btn" (click)="loadOrders()">Retry</button>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <table class="orders-table skeleton-table" aria-hidden="true">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1, 2, 3, 4, 5]">
+          <td><span class="skeleton-cell skeleton-id"></span></td>
+          <td><span class="skeleton-cell skeleton-name"></span></td>
+          <td><span class="skeleton-cell skeleton-date"></span></td>
+          <td><span class="skeleton-cell skeleton-status"></span></td>
+          <td><span class="skeleton-cell skeleton-amount"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && !errorMessage && orders.length === 0" class="empty-state">
+    <p>No orders found.</p>
+  </div>
+
+  <!-- Orders table -->
+  <div *ngIf="!isLoading && orders.length > 0" class="table-container">
+    <table class="orders-table" aria-label="Orders list">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Total Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let order of orders"
+          class="order-row"
+          [class.selected]="selectedOrder?.id === order.id"
+          (click)="selectOrder(order.id)"
+          tabindex="0"
+          (keydown.enter)="selectOrder(order.id)"
+          [attr.aria-label]="'Order ' + order.id + ', ' + order.customerName + ', ' + order.status"
+        >
+          <td class="id-cell">#{{ order.id }}</td>
+          <td class="customer-cell">{{ order.customerName }}</td>
+          <td class="date-cell">{{ formatDate(order.createdAt) }}</td>
+          <td class="status-cell">
+            <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+              {{ order.status }}
+            </span>
+          </td>
+          <td class="amount-cell">{{ formatCurrency(order.totalAmount) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalPages > 1" aria-label="Table pagination">
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage <= 1"
+        (click)="prevPage()"
+        aria-label="Previous page"
+      >
+        ← Prev
+      </button>
+      <span class="page-info">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <button
+        class="pagination-btn"
+        [disabled]="currentPage >= totalPages"
+        (click)="nextPage()"
+        aria-label="Next page"
+      >
+        Next →
+      </button>
+    </div>
+  </div>
+
+  <!-- Order Detail Panel -->
+  <div *ngIf="selectedOrder || isDetailLoading" class="detail-panel" role="region" aria-label="Order details">
+    <div class="detail-header">
+      <h2>Order #{{ selectedOrder?.id }}</h2>
+      <button class="close-btn" (click)="closeDetail()" aria-label="Close order details">✕</button>
+    </div>
+
+    <!-- Detail Loading -->
+    <div *ngIf="isDetailLoading" class="detail-loading" role="status">
+      <p>Loading order details...</p>
+    </div>
+
+    <!-- Detail Error -->
+    <div *ngIf="detailErrorMessage" class="error-banner" role="alert">
+      <span>{{ detailErrorMessage }}</span>
+    </div>
+
+    <!-- Detail Content -->
+    <div *ngIf="selectedOrder && !isDetailLoading" class="detail-content">
+      <!-- Order Summary -->
+      <div class="detail-section">
+        <h3>Order Summary</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Customer</span>
+            <span class="detail-value">{{ selectedOrder.customerName }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date</span>
+            <span class="detail-value">{{ formatDate(selectedOrder.createdAt) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Status</span>
+            <span class="status-badge" [ngClass]="getStatusClass(selectedOrder.status)">
+              {{ selectedOrder.status }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Total</span>
+            <span class="detail-value total-value">{{ formatCurrency(selectedOrder.totalAmount) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Payment Status</span>
+            <span class="detail-value">{{ selectedOrder.paymentStatus }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="detail-section">
+        <h3>Line Items</h3>
+        <table class="line-items-table" aria-label="Order line items">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Qty</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of selectedOrder.items">
+              <td>{{ item.productName }}</td>
+              <td class="qty-cell">{{ item.quantity }}</td>
+              <td class="price-cell">{{ formatCurrency(item.unitPrice) }}</td>
+              <td class="price-cell">{{ formatCurrency(item.totalPrice) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="selectedOrder.items.length === 0" class="empty-items">
+          <p>No line items available.</p>
+        </div>
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="detail-section">
+        <h3>Shipping Address</h3>
+        <address class="shipping-address">
+          <span *ngIf="selectedOrder.shippingAddress.street">{{ selectedOrder.shippingAddress.street }}<br></span>
+          <span *ngIf="selectedOrder.shippingAddress.city">{{ selectedOrder.shippingAddress.city }}, </span>
+          <span *ngIf="selectedOrder.shippingAddress.state">{{ selectedOrder.shippingAddress.state }} </span>
+          <span *ngIf="selectedOrder.shippingAddress.zipCode">{{ selectedOrder.shippingAddress.zipCode }}<br></span>
+          <span *ngIf="selectedOrder.shippingAddress.country">{{ selectedOrder.shippingAddress.country }}</span>
+        </address>
+      </div>
+
+      <!-- Status Update -->
+      <div class="detail-section status-update-section">
+        <h3>Update Status</h3>
+        <div class="status-update-form">
+          <select
+            [(ngModel)]="newStatus"
+            class="status-select"
+            [disabled]="isUpdatingStatus"
+            aria-label="New order status"
+          >
+            <option *ngFor="let status of statusOptions" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+          <button
+            class="update-btn"
+            (click)="updateOrderStatus()"
+            [disabled]="isUpdatingStatus || newStatus === selectedOrder.status"
+          >
+            <span *ngIf="!isUpdatingStatus">Update Status</span>
+            <span *ngIf="isUpdatingStatus">Updating...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

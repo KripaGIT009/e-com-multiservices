@@ -1,59 +1,57 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { AdminAnalyticsService } from '../services/admin-analytics.service';
+import { DashboardSummary } from '../models';
 
-interface DashboardStats {
-  totalOrders: number;
-  totalUsers: number;
-  totalItems: number;
-  totalRevenue: number;
-}
-
+/**
+ * Orchestrates the admin dashboard layout by fetching analytics data
+ * and passing it to sub-components (KPI cards, quick actions, placeholders).
+ * Requirements: 6.1, 15.1
+ */
 @Component({
   selector: 'app-admin-dashboard',
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
 export class AdminDashboardComponent implements OnInit {
-  stats: DashboardStats = {
-    totalOrders: 0,
-    totalUsers: 0,
-    totalItems: 0,
-    totalRevenue: 0,
-  };
+  dashboardSummary: DashboardSummary | null = null;
   isLoading = true;
+  errorMessage: string | null = null;
 
-  adminLinks = [
-    { label: 'Manage Orders', path: '/admin/orders', icon: '📦' },
-    { label: 'Manage Users', path: '/admin/users', icon: '👥' },
-    { label: 'Manage Inventory', path: '/admin/inventory', icon: '📋' },
-    { label: 'Manage Products', path: '/admin/products', icon: '🏷️' },
-    { label: 'View Returns', path: '/admin/returns', icon: '↩️' },
-    { label: 'Audit Logs', path: '/admin/audit', icon: '📝' },
-  ];
-
-  constructor(private http: HttpClient) {}
+  constructor(private adminAnalyticsService: AdminAnalyticsService) {}
 
   ngOnInit(): void {
-    this.loadDashboard();
+    this.loadDashboardData();
   }
 
-  private loadDashboard(): void {
-    // Try to fetch real dashboard data; fallback to placeholder
-    this.http.get<DashboardStats>('/api/admin/dashboard').subscribe({
-      next: (data) => {
-        this.stats = data;
+  loadDashboardData(): void {
+    this.isLoading = true;
+    this.errorMessage = null;
+
+    this.adminAnalyticsService.getDashboardSummary().subscribe({
+      next: (summary) => {
+        this.dashboardSummary = summary;
         this.isLoading = false;
+
+        if (summary.warnings && summary.warnings.length > 0) {
+          this.showWarnings(summary.warnings);
+        }
       },
-      error: () => {
-        // Use placeholder data if API not available
-        this.stats = {
-          totalOrders: 142,
-          totalUsers: 1250,
-          totalItems: 89,
-          totalRevenue: 524000,
-        };
+      error: (err) => {
         this.isLoading = false;
+        this.errorMessage =
+          'Failed to load dashboard data. Please try again.';
+        console.error('Dashboard load error:', err);
       },
     });
+  }
+
+  retry(): void {
+    this.loadDashboardData();
+  }
+
+  private showWarnings(warnings: string[]): void {
+    // Display warning alert for services with degraded data
+    const message = `Warning: Some data may be incomplete. ${warnings.join(', ')}`;
+    alert(message);
   }
 }

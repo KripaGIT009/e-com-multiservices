@@ -1,0 +1,110 @@
+<section class="return-management" aria-label="Return Management">
+  <h1 class="page-title">Return Management</h1>
+
+  <!-- Toast notification -->
+  <div
+    *ngIf="showToast"
+    class="toast"
+    [ngClass]="'toast-' + toastType"
+    role="alert"
+    aria-live="assertive"
+  >
+    <span class="toast-icon" *ngIf="toastType === 'success'">✓</span>
+    <span class="toast-icon" *ngIf="toastType === 'error'">⚠️</span>
+    <span class="toast-message">{{ toastMessage }}</span>
+  </div>
+
+  <!-- Error banner -->
+  <div *ngIf="errorMessage" class="error-banner" role="alert">
+    <span class="error-icon">⚠️</span>
+    <span>{{ errorMessage }}</span>
+    <button class="retry-btn" (click)="loadReturns()">Retry</button>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
+    <table class="returns-table skeleton-table" aria-hidden="true">
+      <thead>
+        <tr>
+          <th>Return ID</th>
+          <th>Order ID</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Request Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1, 2, 3, 4, 5]">
+          <td><span class="skeleton-cell skeleton-id"></span></td>
+          <td><span class="skeleton-cell skeleton-id"></span></td>
+          <td><span class="skeleton-cell skeleton-reason"></span></td>
+          <td><span class="skeleton-cell skeleton-status"></span></td>
+          <td><span class="skeleton-cell skeleton-date"></span></td>
+          <td><span class="skeleton-cell skeleton-actions"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && !errorMessage && returns.length === 0" class="empty-state">
+    <p>No return requests found.</p>
+  </div>
+
+  <!-- Returns table -->
+  <div *ngIf="!isLoading && returns.length > 0" class="table-container">
+    <table class="returns-table" aria-label="Return requests list">
+      <thead>
+        <tr>
+          <th>Return ID</th>
+          <th>Order ID</th>
+          <th>Reason</th>
+          <th>Status</th>
+          <th>Request Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          *ngFor="let returnItem of returns"
+          class="return-row"
+          [attr.aria-label]="'Return ' + returnItem.id + ', Order ' + returnItem.orderId + ', ' + returnItem.status"
+        >
+          <td class="id-cell">#{{ returnItem.id }}</td>
+          <td class="order-id-cell">#{{ returnItem.orderId }}</td>
+          <td class="reason-cell">{{ returnItem.reason }}</td>
+          <td class="status-cell">
+            <span class="status-badge" [ngClass]="getStatusClass(returnItem.status)">
+              {{ returnItem.status }}
+            </span>
+          </td>
+          <td class="date-cell">{{ formatDate(returnItem.requestDate) }}</td>
+          <td class="actions-cell">
+            <div *ngIf="isPending(returnItem.status)" class="action-buttons">
+              <button
+                class="approve-btn"
+                (click)="approveReturn(returnItem.id)"
+                [disabled]="processingId === returnItem.id"
+                [attr.aria-label]="'Approve return ' + returnItem.id"
+              >
+                <span *ngIf="processingId !== returnItem.id">Approve</span>
+                <span *ngIf="processingId === returnItem.id">...</span>
+              </button>
+              <button
+                class="reject-btn"
+                (click)="rejectReturn(returnItem.id)"
+                [disabled]="processingId === returnItem.id"
+                [attr.aria-label]="'Reject return ' + returnItem.id"
+              >
+                <span *ngIf="processingId !== returnItem.id">Reject</span>
+                <span *ngIf="processingId === returnItem.id">...</span>
+              </button>
+            </div>
+            <span *ngIf="!isPending(returnItem.status)" class="no-actions">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>

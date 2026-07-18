@@ -77,7 +77,7 @@ public class ManagementServiceImpl implements IManagementService {
         try {
             String response = webClientBuilder.build()
                 .get()
-                .uri(userServiceUrl + "/users")
+                .uri(userServiceUrl + "/api/users")
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -117,7 +117,7 @@ public class ManagementServiceImpl implements IManagementService {
         try {
             String response = webClientBuilder.build()
                 .post()
-                .uri(userServiceUrl + "/users")
+                .uri(userServiceUrl + "/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(BodyInserters.fromValue(userJson))
                 .retrieve()

@@ -1,0 +1,41 @@
+<div class="order-status-chart">
+  <h3 class="chart-title">Order Status Distribution</h3>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="chart-skeleton"></div>
+    <div class="legend-skeleton">
+      <div class="legend-item-skeleton" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && isEmpty" class="empty-state">
+    <p>No order data available</p>
+  </div>
+
+  <!-- Chart content -->
+  <div *ngIf="!isLoading && !isEmpty" class="chart-content">
+    <div class="chart-container">
+      <div
+        class="donut-chart"
+        [style.background]="conicGradient"
+        role="img"
+        aria-label="Order status distribution donut chart"
+      >
+        <div class="donut-hole">
+          <span class="total-label">Total</span>
+          <span class="total-value">{{ totalOrders }}</span>
+        </div>
+      </div>
+    </div>
+
+    <ul class="chart-legend" aria-label="Chart legend">
+      <li *ngFor="let segment of segments" class="legend-item">
+        <span class="legend-color" [style.background-color]="segment.color"></span>
+        <span class="legend-status">{{ segment.status }}</span>
+        <span class="legend-count">{{ segment.count }}</span>
+      </li>
+    </ul>
+  </div>
+</div>

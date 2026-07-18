@@ -1,0 +1,52 @@
+<div class="top-products-table">
+  <h3 class="table-title">Top Selling Products</h3>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-state">
+    <table class="products-table skeleton-table" aria-hidden="true">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product Name</th>
+          <th>Qty Sold</th>
+          <th>Revenue (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of [1, 2, 3, 4, 5]">
+          <td><span class="skeleton-cell skeleton-rank"></span></td>
+          <td><span class="skeleton-cell skeleton-name"></span></td>
+          <td><span class="skeleton-cell skeleton-qty"></span></td>
+          <td><span class="skeleton-cell skeleton-revenue"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && isEmpty" class="empty-state">
+    <p>No product data available</p>
+  </div>
+
+  <!-- Table content -->
+  <div *ngIf="!isLoading && !isEmpty" class="table-content">
+    <table class="products-table" aria-label="Top selling products">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Product Name</th>
+          <th>Qty Sold</th>
+          <th>Revenue (₹)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of products; let i = index">
+          <td class="rank-cell">{{ i + 1 }}</td>
+          <td class="name-cell">{{ product.productName }}</td>
+          <td class="qty-cell">{{ formatQuantity(product.totalQuantitySold) }}</td>
+          <td class="revenue-cell">{{ formatRevenue(product.totalRevenue) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

@@ -1,0 +1,62 @@
+<div class="revenue-chart">
+  <div class="chart-header">
+    <h3 class="chart-title">Revenue Overview</h3>
+    <div class="period-selector" role="group" aria-label="Select time period">
+      @for (period of periods; track period.value) {
+        <button
+          class="period-btn"
+          [class.active]="selectedPeriod === period.value"
+          (click)="onPeriodChange(period.value)"
+          [attr.aria-pressed]="selectedPeriod === period.value"
+        >
+          {{ period.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (isLoading) {
+    <div class="chart-loading">
+      <div class="loading-spinner"></div>
+      <span>Loading chart data...</span>
+    </div>
+  } @else if (data.length === 0) {
+    <div class="chart-empty">
+      <span class="empty-icon">📊</span>
+      <p>No data available</p>
+    </div>
+  } @else {
+    <div class="chart-container">
+      <div class="y-axis">
+        @for (label of yAxisLabels; track label) {
+          <span class="y-label">{{ formatYAxisLabel(label) }}</span>
+        }
+      </div>
+      <div class="chart-area">
+        <div class="grid-lines">
+          @for (label of yAxisLabels; track label) {
+            <div class="grid-line"></div>
+          }
+        </div>
+        <div class="bars">
+          @for (entry of data; track entry.label) {
+            <div class="bar-group" [title]="entry.label + ': ₹' + entry.value">
+              <div class="bar" [style.height]="getBarHeight(entry.value)">
+                <span class="bar-tooltip">{{ formatCurrency(entry.value) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+    <div class="x-axis">
+      @for (entry of data; track entry.label; let i = $index) {
+        @if (shouldShowXLabel(i)) {
+          <span class="x-label">{{ entry.label }}</span>
+        } @else {
+          <span class="x-label x-label--spacer"></span>
+        }
+      }
+    </div>
+  }
+</div>

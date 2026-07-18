@@ -1,0 +1,34 @@
+<div class="kpi-grid" role="list" aria-label="Key performance indicators">
+  <!-- Loading skeletons -->
+  <ng-container *ngIf="isLoading">
+    <div
+      *ngFor="let i of [1, 2, 3, 4]"
+      class="kpi-card kpi-card--skeleton"
+      role="listitem"
+      aria-busy="true"
+      aria-label="Loading metric"
+    >
+      <div class="kpi-card__icon skeleton-pulse"></div>
+      <div class="kpi-card__content">
+        <div class="kpi-card__label skeleton-pulse"></div>
+        <div class="kpi-card__value skeleton-pulse"></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Actual KPI cards -->
+  <ng-container *ngIf="!isLoading && data">
+    <div
+      *ngFor="let card of cards"
+      class="kpi-card"
+      role="listitem"
+      [attr.aria-label]="card.label + ': ' + card.value"
+    >
+      <div class="kpi-card__icon" aria-hidden="true">{{ card.icon }}</div>
+      <div class="kpi-card__content">
+        <span class="kpi-card__label">{{ card.label }}</span>
+        <span class="kpi-card__value">{{ card.value }}</span>
+      </div>
+    </div>
+  </ng-container>
+</div>

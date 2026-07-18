@@ -1,0 +1,158 @@
+<div class="user-management">
+  <header class="user-management__header">
+    <h2 class="user-management__title">User Management</h2>
+  </header>
+
+  <!-- Success Confirmation -->
+  <div *ngIf="showSuccess" class="user-management__success" role="alert">
+    <span class="user-management__success-icon" aria-hidden="true">✓</span>
+    User updated successfully.
+    <button class="user-management__success-close" (click)="showSuccess = false" aria-label="Dismiss">×</button>
+  </div>
+
+  <!-- Error Banner -->
+  <div *ngIf="hasError && !isLoading" class="user-management__error" role="alert">
+    <p>{{ errorMessage }}</p>
+    <button class="user-management__retry-btn" (click)="retry()">Retry</button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="user-management__loading" aria-label="Loading users">
+    <div class="user-management__skeleton" *ngFor="let i of [1,2,3,4,5]"></div>
+  </div>
+
+  <!-- Edit Form -->
+  <div *ngIf="editingUser" class="user-management__edit-form" role="dialog" aria-label="Edit User">
+    <h3 class="user-management__form-title">Edit User #{{ editingUser.id }}</h3>
+
+    <div *ngIf="formError" class="user-management__form-error" role="alert">
+      {{ formError }}
+    </div>
+
+    <div class="user-management__form-group">
+      <label for="edit-name" class="user-management__label">Name</label>
+      <input
+        id="edit-name"
+        type="text"
+        class="user-management__input"
+        [(ngModel)]="editForm.name"
+        [class.user-management__input--error]="validationErrors['name']"
+        aria-required="true"
+        [attr.aria-invalid]="validationErrors['name'] ? 'true' : null"
+        [attr.aria-describedby]="validationErrors['name'] ? 'name-error' : null" />
+      <span *ngIf="validationErrors['name']" id="name-error" class="user-management__field-error">
+        {{ validationErrors['name'] }}
+      </span>
+    </div>
+
+    <div class="user-management__form-group">
+      <label for="edit-email" class="user-management__label">Email</label>
+      <input
+        id="edit-email"
+        type="email"
+        class="user-management__input"
+        [(ngModel)]="editForm.email"
+        [class.user-management__input--error]="validationErrors['email']"
+        aria-required="true"
+        [attr.aria-invalid]="validationErrors['email'] ? 'true' : null"
+        [attr.aria-describedby]="validationErrors['email'] ? 'email-error' : null" />
+      <span *ngIf="validationErrors['email']" id="email-error" class="user-management__field-error">
+        {{ validationErrors['email'] }}
+      </span>
+    </div>
+
+    <div class="user-management__form-group">
+      <label for="edit-status" class="user-management__label">Status</label>
+      <select
+        id="edit-status"
+        class="user-management__select"
+        [(ngModel)]="editForm.status"
+        [class.user-management__select--error]="validationErrors['status']"
+        aria-required="true"
+        [attr.aria-invalid]="validationErrors['status'] ? 'true' : null"
+        [attr.aria-describedby]="validationErrors['status'] ? 'status-error' : null">
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
+      <span *ngIf="validationErrors['status']" id="status-error" class="user-management__field-error">
+        {{ validationErrors['status'] }}
+      </span>
+    </div>
+
+    <div class="user-management__form-actions">
+      <button
+        class="user-management__btn user-management__btn--primary"
+        (click)="submitEdit()"
+        [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Saving...' : 'Save Changes' }}
+      </button>
+      <button
+        class="user-management__btn user-management__btn--secondary"
+        (click)="cancelEdit()"
+        [disabled]="isSubmitting">
+        Cancel
+      </button>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div *ngIf="!isLoading && !hasError && !editingUser" class="user-management__table-wrapper">
+    <table class="user-management__table" aria-label="Users table">
+      <thead>
+        <tr>
+          <th scope="col">User ID</th>
+          <th scope="col">Name</th>
+          <th scope="col">Email</th>
+          <th scope="col">Registration Date</th>
+          <th scope="col">Status</th>
+          <th scope="col">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="users.length === 0">
+          <td colspan="6" class="user-management__empty">No users found.</td>
+        </tr>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ formatDate(user.registrationDate) }}</td>
+          <td>
+            <span class="user-management__badge" [ngClass]="getStatusBadgeClass(user.status)">
+              {{ user.status || 'Active' }}
+            </span>
+          </td>
+          <td>
+            <button
+              class="user-management__btn user-management__btn--edit"
+              (click)="startEdit(user)"
+              [attr.aria-label]="'Edit user ' + user.name">
+              Edit
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <nav *ngIf="totalPages > 1" class="user-management__pagination" aria-label="User table pagination">
+      <button
+        class="user-management__btn user-management__btn--page"
+        (click)="prevPage()"
+        [disabled]="currentPage === 1"
+        aria-label="Previous page">
+        ← Previous
+      </button>
+      <span class="user-management__page-info">
+        Page {{ currentPage }} of {{ totalPages }}
+      </span>
+      <button
+        class="user-management__btn user-management__btn--page"
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        aria-label="Next page">
+        Next →
+      </button>
+    </nav>
+  </div>
+</div>

@@ -1,0 +1,55 @@
+<section class="low-stock-alerts" aria-label="Low stock alerts">
+  <div class="low-stock-alerts__header">
+    <h3 class="low-stock-alerts__title">
+      <span class="low-stock-alerts__icon" aria-hidden="true">⚠️</span>
+      Low Stock Alerts
+    </h3>
+    <span
+      *ngIf="hasAlerts && !isLoading"
+      class="low-stock-alerts__badge"
+      [attr.aria-label]="displayCount + ' items low on stock'"
+    >
+      {{ displayCount }}
+    </span>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="low-stock-alerts__loading" role="status" aria-label="Loading low stock alerts">
+    <div *ngFor="let i of [1, 2, 3]" class="low-stock-alerts__item low-stock-alerts__item--skeleton">
+      <div class="skeleton-bar skeleton-bar--name"></div>
+      <div class="skeleton-bar skeleton-bar--stock"></div>
+    </div>
+  </div>
+
+  <!-- Alert items list -->
+  <ul *ngIf="!isLoading && items.length > 0" class="low-stock-alerts__list" role="list">
+    <li
+      *ngFor="let item of items"
+      class="low-stock-alerts__item"
+      role="listitem"
+      [attr.aria-label]="item.productName + ': stock ' + item.currentStock + ' of threshold ' + item.threshold"
+    >
+      <span class="low-stock-alerts__item-icon" aria-hidden="true">⚠️</span>
+      <div class="low-stock-alerts__item-details">
+        <span class="low-stock-alerts__item-name">{{ item.productName }}</span>
+        <span class="low-stock-alerts__item-stock">
+          Stock: {{ item.currentStock }} / Threshold: {{ item.threshold }}
+        </span>
+      </div>
+    </li>
+  </ul>
+
+  <!-- Count-only display (when no detailed items are available) -->
+  <div *ngIf="!isLoading && items.length === 0 && lowStockCount > 0" class="low-stock-alerts__summary">
+    <span class="low-stock-alerts__summary-icon" aria-hidden="true">⚠️</span>
+    <p class="low-stock-alerts__summary-text">
+      {{ lowStockCount }} {{ lowStockCount === 1 ? 'item is' : 'items are' }} below the stock threshold.
+    </p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && !hasAlerts" class="low-stock-alerts__empty" role="status">
+    <span class="low-stock-alerts__empty-icon" aria-hidden="true">✅</span>
+    <p class="low-stock-alerts__empty-text">All items are well-stocked</p>
+  </div>
+</section>

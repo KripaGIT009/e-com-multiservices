@@ -1,0 +1,13 @@
+<section class="quick-actions" aria-label="Quick Actions">
+  <h2 class="quick-actions__title">Quick Actions</h2>
+  <nav class="quick-actions__grid" aria-label="Admin navigation">
+    <a
+      *ngFor="let action of actions"
+      class="quick-actions__card"
+      [routerLink]="action.path"
+      [attr.aria-label]="action.label">
+      <span class="quick-actions__icon" aria-hidden="true">{{ action.icon }}</span>
+      <span class="quick-actions__label">{{ action.label }}</span>
+    </a>
+  </nav>
+</section>

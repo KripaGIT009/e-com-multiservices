@@ -96,8 +96,9 @@ export class ProductListComponent implements OnInit {
     this.http.get<Product[]>('/api/items').subscribe({
       next: (items) => {
         // Enrich products with mock data for display
-        this.products = items.map((item) => ({
+        this.products = items.map((item, index) => ({
           ...item,
+          imageUrl: item.imageUrl || this.getProductImage(item.name, item.category, item.id || index),
           originalPrice: item.price ? Math.round(item.price * 1.3) : undefined,
           discount: Math.floor(Math.random() * 40) + 10,
           rating: +(Math.random() * 2 + 3).toFixed(1),
@@ -114,6 +115,12 @@ export class ProductListComponent implements OnInit {
         this.notificationService.show('Failed to load products.', 'error');
       },
     });
+  }
+
+  private getProductImage(name: string, category: string, id: number): string {
+    // Generate a deterministic image based on product name/category
+    const seed = (name || category || 'product').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) + id;
+    return `https://picsum.photos/seed/${seed}/300/300`;
   }
 
   applyFilters(): void {

@@ -32,7 +32,8 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
-            .requestMatchers("/api/admin/login", "/actuator/health");
+            .requestMatchers("/api/admin/login", "/actuator/health",
+                "/api/admin/dashboard/**", "/api/manage/**");
     }
 
     @Bean

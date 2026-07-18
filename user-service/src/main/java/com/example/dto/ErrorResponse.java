@@ -1,9 +1,11 @@
 package com.example.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Data
@@ -11,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ErrorResponse {
     
-    private LocalDateTime timestamp;
+    private String timestamp;
     private int status;
     private String error;
     private String message;
@@ -19,7 +21,7 @@ public class ErrorResponse {
     private List<FieldError> fieldErrors;
 
     public ErrorResponse(int status, String error, String message, String path) {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         this.status = status;
         this.error = error;
         this.message = message;
@@ -27,7 +29,7 @@ public class ErrorResponse {
     }
 
     public ErrorResponse(int status, String error, String message, String path, List<FieldError> fieldErrors) {
-        this.timestamp = LocalDateTime.now();
+        this.timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         this.status = status;
         this.error = error;
         this.message = message;

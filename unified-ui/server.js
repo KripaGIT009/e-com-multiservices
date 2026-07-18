@@ -205,6 +205,10 @@ app.get('/api/items/search', async (req, res) => {
   try { res.json((await axios.get(`${ITEM_SERVICE}/items/search`, { params: req.query })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Search failed' }); }
 });
+app.get('/api/items/sku/:sku', authenticateAdmin, async (req, res) => {
+  try { res.json((await axios.get(`${ITEM_SERVICE}/items/sku/${req.params.sku}`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'SKU lookup failed' }); }
+});
 app.get('/api/items/:id', async (req, res) => {
   try { res.json((await axios.get(`${ITEM_SERVICE}/items/${req.params.id}`)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch item' }); }
@@ -213,15 +217,15 @@ app.get('/api/items', async (req, res) => {
   try { res.json((await axios.get(`${ITEM_SERVICE}/items`)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch items' }); }
 });
-app.post('/api/items', authenticateAdmin, async (req, res) => {
+app.post('/api/items', authenticateAny, async (req, res) => {
   try { res.status(201).json((await axios.post(`${ADMIN_SERVICE}/api/manage/items`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create item' }); }
 });
-app.put('/api/items/:id', authenticateAdmin, async (req, res) => {
+app.put('/api/items/:id', authenticateAny, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/items/${req.params.id}`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update item' }); }
 });
-app.delete('/api/items/:id', authenticateAdmin, async (req, res) => {
+app.delete('/api/items/:id', authenticateAny, async (req, res) => {
   try { await axios.delete(`${ADMIN_SERVICE}/api/manage/items/${req.params.id}`, { headers: adminAuth(req) }); res.status(204).send(); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to delete item' }); }
 });
@@ -282,7 +286,7 @@ app.delete('/api/cart/:userId/items/:itemId', async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // INVENTORY
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/api/inventory', authenticateAdmin, async (req, res) => {
+app.get('/api/inventory', authenticateAny, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/inventory`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch inventory' }); }
 });
@@ -290,7 +294,7 @@ app.get('/api/inventory/:id', async (req, res) => {
   try { res.json((await axios.get(`${INVENTORY_SERVICE}/inventory/${req.params.id}`)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch inventory item' }); }
 });
-app.post('/api/inventory', authenticateAdmin, async (req, res) => {
+app.post('/api/inventory', authenticateAny, async (req, res) => {
   try { res.status(201).json((await axios.post(`${ADMIN_SERVICE}/api/manage/inventory`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to add inventory' }); }
 });
@@ -318,23 +322,23 @@ app.put('/api/users/profile', authenticateToken, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // USERS — admin CRUD
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/api/users', authenticateAdmin, async (req, res) => {
+app.get('/api/users', authenticateAny, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/users`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch users' }); }
 });
-app.get('/api/users/:id', authenticateAdmin, async (req, res) => {
+app.get('/api/users/:id', authenticateAny, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/users/${req.params.id}`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch user' }); }
 });
-app.post('/api/users', authenticateAdmin, async (req, res) => {
+app.post('/api/users', authenticateAny, async (req, res) => {
   try { res.status(201).json((await axios.post(`${ADMIN_SERVICE}/api/manage/users`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create user' }); }
 });
-app.put('/api/users/:id', authenticateAdmin, async (req, res) => {
+app.put('/api/users/:id', authenticateAny, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/users/${req.params.id}`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update user' }); }
 });
-app.delete('/api/users/:id', authenticateAdmin, async (req, res) => {
+app.delete('/api/users/:id', authenticateAny, async (req, res) => {
   try { await axios.delete(`${ADMIN_SERVICE}/api/manage/users/${req.params.id}`, { headers: adminAuth(req) }); res.status(204).send(); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to delete user' }); }
 });
@@ -369,7 +373,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     res.status(response.status).json(response.data);
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create order' }); }
 });
-app.put('/api/orders/:id/status', authenticateAdmin, async (req, res) => {
+app.put('/api/orders/:id/status', authenticateAny, async (req, res) => {
   try {
     const r = await axios.put(`${ADMIN_SERVICE}/api/manage/orders/${req.params.id}/status?status=${req.body.status}`, {}, { headers: adminAuth(req) });
     res.json(r.data);
@@ -411,7 +415,7 @@ app.post('/api/payments', async (req, res) => {
   try { res.json((await axios.post(`${PAYMENT_SERVICE}/api/v1/payments`, req.body)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Payment failed' }); }
 });
-app.post('/api/payments/:id/refund', authenticateAdmin, async (req, res) => {
+app.post('/api/payments/:id/refund', authenticateAny, async (req, res) => {
   try { res.json((await axios.post(`${ADMIN_SERVICE}/api/manage/payments/${req.params.id}/refund`, {}, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to refund payment' }); }
 });
@@ -435,11 +439,11 @@ app.post('/api/returns', authenticateToken, async (req, res) => {
   try { res.json((await axios.post(`${RETURN_SERVICE}/api/returns`, { ...req.body, userId: req.user.id })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create return' }); }
 });
-app.put('/api/returns/:id/approve', authenticateAdmin, async (req, res) => {
+app.put('/api/returns/:id/approve', authenticateAny, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/returns/${req.params.id}/approve`, {}, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to approve return' }); }
 });
-app.put('/api/returns/:id/reject', authenticateAdmin, async (req, res) => {
+app.put('/api/returns/:id/reject', authenticateAny, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/returns/${req.params.id}/reject`, {}, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to reject return' }); }
 });
@@ -489,7 +493,38 @@ app.get('/api/audit', authenticateAdmin, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ADMIN DASHBOARD
+// ADMIN DASHBOARD ANALYTICS
+// ═══════════════════════════════════════════════════════════════════════════════
+app.get('/api/admin/dashboard/summary', authenticateAny, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/summary`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch dashboard summary' }); }
+});
+
+app.get('/api/admin/dashboard/revenue', authenticateAny, async (req, res) => {
+  try { 
+    const period = req.query.period || 'monthly';
+    res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/revenue?period=${period}`)).data); 
+  }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch revenue data' }); }
+});
+
+app.get('/api/admin/dashboard/orders/status-distribution', authenticateAny, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/orders/status-distribution`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch order status distribution' }); }
+});
+
+app.get('/api/admin/dashboard/products/top-selling', authenticateAny, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/products/top-selling`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch top products' }); }
+});
+
+app.get('/api/admin/dashboard/activity-feed', authenticateAny, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/activity-feed`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch activity feed' }); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADMIN DASHBOARD (legacy)
 // ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/admin/dashboard', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/dashboard`, { headers: adminAuth(req) })).data); }

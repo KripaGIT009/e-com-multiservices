@@ -72,6 +72,12 @@ workflow:
       ISSUE_REFUND: 50
       CANCEL_ORDER: 10
 
+dashboard:
+  low-stock-threshold: 10
+  activity-feed-limit: 20
+  top-products-limit: 10
+  downstream-timeout-ms: 4000
+
 logging:
   level:
     com.example: DEBUG
