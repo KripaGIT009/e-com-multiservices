@@ -94,46 +94,9 @@
       </form>
     </div>
 
-    <!-- Step 3: Payment -->
-    <div *ngIf="currentStep === 3" class="step-panel" role="tabpanel" aria-label="Payment Details">
-      <h2 class="step-title">Payment Details</h2>
-      <form [formGroup]="paymentForm" class="checkout-form" autocomplete="on">
-        <div class="form-group">
-          <label for="cardNumber">Card Number *</label>
-          <input id="cardNumber" formControlName="cardNumber" type="text" autocomplete="cc-number" placeholder="1234567890123456" />
-          <span class="error" *ngIf="paymentForm.get('cardNumber')?.touched && paymentForm.get('cardNumber')?.invalid">
-            Valid 16-digit card number required.
-          </span>
-        </div>
-        <div class="form-group">
-          <label for="cardHolder">Card Holder Name *</label>
-          <input id="cardHolder" formControlName="cardHolder" type="text" autocomplete="cc-name" />
-          <span class="error" *ngIf="paymentForm.get('cardHolder')?.touched && paymentForm.get('cardHolder')?.invalid">
-            Card holder name is required.
-          </span>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="expiryDate">Expiry (MM/YY) *</label>
-            <input id="expiryDate" formControlName="expiryDate" type="text" autocomplete="cc-exp" placeholder="MM/YY" />
-            <span class="error" *ngIf="paymentForm.get('expiryDate')?.touched && paymentForm.get('expiryDate')?.invalid">
-              Valid expiry date (MM/YY) required.
-            </span>
-          </div>
-          <div class="form-group">
-            <label for="cvv">CVV *</label>
-            <input id="cvv" formControlName="cvv" type="password" autocomplete="cc-csc" />
-            <span class="error" *ngIf="paymentForm.get('cvv')?.touched && paymentForm.get('cvv')?.invalid">
-              Valid 3-digit CVV required.
-            </span>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <!-- Step 4: Confirm -->
-    <div *ngIf="currentStep === 4" class="step-panel" role="tabpanel" aria-label="Order Confirmation">
-      <h2 class="step-title">Confirm Your Order</h2>
+    <!-- Step 3: Payment Confirmation -->
+    <div *ngIf="currentStep === 3" class="step-panel" role="tabpanel" aria-label="Payment">
+      <h2 class="step-title">Review & Pay</h2>
       <div class="confirm-summary">
         <div class="summary-section">
           <h3>Shipping To</h3>
@@ -144,12 +107,22 @@
           <p>Phone: {{ shippingForm.value.phone }}</p>
         </div>
         <div class="summary-section">
-          <h3>Payment</h3>
-          <p>Card ending in {{ paymentForm.value.cardNumber?.slice(-4) }}</p>
+          <h3>Order Items</h3>
+          <div class="cart-item" *ngFor="let item of cartItems">
+            <span class="item-name">{{ item.itemName }}</span>
+            <span class="item-qty">x{{ item.quantity }}</span>
+            <span class="item-price">₹{{ item.price * item.quantity | number:'1.2-2' }}</span>
+          </div>
         </div>
         <div class="summary-section">
           <h3>Order Total</h3>
           <p class="order-total">₹{{ totalPrice | number:'1.2-2' }}</p>
+        </div>
+        <div class="payment-info">
+          <p class="payment-note">
+            <span class="material-icons" aria-hidden="true">lock</span>
+            You will be redirected to Razorpay's secure payment gateway to complete your payment.
+          </p>
         </div>
       </div>
     </div>
@@ -160,11 +133,12 @@
         *ngIf="currentStep > 1"
         class="btn-secondary"
         (click)="prevStep()"
+        [disabled]="isSubmitting"
         type="button">
         Back
       </button>
       <button
-        *ngIf="currentStep < 4"
+        *ngIf="currentStep < 3"
         class="btn-primary"
         (click)="nextStep()"
         [disabled]="currentStep === 1 && cartItems.length === 0"
@@ -172,12 +146,12 @@
         Continue
       </button>
       <button
-        *ngIf="currentStep === 4"
-        class="btn-primary"
+        *ngIf="currentStep === 3"
+        class="btn-primary btn-pay"
         (click)="placeOrder()"
-        [disabled]="isSubmitting"
+        [disabled]="isSubmitting || cartItems.length === 0"
         type="button">
-        {{ isSubmitting ? 'Placing Order...' : 'Place Order' }}
+        {{ isSubmitting ? 'Processing...' : 'Pay ₹' + (totalPrice | number:'1.2-2') }}
       </button>
     </div>
   </div>

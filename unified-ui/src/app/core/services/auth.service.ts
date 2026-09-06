@@ -101,12 +101,16 @@ export class AuthService {
 
   private handleAuthResponse(response: AuthResponse): void {
     localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+    if (response.refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, response.refreshToken);
+    } else {
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+    }
     localStorage.setItem(USER_KEY, JSON.stringify(response.user));
 
     this.state$.next({
       token: response.token,
-      refreshToken: response.refreshToken,
+      refreshToken: response.refreshToken || null,
       user: response.user,
       isAuthenticated: true,
     });

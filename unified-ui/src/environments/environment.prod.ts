@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  apiUrl: ''
+  apiUrl: '',
+  razorpayKeyId: '' // Set via build-time environment variable
 };

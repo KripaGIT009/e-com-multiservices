@@ -52,8 +52,6 @@ interface KpiCard {
   styleUrls: ['./active-orders.component.scss'],
 })
 export class ActiveOrdersComponent implements OnInit {
-  private readonly ordersApiUrl = '/api/admin/orders';
-
   orders: ActiveOrder[] = [];
   filteredOrders: ActiveOrder[] = [];
   paginatedOrders: ActiveOrder[] = [];
@@ -117,19 +115,53 @@ export class ActiveOrdersComponent implements OnInit {
     this.hasError = false;
     this.errorMessage = '';
 
-    this.http.get<ActiveOrder[]>(`${this.ordersApiUrl}/active`).subscribe({
-      next: (orders) => {
-        this.orders = orders;
+    // Fetch real orders from the order-service via BFF
+    this.http.get<any[]>('/api/orders').subscribe({
+      next: (backendOrders) => {
+        // Map backend orders to ActiveOrder interface and filter active ones
+        this.orders = (backendOrders || [])
+          .filter(o => o.status !== 'DELIVERED' && o.status !== 'CANCELLED')
+          .map(o => this.mapBackendOrder(o));
         this.applyFilters();
         this.isLoading = false;
       },
       error: () => {
-        // Fallback to mock data for development
+        // Fallback to mock data if API fails
         this.orders = this.getMockOrders();
         this.applyFilters();
         this.isLoading = false;
       },
     });
+  }
+
+  private mapBackendOrder(o: any): ActiveOrder {
+    const firstItem = o.items?.[0];
+    return {
+      orderId: o.orderNumber || `ORD-${o.id}`,
+      productName: firstItem?.productName || 'Unknown Product',
+      productImage: 'assets/images/placeholder-product.png',
+      productSku: firstItem?.description || `SKU-${firstItem?.productId || '?'}`,
+      quantity: firstItem?.quantity || 1,
+      customerName: `Customer #${o.customerId}`,
+      customerPhone: '',
+      customerEmail: '',
+      amount: o.totalAmount || 0,
+      paymentMethod: 'Online',
+      orderDate: o.createdAt ? o.createdAt.split('T')[0] : '',
+      status: this.mapStatus(o.status),
+      deliveryAddress: '',
+      expectedDelivery: '',
+    };
+  }
+
+  private mapStatus(backendStatus: string): OrderStatus {
+    switch (backendStatus?.toUpperCase()) {
+      case 'PENDING': return 'pending';
+      case 'CONFIRMED': return 'confirmed';
+      case 'SHIPPED': return 'shipped';
+      case 'OUT_FOR_DELIVERY': return 'out-for-delivery';
+      default: return 'pending';
+    }
   }
 
   // ─── Search & Filtering ──────────────────────────────────────────────────────
@@ -230,17 +262,9 @@ export class ActiveOrdersComponent implements OnInit {
     this.statusUpdateLoading = order.orderId;
     this.statusUpdateError = '';
 
-    this.http.patch(`${this.ordersApiUrl}/${order.orderId}/status`, { status: newStatus }).subscribe({
-      next: () => {
-        order.status = newStatus;
-        this.statusUpdateLoading = null;
-      },
-      error: () => {
-        // In development, just update locally
-        order.status = newStatus;
-        this.statusUpdateLoading = null;
-      },
-    });
+    // Update locally (backend integration will be added when endpoint exists)
+    order.status = newStatus;
+    this.statusUpdateLoading = null;
   }
 
   // ─── Pagination ──────────────────────────────────────────────────────────────

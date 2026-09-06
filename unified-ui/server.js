@@ -524,6 +524,202 @@ app.get('/api/admin/dashboard/activity-feed', authenticateAny, async (req, res) 
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// RAZORPAY PAYMENT GATEWAY
+// ═══════════════════════════════════════════════════════════════════════════════
+const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID || 'rzp_test_PLACEHOLDER';
+const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET || 'PLACEHOLDER_SECRET';
+const crypto = require('crypto');
+
+// Get Razorpay key for frontend
+app.get('/api/payments/razorpay/key', (req, res) => {
+  res.json({ key: RAZORPAY_KEY_ID });
+});
+
+// Create Razorpay order
+app.post('/api/payments/razorpay/create-order', authenticateToken, async (req, res) => {
+  try {
+    const { amount, receipt } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Valid amount is required' });
+    }
+
+    // Test/demo mode: if using placeholder keys, return a mock order
+    if (RAZORPAY_KEY_ID === 'rzp_test_PLACEHOLDER' || RAZORPAY_KEY_ID.includes('PLACEHOLDER')) {
+      console.log('[Razorpay DEMO MODE] Creating mock order for amount:', amount);
+      return res.json({
+        id: `order_demo_${Date.now()}`,
+        amount: Math.round(amount * 100),
+        currency: 'INR',
+        receipt: receipt || `order_${Date.now()}`,
+        demo: true,
+      });
+    }
+
+    // Production mode: Create order via Razorpay API
+    const auth = Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64');
+    const orderResponse = await axios.post(
+      'https://api.razorpay.com/v1/orders',
+      {
+        amount: Math.round(amount * 100), // Convert to paise
+        currency: 'INR',
+        receipt: receipt || `order_${Date.now()}`,
+      },
+      {
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    res.json({
+      id: orderResponse.data.id,
+      amount: orderResponse.data.amount,
+      currency: orderResponse.data.currency,
+      receipt: orderResponse.data.receipt,
+    });
+  } catch (err) {
+    console.error('Razorpay order creation failed:', err.response?.data || err.message);
+    res.status(500).json({ error: 'Failed to create payment order' });
+  }
+});
+
+// Verify Razorpay payment signature
+app.post('/api/payments/razorpay/verify', authenticateToken, async (req, res) => {
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
+
+    // Demo mode: auto-verify if using placeholder keys
+    if (RAZORPAY_KEY_ID === 'rzp_test_PLACEHOLDER' || RAZORPAY_KEY_ID.includes('PLACEHOLDER')) {
+      console.log('[Razorpay DEMO MODE] Auto-verifying payment for order:', orderId);
+      return res.json({
+        success: true,
+        message: 'Payment verified successfully (demo mode)',
+        paymentId: razorpay_payment_id || `pay_demo_${Date.now()}`,
+        orderId: orderId,
+      });
+    }
+
+    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+      return res.status(400).json({ success: false, message: 'Missing payment details' });
+    }
+
+    // Verify signature
+    const body = razorpay_order_id + '|' + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac('sha256', RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature === razorpay_signature) {
+      // Payment verified — update order status if orderId provided
+      if (orderId) {
+        try {
+          await axios.post(`${PAYMENT_SERVICE}/api/v1/payments`, {
+            orderId: orderId,
+            amount: 0, // Will be fetched from order
+            paymentMethod: 'RAZORPAY',
+            transactionId: razorpay_payment_id,
+            status: 'COMPLETED',
+          });
+        } catch (payErr) {
+          console.warn('Payment service update failed (non-critical):', payErr.message);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: 'Payment verified successfully',
+        paymentId: razorpay_payment_id,
+        orderId: orderId,
+      });
+    } else {
+      res.status(400).json({ success: false, message: 'Payment verification failed - invalid signature' });
+    }
+  } catch (err) {
+    console.error('Payment verification error:', err.message);
+    res.status(500).json({ success: false, message: 'Payment verification error' });
+  }
+});
+
+// Razorpay Webhook — handles async payment events from Razorpay
+// Configure in Razorpay Dashboard → Settings → Webhooks
+// URL: https://yourdomain.com/api/payments/razorpay/webhook
+// Events: payment.captured, payment.failed, refund.created
+const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || RAZORPAY_KEY_SECRET;
+
+app.post('/api/payments/razorpay/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  try {
+    const webhookSignature = req.headers['x-razorpay-signature'];
+    const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+
+    // Verify webhook signature
+    const expectedSignature = crypto
+      .createHmac('sha256', RAZORPAY_WEBHOOK_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (webhookSignature !== expectedSignature) {
+      console.warn('[Razorpay Webhook] Invalid signature — rejecting');
+      return res.status(400).json({ error: 'Invalid webhook signature' });
+    }
+
+    const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const eventType = event.event;
+    const payload = event.payload;
+
+    console.log(`[Razorpay Webhook] Event: ${eventType}`);
+
+    switch (eventType) {
+      case 'payment.captured': {
+        const payment = payload.payment?.entity;
+        if (payment) {
+          console.log(`[Razorpay Webhook] Payment captured: ${payment.id}, Amount: ${payment.amount / 100} INR, Order: ${payment.order_id}`);
+          // Update order status to CONFIRMED/PAID in your system
+          // This is the backup confirmation for cases where client callback fails
+        }
+        break;
+      }
+
+      case 'payment.failed': {
+        const payment = payload.payment?.entity;
+        if (payment) {
+          console.log(`[Razorpay Webhook] Payment failed: ${payment.id}, Reason: ${payment.error_description}`);
+          // Optionally mark order as payment-failed
+        }
+        break;
+      }
+
+      case 'refund.created': {
+        const refund = payload.refund?.entity;
+        if (refund) {
+          console.log(`[Razorpay Webhook] Refund created: ${refund.id}, Amount: ${refund.amount / 100} INR, Payment: ${refund.payment_id}`);
+          // Update order/payment status to REFUNDED
+        }
+        break;
+      }
+
+      case 'order.paid': {
+        const order = payload.order?.entity;
+        if (order) {
+          console.log(`[Razorpay Webhook] Order paid: ${order.id}, Amount: ${order.amount / 100} INR`);
+        }
+        break;
+      }
+
+      default:
+        console.log(`[Razorpay Webhook] Unhandled event: ${eventType}`);
+    }
+
+    // Always respond 200 to acknowledge receipt (Razorpay retries on non-2xx)
+    res.status(200).json({ status: 'ok' });
+  } catch (err) {
+    console.error('[Razorpay Webhook] Error processing:', err.message);
+    res.status(200).json({ status: 'ok' }); // Still return 200 to prevent retries on parse errors
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN DASHBOARD (legacy)
 // ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/admin/dashboard', authenticateAdmin, async (req, res) => {
