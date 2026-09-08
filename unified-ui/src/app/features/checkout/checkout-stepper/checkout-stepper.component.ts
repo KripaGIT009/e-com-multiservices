@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { RazorpayService, RazorpayPaymentResult } from '../../../core/services/razorpay.service';
+import { CartService } from '../../../core/services/cart.service';
 
 interface CartItem {
   id: number;
@@ -40,7 +41,8 @@ export class CheckoutStepperComponent implements OnInit {
     private router: Router,
     private authService: AuthService,
     private notificationService: NotificationService,
-    private razorpayService: RazorpayService
+    private razorpayService: RazorpayService,
+    private cartService: CartService
   ) {
     this.shippingForm = this.fb.group({
       fullName: ['', [Validators.required, Validators.minLength(2)]],
@@ -180,6 +182,11 @@ export class CheckoutStepperComponent implements OnInit {
         this.isSubmitting = false;
         if (verification.success) {
           this.notificationService.show('Payment successful!', 'success');
+          // The cart used to still hold everything the customer had just bought.
+          this.http.delete(`/api/cart/${this.userId}/clear`).subscribe({
+            complete: () => this.cartService.refresh(),
+            error: () => this.cartService.refresh(),
+          });
           this.router.navigate(['/checkout/confirmation'], {
             queryParams: { orderId },
           });

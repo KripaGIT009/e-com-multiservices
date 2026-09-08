@@ -18,7 +18,10 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     
     List<RefreshToken> findAllByUser(User user);
     
-    @Modifying(clearAutomatically = true)
+    // flushAutomatically is required here: clearAutomatically wipes the persistence
+    // context, which would otherwise discard the password UPDATE the caller queued
+    // via userRepository.save() immediately before calling this method.
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE RefreshToken rt SET rt.revoked = true WHERE rt.user = :user")
     void revokeAllByUser(@Param("user") User user);
 }

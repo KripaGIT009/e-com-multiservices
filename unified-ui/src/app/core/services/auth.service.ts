@@ -94,6 +94,10 @@ export class AuthService {
     return this.state$.getValue().token;
   }
 
+  getRefreshToken(): string | null {
+    return this.state$.getValue().refreshToken;
+  }
+
   getUserRole(): UserRole | null {
     const user = this.state$.getValue().user;
     return user ? user.role : null;

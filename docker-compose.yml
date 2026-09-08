@@ -373,7 +373,7 @@ services:
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: admin123
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JWT_SECRET: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+      JWT_SECRET: ${ADMIN_JWT_SECRET:?set ADMIN_JWT_SECRET in .env - see .env.example}
       SERVICE_URLS_ORDER: http://order-service:8080
       SERVICE_URLS_PAYMENT: http://payment-service:8080
       SERVICE_URLS_INVENTORY: http://inventory-service:8080
@@ -423,8 +423,9 @@ services:
       - notification-service
     environment:
       PORT: 4200
-      JWT_SECRET: your-unified-secret-key
-      ADMIN_JWT_SECRET: adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env - see .env.example}
+      ADMIN_JWT_SECRET: ${ADMIN_JWT_SECRET:?set ADMIN_JWT_SECRET in .env - see .env.example}
+      ALLOW_DEV_PASSWORD_RESET: ${ALLOW_DEV_PASSWORD_RESET:-false}
       USER_SERVICE_URL: http://user-service:8080
       ITEM_SERVICE_URL: http://item-service:8080
       CART_SERVICE_URL: http://cart-service:8080

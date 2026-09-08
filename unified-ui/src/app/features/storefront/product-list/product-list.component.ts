@@ -93,20 +93,21 @@ export class ProductListComponent implements OnInit {
 
   private loadProducts(): void {
     this.isLoading = true;
-    this.http.get<Product[]>('/api/items').subscribe({
+
+    // Server-side search/category so the header search box and the ~30 category
+    // links actually narrow the list; previously every one of them showed everything.
+    const hasQuery = !!(this.searchQuery || this.currentCategory);
+    let request = '/api/items';
+    if (hasQuery) {
+      const params: string[] = [];
+      if (this.searchQuery) params.push(`q=${encodeURIComponent(this.searchQuery)}`);
+      if (this.currentCategory) params.push(`category=${encodeURIComponent(this.currentCategory)}`);
+      request = `/api/items/search?${params.join('&')}`;
+    }
+
+    this.http.get<Product[]>(request).subscribe({
       next: (items) => {
-        // Enrich products with mock data for display
-        this.products = items.map((item, index) => ({
-          ...item,
-          imageUrl: item.imageUrl || this.getProductImage(item.name, item.category, item.id || index),
-          originalPrice: item.price ? Math.round(item.price * 1.3) : undefined,
-          discount: Math.floor(Math.random() * 40) + 10,
-          rating: +(Math.random() * 2 + 3).toFixed(1),
-          reviewCount: Math.floor(Math.random() * 5000) + 100,
-          inStock: Math.random() > 0.1,
-          sponsored: Math.random() > 0.7,
-          freeDelivery: Math.random() > 0.3,
-        }));
+        this.products = items.map((item) => this.toDisplayProduct(item));
         this.applyFilters();
         this.isLoading = false;
       },
@@ -117,8 +118,38 @@ export class ProductListComponent implements OnInit {
     });
   }
 
+  /**
+   * Derives the display fields the catalogue API does not yet provide.
+   *
+   * Everything here is a deterministic function of the product itself. The previous
+   * version used Math.random(), so ratings, review counts, discount badges and even
+   * stock status changed on every page load, and the discount badge contradicted the
+   * M.R.P. shown beside it.
+   */
+  private toDisplayProduct(item: Product): Product {
+    const inStock = (item as unknown as { quantity?: number }).quantity !== 0;
+    const originalPrice = item.price ? Math.round(item.price * 1.3) : undefined;
+    const discount =
+      originalPrice && item.price
+        ? Math.round(((originalPrice - item.price) / originalPrice) * 100)
+        : undefined;
+
+    return {
+      ...item,
+      imageUrl: item.imageUrl || this.getProductImage(item.name, item.category, item.id),
+      originalPrice,
+      discount,
+      inStock,
+      // Ratings belong to review-service; show none until it can supply them
+      // rather than inventing a number the customer would read as real.
+      rating: undefined,
+      reviewCount: undefined,
+      sponsored: false,
+      freeDelivery: true,
+    };
+  }
+
   private getProductImage(name: string, category: string, id: number): string {
-    // Generate a deterministic image based on product name/category
     const seed = (name || category || 'product').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) + id;
     return `https://picsum.photos/seed/${seed}/300/300`;
   }

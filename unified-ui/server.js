@@ -20,9 +20,29 @@ const app  = express();
 const PORT = process.env.PORT || 4200;
 
 // ── JWT secrets ───────────────────────────────────────────────────────────────
-const JWT_SECRET       = process.env.JWT_SECRET       || 'your-unified-secret-key';
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET ||
-  'adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements';
+const JWT_SECRET       = process.env.JWT_SECRET;
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
+
+// These secrets mint and validate every token in the system. Refuse to start
+// without them rather than silently falling back to a value published in the repo.
+const WEAK_SECRETS = [
+  'your-unified-secret-key',
+  'adminSecretKeyForJWTTokenGenerationAndValidation2025WithExtraLengthToMeetHS512Requirements',
+];
+for (const [name, value] of [['JWT_SECRET', JWT_SECRET], ['ADMIN_JWT_SECRET', ADMIN_JWT_SECRET]]) {
+  if (!value) {
+    console.error(`FATAL: ${name} is not set. Generate one with: openssl rand -base64 48`);
+    process.exit(1);
+  }
+  if (WEAK_SECRETS.includes(value)) {
+    console.error(`FATAL: ${name} is set to a well-known default published in this repository.`);
+    process.exit(1);
+  }
+  if (value.length < 32) {
+    console.error(`FATAL: ${name} must be at least 32 characters.`);
+    process.exit(1);
+  }
+}
 
 // ── Backend service URLs ──────────────────────────────────────────────────────
 const USER_SERVICE      = process.env.USER_SERVICE_URL      || 'http://localhost:8004';
@@ -36,7 +56,15 @@ const RETURN_SERVICE    = process.env.RETURN_SERVICE_URL     || 'http://localhos
 const ADMIN_SERVICE     = process.env.ADMIN_SERVICE_URL      || 'http://localhost:8011';
 
 app.use(cors());
-app.use(bodyParser.json());
+
+// The Razorpay webhook signature covers the exact request bytes, so this one route
+// must keep its raw body. Parsing it here would make verification impossible.
+const RAZORPAY_WEBHOOK_PATH = '/api/payments/razorpay/webhook';
+app.use((req, res, next) =>
+  req.path === RAZORPAY_WEBHOOK_PATH
+    ? express.raw({ type: '*/*' })(req, res, next)
+    : bodyParser.json()(req, res, next)
+);
 
 // ── Static file serving ───────────────────────────────────────────────────────
 const customerDistPath = path.join(__dirname, 'dist/unified-ui/browser');
@@ -57,29 +85,69 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+/**
+ * Resolves a bearer token against either realm without asserting any privilege.
+ * Returns null when the token is absent or invalid.
+ *
+ * Two identity realms exist: admin-service issues its own tokens (ADMIN_JWT_SECRET),
+ * while user-service accounts are signed by this BFF (JWT_SECRET) and carry a role
+ * claim. Both can legitimately be an administrator.
+ */
+const resolveUser = (req) => {
+  const token = (req.headers['authorization'] || '').split(' ')[1];
+  if (!token) return null;
+  try {
+    const u = jwt.verify(token, ADMIN_JWT_SECRET);
+    return { ...u, username: u.username || u.sub, isAdmin: true };
+  } catch (_) { /* not an admin-realm token — try the customer realm */ }
+  try {
+    const u = jwt.verify(token, JWT_SECRET);
+    return { ...u, isAdmin: u.role === 'ADMIN' };
+  } catch (_) {
+    return null;
+  }
+};
+
+// Requires a valid token in either realm AND administrator privilege.
 const authenticateAdmin = (req, res, next) => {
-  const token = (req.headers['authorization'] || '').split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Access token required' });
-  jwt.verify(token, ADMIN_JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid admin token' });
-    req.user = { ...user, isAdmin: true };
-    next();
-  });
+  if (!(req.headers['authorization'] || '').split(' ')[1])
+    return res.status(401).json({ error: 'Access token required' });
+  const user = resolveUser(req);
+  if (!user) return res.status(403).json({ error: 'Invalid token' });
+  if (!user.isAdmin) return res.status(403).json({ error: 'Administrator privileges required' });
+  req.user = user;
+  next();
 };
 
+// Requires a valid token in either realm; sets req.user.isAdmin for role-aware routes.
 const authenticateAny = (req, res, next) => {
-  const token = (req.headers['authorization'] || '').split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Access token required' });
-  jwt.verify(token, ADMIN_JWT_SECRET, (adminErr, adminUser) => {
-    if (!adminErr) { req.user = { ...adminUser, isAdmin: true }; return next(); }
-    jwt.verify(token, JWT_SECRET, (custErr, custUser) => {
-      if (!custErr) { req.user = { ...custUser, isAdmin: false }; return next(); }
-      return res.status(403).json({ error: 'Invalid token' });
-    });
-  });
+  if (!(req.headers['authorization'] || '').split(' ')[1])
+    return res.status(401).json({ error: 'Access token required' });
+  const user = resolveUser(req);
+  if (!user) return res.status(403).json({ error: 'Invalid token' });
+  req.user = user;
+  next();
 };
 
-const adminAuth = (req) => ({ Authorization: req.headers['authorization'] });
+/**
+ * Mints a short-lived admin-service token for the already-authorised caller.
+ *
+ * The caller's own token is deliberately not forwarded: a user-service ADMIN holds a
+ * JWT_SECRET token that admin-service cannot verify. Every route using this helper is
+ * already behind authenticateAdmin, so req.user is a confirmed administrator.
+ */
+const issueRefreshToken = (user) =>
+  jwt.sign({ ...user, aud: 'refresh' }, JWT_SECRET, { expiresIn: '7d' });
+
+const adminAuth = (req) => {
+  const username = req.user?.username || req.user?.sub || req.user?.email || 'admin';
+  const role = req.user?.role && req.user.role !== 'ADMIN' ? req.user.role : 'ADMIN';
+  const token = jwt.sign({ sub: username, role }, ADMIN_JWT_SECRET, {
+    algorithm: 'HS512',
+    expiresIn: '5m',
+  });
+  return { Authorization: `Bearer ${token}` };
+};
 
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get('/health', (_, res) => res.json({ status: 'UP', service: 'unified-ui' }));
@@ -110,7 +178,8 @@ app.post('/api/auth/login', async (req, res) => {
       { id: uid, username: data.username, email: data.email, role: data.role || 'CUSTOMER' },
       JWT_SECRET, { expiresIn: '24h' }
     );
-    res.json({ token, user: { id: uid, username: data.username, email: data.email, role: data.role || 'CUSTOMER' } });
+    const user = { id: uid, username: data.username, email: data.email, role: data.role || 'CUSTOMER' };
+    res.json({ token, refreshToken: issueRefreshToken(user), user });
   } catch (err) { res.status(401).json({ error: 'Invalid credentials' }); }
 });
 
@@ -127,36 +196,93 @@ app.post('/api/auth/register', async (req, res) => {
       { id: user.id, username: user.username, email: user.email, role: 'CUSTOMER' },
       JWT_SECRET, { expiresIn: '24h' }
     );
-    res.status(201).json({ token, user: { id: user.id, username: user.username, email: user.email, role: 'CUSTOMER' } });
+    const authUser = { id: user.id, username: user.username, email: user.email, role: 'CUSTOMER' };
+    res.status(201).json({ token, refreshToken: issueRefreshToken(authUser), user: authUser });
   } catch (err) { res.status(err.response?.status || 500).json({ error: 'Registration failed', details: err.message }); }
 });
 
 app.post('/api/auth/logout', (_, res) => res.json({ message: 'Logged out successfully' }));
 
-// Forgot/Reset Password — sets a new password for an email
+// ── Password reset ────────────────────────────────────────────────────────────
+// Two steps. Requesting a reset issues a short-lived single-purpose token; only a
+// holder of that token may set a new password. The previous single-call version let
+// anyone who knew an email address take over the account.
+//
+// No mail transport is configured in this environment, so the token is logged
+// server-side and — only when ALLOW_DEV_PASSWORD_RESET is explicitly enabled —
+// returned in the response. Wire up notification-service before going to production.
+const RESET_TOKEN_AUDIENCE = 'password-reset';
+const ALLOW_DEV_PASSWORD_RESET = process.env.ALLOW_DEV_PASSWORD_RESET === 'true';
+
 app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  // Always answer identically so this endpoint cannot be used to enumerate accounts.
+  const neutral = {
+    message: 'If an account exists for that email, a password reset link has been sent.',
+  };
+
+  let user;
   try {
-    const { email, newPassword } = req.body;
-    if (!email || !newPassword)
-      return res.status(400).json({ error: 'Email and new password are required' });
+    user = (await axios.get(`${USER_SERVICE}/api/users/email/${email}`)).data;
+  } catch (e) {
+    return res.json(neutral);
+  }
+
+  const resetToken = jwt.sign(
+    { sub: String(user.id), email: user.email, aud: RESET_TOKEN_AUDIENCE },
+    JWT_SECRET,
+    { expiresIn: '15m' }
+  );
+  console.log(`[password-reset] token issued for ${user.email} (valid 15m)`);
+
+  res.json(ALLOW_DEV_PASSWORD_RESET ? { ...neutral, devResetToken: resetToken } : neutral);
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  try {
+    const { token, newPassword } = req.body || {};
+    if (!token || !newPassword)
+      return res.status(400).json({ error: 'Reset token and new password are required' });
     if (newPassword.length < 8)
       return res.status(400).json({ error: 'Password must be at least 8 characters' });
 
-    // Look up user by email
-    let user;
+    let claims;
     try {
-      user = (await axios.get(`${USER_SERVICE}/api/users/email/${email}`)).data;
+      claims = jwt.verify(token, JWT_SECRET, { audience: RESET_TOKEN_AUDIENCE });
     } catch (e) {
-      return res.status(404).json({ error: 'No account found with that email' });
+      return res.status(400).json({ error: 'This reset link is invalid or has expired.' });
     }
 
-    // Update password via user-service reset endpoint
-    await axios.post(`${USER_SERVICE}/api/auth/reset-password`, { email, newPassword });
+    await axios.post(`${USER_SERVICE}/api/auth/reset-password`, {
+      email: claims.email,
+      newPassword,
+    });
     res.json({ message: 'Password reset successfully. You can now log in with your new password.' });
   } catch (err) {
-    console.error('Forgot password error:', err.message);
+    console.error('Reset password error:', err.message);
     res.status(500).json({ error: 'Failed to reset password' });
   }
+});
+
+// The Angular JwtInterceptor calls this on any 401. Without it every 401 — including
+// a simply wrong password — ended in a forced logout labelled "session expired".
+app.post('/api/auth/refresh', (req, res) => {
+  const { refreshToken } = req.body || {};
+  if (!refreshToken) return res.status(401).json({ error: 'Refresh token required' });
+  let claims;
+  try {
+    claims = jwt.verify(refreshToken, JWT_SECRET, { audience: 'refresh' });
+  } catch (e) {
+    return res.status(401).json({ error: 'Invalid or expired refresh token' });
+  }
+  const user = { id: claims.id, username: claims.username, email: claims.email, role: claims.role };
+  res.json({
+    token: jwt.sign(user, JWT_SECRET, { expiresIn: '24h' }),
+    refreshToken: issueRefreshToken(user),
+    user,
+  });
 });
 
 app.get('/api/auth/verify', (req, res) => {
@@ -201,9 +327,23 @@ app.delete('/api/admin/:id', authenticateAdmin, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ITEMS — public reads, admin writes
 // ═══════════════════════════════════════════════════════════════════════════════
+// item-service exposes no /items/search route — proxying there bound "search" to
+// @GetMapping("/{id}") and returned 400. Filter the catalogue here until a real
+// search service exists.
 app.get('/api/items/search', async (req, res) => {
-  try { res.json((await axios.get(`${ITEM_SERVICE}/items/search`, { params: req.query })).data); }
-  catch (e) { res.status(e.response?.status || 500).json({ error: 'Search failed' }); }
+  try {
+    const items = (await axios.get(`${ITEM_SERVICE}/items`)).data || [];
+    const q = String(req.query.q || req.query.search || '').trim().toLowerCase();
+    const category = String(req.query.category || '').trim().toLowerCase();
+    const matches = items.filter((item) => {
+      const haystack = [item.name, item.description, item.sku, item.itemType]
+        .filter(Boolean).join(' ').toLowerCase();
+      const matchesQuery = !q || q.split(/\s+/).every((term) => haystack.includes(term));
+      const matchesCategory = !category || String(item.itemType || '').toLowerCase() === category;
+      return matchesQuery && matchesCategory;
+    });
+    res.json(matches);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Search failed' }); }
 });
 app.get('/api/items/sku/:sku', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ITEM_SERVICE}/items/sku/${req.params.sku}`)).data); }
@@ -217,15 +357,15 @@ app.get('/api/items', async (req, res) => {
   try { res.json((await axios.get(`${ITEM_SERVICE}/items`)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch items' }); }
 });
-app.post('/api/items', authenticateAny, async (req, res) => {
+app.post('/api/items', authenticateAdmin, async (req, res) => {
   try { res.status(201).json((await axios.post(`${ADMIN_SERVICE}/api/manage/items`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create item' }); }
 });
-app.put('/api/items/:id', authenticateAny, async (req, res) => {
+app.put('/api/items/:id', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/items/${req.params.id}`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update item' }); }
 });
-app.delete('/api/items/:id', authenticateAny, async (req, res) => {
+app.delete('/api/items/:id', authenticateAdmin, async (req, res) => {
   try { await axios.delete(`${ADMIN_SERVICE}/api/manage/items/${req.params.id}`, { headers: adminAuth(req) }); res.status(204).send(); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to delete item' }); }
 });
@@ -233,60 +373,104 @@ app.delete('/api/items/:id', authenticateAny, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // CART — customer
 // ═══════════════════════════════════════════════════════════════════════════════
+const GUEST_CART_USER_ID = 999999;
+
+/**
+ * The cart always belongs to the caller. :userId in the path is ignored — it was
+ * previously trusted, which let anyone read or mutate any cart by id.
+ */
+const cartOwner = (req) => {
+  const user = resolveUser(req);
+  return user?.id ? parseInt(user.id, 10) : GUEST_CART_USER_ID;
+};
+
+/** Resolves (creating if needed) the caller's cart. */
+const getOrCreateCart = async (uid) => {
+  try {
+    return (await axios.get(`${CART_SERVICE}/carts/user/${uid}`)).data;
+  } catch (e) {
+    if (e.response?.status === 404 || e.response?.status === 500) {
+      return (await axios.post(`${CART_SERVICE}/carts?userId=${uid}`)).data;
+    }
+    throw e;
+  }
+};
+
+/** Maps a product id to the caller's matching cart-item row, or null. */
+const findCartItem = async (cartId, itemId) => {
+  const items = (await axios.get(`${CART_SERVICE}/carts/${cartId}/items`)).data || [];
+  return items.find((i) => String(i.id) === String(itemId))
+      || items.find((i) => String(i.itemId) === String(itemId))
+      || null;
+};
+
 app.get('/api/cart/:userId', async (req, res) => {
   try {
-    const uid = req.params.userId === 'guest-user' ? 999999 : parseInt(req.params.userId);
-    let cart;
-    try { 
-      cart = (await axios.get(`${CART_SERVICE}/carts/user/${uid}`)).data; 
-    } catch (e) {
-      if (e.response?.status === 404 || e.response?.status === 500) {
-        // Create a new cart only if none exists — use POST which is idempotent in our controller
-        cart = (await axios.post(`${CART_SERVICE}/carts?userId=${uid}`)).data;
-      } else {
-        throw e;
-      }
-    }
-    // Fetch cart items and include them in the response
+    const cart = await getOrCreateCart(cartOwner(req));
     let items = [];
     try { items = (await axios.get(`${CART_SERVICE}/carts/${cart.id}/items`)).data; }
     catch (e) { /* no items yet */ }
     res.json({ ...cart, items });
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch cart' }); }
 });
+
 app.post('/api/cart/:userId/items', async (req, res) => {
   try {
-    const uid = req.params.userId === 'guest-user' ? 999999 : parseInt(req.params.userId);
-    let cart;
-    try { 
-      cart = (await axios.get(`${CART_SERVICE}/carts/user/${uid}`)).data; 
-    } catch (e) {
-      if (e.response?.status === 404 || e.response?.status === 500) {
-        cart = (await axios.post(`${CART_SERVICE}/carts?userId=${uid}`)).data;
-      } else {
-        throw e;
-      }
-    }
+    const cart = await getOrCreateCart(cartOwner(req));
     const item = (await axios.get(`${ITEM_SERVICE}/items/${req.body.itemId}`)).data;
+    const quantity = Math.max(1, parseInt(req.body.quantity, 10) || 1);
+
+    // cart-service always inserts a new row, so adding the same product twice used
+    // to produce duplicate lines. Merge into the existing line instead.
+    const existing = await findCartItem(cart.id, item.id);
+    if (existing) {
+      const r = await axios.put(`${CART_SERVICE}/carts/${cart.id}/items/${existing.id}`, {
+        quantity: existing.quantity + quantity,
+      });
+      return res.json(r.data);
+    }
+
     const r = await axios.post(`${CART_SERVICE}/carts/${cart.id}/items`, {
-      itemId: item.id, itemName: item.name, quantity: req.body.quantity || 1, price: item.price
+      itemId: item.id, itemName: item.name, quantity, price: item.price,
     });
     res.json(r.data);
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to add to cart' }); }
 });
+
 app.put('/api/cart/:userId/items/:itemId', async (req, res) => {
-  try { res.json((await axios.put(`${CART_SERVICE}/carts/${req.params.userId}/items/${req.params.itemId}`, req.body)).data); }
-  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update cart' }); }
+  try {
+    const cart = await getOrCreateCart(cartOwner(req));
+    // cart-service keys on the cart-item row id, not the product id the UI sends.
+    const line = await findCartItem(cart.id, req.params.itemId);
+    if (!line) return res.status(404).json({ error: 'Item not in cart' });
+    res.json((await axios.put(`${CART_SERVICE}/carts/${cart.id}/items/${line.id}`, req.body)).data);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update cart' }); }
 });
+
 app.delete('/api/cart/:userId/items/:itemId', async (req, res) => {
-  try { res.json((await axios.delete(`${CART_SERVICE}/carts/${req.params.userId}/items/${req.params.itemId}`)).data); }
-  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to remove cart item' }); }
+  try {
+    const cart = await getOrCreateCart(cartOwner(req));
+    const line = await findCartItem(cart.id, req.params.itemId);
+    if (!line) return res.status(404).json({ error: 'Item not in cart' });
+    await axios.delete(`${CART_SERVICE}/carts/${cart.id}/items/${line.id}`);
+    res.status(204).send();
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to remove cart item' }); }
+});
+
+// §2.6 — the cart was never emptied after checkout, so users kept everything they
+// had just bought. Exposed so the checkout flow can clear it.
+app.delete('/api/cart/:userId/clear', async (req, res) => {
+  try {
+    const cart = await getOrCreateCart(cartOwner(req));
+    await axios.delete(`${CART_SERVICE}/carts/${cart.id}/clear`);
+    res.status(204).send();
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to clear cart' }); }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // INVENTORY
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/api/inventory', authenticateAny, async (req, res) => {
+app.get('/api/inventory', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/inventory`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch inventory' }); }
 });
@@ -294,7 +478,7 @@ app.get('/api/inventory/:id', async (req, res) => {
   try { res.json((await axios.get(`${INVENTORY_SERVICE}/inventory/${req.params.id}`)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch inventory item' }); }
 });
-app.post('/api/inventory', authenticateAny, async (req, res) => {
+app.post('/api/inventory', authenticateAdmin, async (req, res) => {
   try { res.status(201).json((await axios.post(`${ADMIN_SERVICE}/api/manage/inventory`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to add inventory' }); }
 });
@@ -322,23 +506,23 @@ app.put('/api/users/profile', authenticateToken, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // USERS — admin CRUD
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/api/users', authenticateAny, async (req, res) => {
+app.get('/api/users', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/users`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch users' }); }
 });
-app.get('/api/users/:id', authenticateAny, async (req, res) => {
+app.get('/api/users/:id', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/users/${req.params.id}`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch user' }); }
 });
-app.post('/api/users', authenticateAny, async (req, res) => {
+app.post('/api/users', authenticateAdmin, async (req, res) => {
   try { res.status(201).json((await axios.post(`${ADMIN_SERVICE}/api/manage/users`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create user' }); }
 });
-app.put('/api/users/:id', authenticateAny, async (req, res) => {
+app.put('/api/users/:id', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/users/${req.params.id}`, req.body, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update user' }); }
 });
-app.delete('/api/users/:id', authenticateAny, async (req, res) => {
+app.delete('/api/users/:id', authenticateAdmin, async (req, res) => {
   try { await axios.delete(`${ADMIN_SERVICE}/api/manage/users/${req.params.id}`, { headers: adminAuth(req) }); res.status(204).send(); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to delete user' }); }
 });
@@ -355,7 +539,13 @@ app.get('/api/orders', authenticateAny, async (req, res) => {
 app.get('/api/orders/:orderId', authenticateAny, async (req, res) => {
   try {
     if (req.user.isAdmin) { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/orders/${req.params.orderId}`, { headers: adminAuth(req) })).data); }
-    else { res.json((await axios.get(`${ORDER_SERVICE}/api/v1/orders/${req.params.orderId}`)).data); }
+    else {
+      const order = (await axios.get(`${ORDER_SERVICE}/api/v1/orders/${req.params.orderId}`)).data;
+      // Order ids are sequential — without this check any customer could read any order.
+      if (String(order.customerId) !== String(req.user.id))
+        return res.status(404).json({ error: 'Order not found' });
+      res.json(order);
+    }
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch order' }); }
 });
 app.post('/api/orders', authenticateToken, async (req, res) => {
@@ -373,7 +563,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     res.status(response.status).json(response.data);
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create order' }); }
 });
-app.put('/api/orders/:id/status', authenticateAny, async (req, res) => {
+app.put('/api/orders/:id/status', authenticateAdmin, async (req, res) => {
   try {
     const r = await axios.put(`${ADMIN_SERVICE}/api/manage/orders/${req.params.id}/status?status=${req.body.status}`, {}, { headers: adminAuth(req) });
     res.json(r.data);
@@ -395,27 +585,37 @@ app.get('/api/checkout/:id', async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // PAYMENTS — role-aware
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/api/payments/order/:orderId', async (req, res) => {
-  try { res.json((await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/order/${req.params.orderId}`)).data); }
-  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch payment by order' }); }
+app.get('/api/payments/order/:orderId', authenticateAny, async (req, res) => {
+  try {
+    const payment = (await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/order/${req.params.orderId}`)).data;
+    if (!req.user.isAdmin && String(payment.customerId) !== String(req.user.id))
+      return res.status(404).json({ error: 'Payment not found' });
+    res.json(payment);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch payment by order' }); }
 });
 app.get('/api/payments', authenticateAny, async (req, res) => {
   try {
     if (req.user.isAdmin) { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/payments`, { headers: adminAuth(req) })).data); }
-    else { res.json((await axios.get(`${PAYMENT_SERVICE}/api/v1/payments`)).data); }
+    // Scoped to the caller — the unscoped collection is every customer's payment history.
+    else { res.json((await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/customer/${req.user.id}`)).data); }
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch payments' }); }
 });
 app.get('/api/payments/:id', authenticateAny, async (req, res) => {
   try {
     if (req.user.isAdmin) { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/payments/${req.params.id}`, { headers: adminAuth(req) })).data); }
-    else { res.json((await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/${req.params.id}`)).data); }
+    else {
+      const payment = (await axios.get(`${PAYMENT_SERVICE}/api/v1/payments/${req.params.id}`)).data;
+      if (String(payment.customerId) !== String(req.user.id))
+        return res.status(404).json({ error: 'Payment not found' });
+      res.json(payment);
+    }
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch payment' }); }
 });
 app.post('/api/payments', async (req, res) => {
   try { res.json((await axios.post(`${PAYMENT_SERVICE}/api/v1/payments`, req.body)).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Payment failed' }); }
 });
-app.post('/api/payments/:id/refund', authenticateAny, async (req, res) => {
+app.post('/api/payments/:id/refund', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.post(`${ADMIN_SERVICE}/api/manage/payments/${req.params.id}/refund`, {}, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to refund payment' }); }
 });
@@ -432,18 +632,23 @@ app.get('/api/returns', authenticateAny, async (req, res) => {
 app.get('/api/returns/:id', authenticateAny, async (req, res) => {
   try {
     if (req.user.isAdmin) { res.json((await axios.get(`${ADMIN_SERVICE}/api/manage/returns/${req.params.id}`, { headers: adminAuth(req) })).data); }
-    else { res.json((await axios.get(`${RETURN_SERVICE}/api/returns/${req.params.id}`)).data); }
+    else {
+      const ret = (await axios.get(`${RETURN_SERVICE}/api/returns/${req.params.id}`)).data;
+      if (String(ret.userId) !== String(req.user.id))
+        return res.status(404).json({ error: 'Return not found' });
+      res.json(ret);
+    }
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch return' }); }
 });
 app.post('/api/returns', authenticateToken, async (req, res) => {
   try { res.json((await axios.post(`${RETURN_SERVICE}/api/returns`, { ...req.body, userId: req.user.id })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create return' }); }
 });
-app.put('/api/returns/:id/approve', authenticateAny, async (req, res) => {
+app.put('/api/returns/:id/approve', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/returns/${req.params.id}/approve`, {}, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to approve return' }); }
 });
-app.put('/api/returns/:id/reject', authenticateAny, async (req, res) => {
+app.put('/api/returns/:id/reject', authenticateAdmin, async (req, res) => {
   try { res.json((await axios.put(`${ADMIN_SERVICE}/api/manage/returns/${req.params.id}/reject`, {}, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to reject return' }); }
 });
@@ -495,31 +700,31 @@ app.get('/api/audit', authenticateAdmin, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN DASHBOARD ANALYTICS
 // ═══════════════════════════════════════════════════════════════════════════════
-app.get('/api/admin/dashboard/summary', authenticateAny, async (req, res) => {
-  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/summary`)).data); }
+app.get('/api/admin/dashboard/summary', authenticateAdmin, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/summary`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch dashboard summary' }); }
 });
 
-app.get('/api/admin/dashboard/revenue', authenticateAny, async (req, res) => {
+app.get('/api/admin/dashboard/revenue', authenticateAdmin, async (req, res) => {
   try { 
     const period = req.query.period || 'monthly';
-    res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/revenue?period=${period}`)).data); 
+    res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/revenue?period=${period}`, { headers: adminAuth(req) })).data); 
   }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch revenue data' }); }
 });
 
-app.get('/api/admin/dashboard/orders/status-distribution', authenticateAny, async (req, res) => {
-  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/orders/status-distribution`)).data); }
+app.get('/api/admin/dashboard/orders/status-distribution', authenticateAdmin, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/orders/status-distribution`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch order status distribution' }); }
 });
 
-app.get('/api/admin/dashboard/products/top-selling', authenticateAny, async (req, res) => {
-  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/products/top-selling`)).data); }
+app.get('/api/admin/dashboard/products/top-selling', authenticateAdmin, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/products/top-selling`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch top products' }); }
 });
 
-app.get('/api/admin/dashboard/activity-feed', authenticateAny, async (req, res) => {
-  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/activity-feed`)).data); }
+app.get('/api/admin/dashboard/activity-feed', authenticateAdmin, async (req, res) => {
+  try { res.json((await axios.get(`${ADMIN_SERVICE}/api/admin/dashboard/activity-feed`, { headers: adminAuth(req) })).data); }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch activity feed' }); }
 });
 
@@ -648,10 +853,11 @@ app.post('/api/payments/razorpay/verify', authenticateToken, async (req, res) =>
 // Events: payment.captured, payment.failed, refund.created
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || RAZORPAY_KEY_SECRET;
 
-app.post('/api/payments/razorpay/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+app.post(RAZORPAY_WEBHOOK_PATH, (req, res) => {
   try {
     const webhookSignature = req.headers['x-razorpay-signature'];
-    const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+    // req.body is a Buffer here (see the raw-body middleware above).
+    const body = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : String(req.body);
 
     // Verify webhook signature
     const expectedSignature = crypto
@@ -664,7 +870,7 @@ app.post('/api/payments/razorpay/webhook', express.raw({ type: 'application/json
       return res.status(400).json({ error: 'Invalid webhook signature' });
     }
 
-    const event = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const event = JSON.parse(body);
     const eventType = event.event;
     const payload = event.payload;
 

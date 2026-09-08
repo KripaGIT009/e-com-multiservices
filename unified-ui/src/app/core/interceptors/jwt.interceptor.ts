@@ -63,6 +63,20 @@ export class JwtInterceptor implements HttpInterceptor {
         }
 
         if (error.status === 401) {
+          // Auth endpoints answer 401 for bad credentials, not an expired session.
+          // Refreshing there logged the user out and mislabelled the failure.
+          const isAuthEndpoint = [
+            '/api/auth/login',
+            '/api/auth/register',
+            '/api/auth/refresh',
+            '/api/auth/forgot-password',
+            '/api/auth/reset-password',
+          ].some((p) => authReq.url.startsWith(p));
+
+          // Nothing to refresh with — surface the error instead of forcing a logout.
+          if (isAuthEndpoint || !this.authService.getRefreshToken()) {
+            return throwError(() => error);
+          }
           return this.handle401Error(authReq, next);
         }
 
