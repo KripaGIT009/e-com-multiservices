@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../../core/services/auth.service';
+import { CartService } from '../../../core/services/cart.service';
 import { AuthUser } from '../../../core/models/auth.models';
 
 @Component({
@@ -90,22 +91,28 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   ];
 
   private userSubscription: Subscription | null = null;
+  private cartSubscription: Subscription | null = null;
 
   constructor(
     private authService: AuthService,
+    private cartService: CartService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.userSubscription = this.authService.currentUser$.subscribe(
-      (user) => (this.currentUser = user)
+    this.userSubscription = this.authService.currentUser$.subscribe((user) => {
+      this.currentUser = user;
+      // The cart is keyed to the caller, so reload it whenever identity changes.
+      this.cartService.refresh();
+    });
+    this.cartSubscription = this.cartService.itemCount$.subscribe(
+      (count) => (this.cartCount = count)
     );
   }
 
   ngOnDestroy(): void {
-    if (this.userSubscription) {
-      this.userSubscription.unsubscribe();
-    }
+    this.userSubscription?.unsubscribe();
+    this.cartSubscription?.unsubscribe();
   }
 
   get isAuthenticated(): boolean {

@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { AdminAnalyticsService } from '../services/admin-analytics.service';
 import { AuthService } from '@core/services/auth.service';
+import { NotificationService } from '@core/services/notification.service';
 import { DashboardSummary } from '../models';
 import { StatusVariant } from '../components/status-badge/status-badge.component';
 
@@ -16,6 +20,16 @@ interface RecentOrder {
   customerName: string;
   amount: number;
   status: string;
+}
+
+/** Shape returned by GET /api/orders for an administrator. */
+interface AdminOrder {
+  id: number;
+  orderNumber?: string;
+  customerId?: string;
+  status?: string;
+  totalAmount?: number;
+  createdAt?: string;
 }
 
 interface QuickAction {
@@ -50,6 +64,8 @@ export class AdminDashboardComponent implements OnInit {
   constructor(
     private adminAnalyticsService: AdminAnalyticsService,
     private authService: AuthService,
+    private notificationService: NotificationService,
+    private http: HttpClient,
     private router: Router
   ) {}
 
@@ -69,8 +85,7 @@ export class AdminDashboardComponent implements OnInit {
         this.dashboardSummary = summary;
         this.isLoading = false;
 
-        // Generate mock recent orders from summary data
-        this.recentOrders = this.generateRecentOrders();
+        this.loadRecentOrders();
 
         if (summary.warnings && summary.warnings.length > 0) {
           this.showWarnings(summary.warnings);
@@ -127,19 +142,37 @@ export class AdminDashboardComponent implements OnInit {
     return this.dashboardSummary?.totalProducts || 0;
   }
 
-  private generateRecentOrders(): RecentOrder[] {
-    // Placeholder recent orders — in production these would come from backend
-    return [
-      { orderId: 'ORD-2024-001', customerName: 'Rahul Sharma', amount: 1299, status: 'Pending' },
-      { orderId: 'ORD-2024-002', customerName: 'Priya Patel', amount: 2450, status: 'Confirmed' },
-      { orderId: 'ORD-2024-003', customerName: 'Amit Kumar', amount: 899, status: 'Shipped' },
-      { orderId: 'ORD-2024-004', customerName: 'Sneha Reddy', amount: 3200, status: 'Delivered' },
-      { orderId: 'ORD-2024-005', customerName: 'Vikram Singh', amount: 1750, status: 'Pending' },
-    ];
+  /**
+   * Loads the five most recent real orders.
+   *
+   * This list used to be five hardcoded rows ("Rahul Sharma", "ORD-2024-001", …)
+   * rendered directly beneath a KPI card counting the real orders they contradicted.
+   */
+  private loadRecentOrders(): void {
+    this.http
+      .get<AdminOrder[]>('/api/orders')
+      .pipe(catchError(() => of([] as AdminOrder[])))
+      .subscribe((orders) => {
+        this.recentOrders = [...(orders || [])]
+          .sort((a, b) => {
+            const at = a.createdAt ? Date.parse(a.createdAt) : 0;
+            const bt = b.createdAt ? Date.parse(b.createdAt) : 0;
+            return bt - at || (b.id || 0) - (a.id || 0);
+          })
+          .slice(0, 5)
+          .map((o) => ({
+            orderId: o.orderNumber || `#${o.id}`,
+            customerName: o.customerId ? `Customer ${o.customerId}` : 'Unknown',
+            amount: o.totalAmount || 0,
+            status: o.status || 'UNKNOWN',
+          }));
+      });
   }
 
   private showWarnings(warnings: string[]): void {
-    const message = `Warning: Some data may be incomplete. ${warnings.join(', ')}`;
-    alert(message);
+    this.notificationService.show(
+      `Some data may be incomplete. ${warnings.join(', ')}`,
+      'warning'
+    );
   }
 }

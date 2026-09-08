@@ -1,7 +1,8 @@
 node_modules/
 dist/
-.git/
-npm-debug.log*
-Dockerfile*
-.dockerignore
-
+.angular/
+# Never copy real secrets into a build layer.
+.env
+.env.*
+!.env.example
+*.log

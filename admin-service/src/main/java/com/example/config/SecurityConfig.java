@@ -31,9 +31,11 @@ public class SecurityConfig {
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
+        // Only genuinely public endpoints may bypass the security filter chain.
+        // /api/manage/** and /api/admin/dashboard/** are role-checked in filterChain()
+        // below; listing them here would disable those checks entirely.
         return (web) -> web.ignoring()
-            .requestMatchers("/api/admin/login", "/actuator/health",
-                "/api/admin/dashboard/**", "/api/manage/**");
+            .requestMatchers("/api/admin/login", "/actuator/health");
     }
 
     @Bean
@@ -52,6 +54,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/admin/dashboard/**").hasAnyRole("SUPER_ADMIN", "ADMIN", "MODERATOR")
                 .requestMatchers("/api/admin/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/manage/**").hasAnyRole("SUPER_ADMIN", "ADMIN", "MODERATOR")
                 .requestMatchers("/api/audit/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
