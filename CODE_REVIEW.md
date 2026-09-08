@@ -295,3 +295,60 @@ The rendered pages stack: an **orange** (`#FF6B35`) top header, a **green** (`#0
 3. **§2.2, §2.3, §2.5, §2.6** — the broken storefront write paths.
 4. **§3.1 + §3.2 + §3.3** — stop presenting invented data as real.
 5. Remaining UI and design consistency work.
+
+---
+
+# Appendix A — Fix status
+
+Applied on branch `fix/security-and-correctness-review`. Each "verified" line was
+re-run against the rebuilt stack after the fix; the reproductions in the body above
+are the *before* state.
+
+## Fixed and verified
+
+| § | Finding | Verification |
+|---|---|---|
+| 1.1 | admin-service bypassed auth on `/api/manage/**` and `/api/admin/dashboard/**` | Both now 403 unauthenticated; `/api/audit` unchanged |
+| 1.2 | Customers held admin privileges through `authenticateAny` | Customer token: create item 403, list users 403, delete user 403 |
+| 1.3 | Password reset on email alone | Now a two-step token flow; no-token and forged-token both 400; request returns a neutral, non-enumerating response |
+| 1.4 | Cart/order/payment/return IDOR | Cart resolves from the token (asking for user 2's cart returns the caller's); another customer's order 404; payments now require auth |
+| 1.5 | Committed default JWT secrets | BFF exits on a missing/weak/short secret; compose reads `${JWT_SECRET:?}` from `.env`; added `.env.example` |
+| 1.6 | `.env` entering the build context | Added `unified-ui/.dockerignore` |
+| 2.1 | Password changes silently discarded | `users.updated_at` now advances and the new password authenticates |
+| 2.2 | Cart quantity/remove always 404 | Update 200, remove 204, both keyed by product id as the UI sends |
+| 2.5 | `/api/items/search` returned 400 | `?q=saree` → 200, 1 result ("Banarasi Silk Saree") |
+| 2.6 | Cart survived checkout | `DELETE /api/cart/:id/clear` → 204, cart empty; checkout calls it after payment |
+| 2.7 | Duplicate cart lines | Adding a product twice merges: 1 line, quantities accumulate 2+3=5 |
+| 2.8 | Missing `/api/auth/refresh` | Endpoint added, login issues a refresh token, refresh → 200; the interceptor no longer force-logs-out on a bad password |
+| 2.9 | Webhook HMAC over a re-serialised body | Raw body preserved for that route only |
+| 3.1 | Fabricated revenue chart | Monthly series total **249,255** now equals the Total Sales KPI **249,255** |
+| 3.2 | Hardcoded "Recent Orders" | Renders the five most recent real orders |
+| 3.3 | Randomised ratings/discounts/stock | Derived from the product; discount is computed from M.R.P. so the badge matches; ratings omitted rather than invented |
+| 3.5 | Search and category links did nothing | Both now filter server-side |
+| 3.6 | Brand mark was the letter "W" | Uses `logo-white.svg` |
+| 3.8 | Duplicate Razorpay script, `alert()`, raster logo on the auth card | All replaced |
+
+## Fixed but not independently verifiable here
+
+- **2.9 webhook** — correct by construction (the route keeps its raw body), but
+  confirming it needs a real signed Razorpay delivery.
+
+## Known remaining
+
+- **2.3 — shipping address is still dropped.** `CreateOrderRequest` has no address
+  field, so checkout still posts an address that order-service ignores. This needs a
+  schema change (address snapshot on the order), which belongs with the order-model
+  rework rather than a patch.
+- **2.10 — top-products is still empty.** The URL now points at order-service's real
+  base path (`/api/v1/orders/top-products`), but that endpoint does not exist yet;
+  order-service must expose the aggregation.
+- **2.4 — one login, two realms.** The BFF now bridges them: it accepts a
+  user-service `ADMIN` and mints a short-lived admin-service token. Consolidating the
+  two identity stores properly is still open.
+- **3.4 — product imagery** is still random `picsum.photos` stock photos, because
+  `ItemResponse` carries no image or category field.
+- **3.7 — palette incoherence** (orange header / green nav / navy hero / purple auth
+  gradient / green footer) is unchanged; it needs a design decision, not a patch.
+- **user-service `/api/auth/reset-password` is still `permitAll()`.** Acceptable only
+  while the service is not reachable from outside the Docker network.
+- **`logistics-service`'s jar is stale** relative to its sources.
