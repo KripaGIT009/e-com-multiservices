@@ -21,10 +21,15 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -255,9 +260,7 @@ public class DashboardAnalyticsService {
         String normalizedPeriod = period.toLowerCase();
         int entryCount = getEntryCount(normalizedPeriod);
 
-        // TODO: Replace with real order-service call when downstream API is finalized
-        // Stub: generate simulated revenue data based on the period
-        return generateSimulatedRevenueData(normalizedPeriod, entryCount);
+        return buildRevenueTimeSeries(normalizedPeriod, entryCount);
     }
 
     private int getEntryCount(String period) {
@@ -270,17 +273,96 @@ public class DashboardAnalyticsService {
         };
     }
 
-    private List<TimeSeriesEntryDTO> generateSimulatedRevenueData(String period, int entryCount) {
-        List<TimeSeriesEntryDTO> entries = new ArrayList<>();
+    /**
+     * Builds the revenue series by bucketing real orders from order-service.
+     *
+     * This previously returned a sine wave (generateRevenueValue), so the chart showed
+     * roughly sixty times the actual revenue reported by the Total Sales KPI beside it.
+     * Buckets with no orders report zero rather than being hidden or invented.
+     */
+    private List<TimeSeriesEntryDTO> buildRevenueTimeSeries(String period, int entryCount) {
         LocalDate today = LocalDate.now();
 
-        for (int i = entryCount - 1; i >= 0; i--) {
-            String label = generateLabel(period, today, i);
-            BigDecimal value = generateRevenueValue(period, i);
-            entries.add(new TimeSeriesEntryDTO(label, value));
+        Map<String, BigDecimal> revenueByBucket = new HashMap<>();
+        try {
+            JsonNode orders = webClientBuilder.build()
+                    .get()
+                    .uri(orderServiceUrl + "/api/v1/orders")
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofMillis(dashboardProperties.getDownstreamTimeoutMs()))
+                    .map(this::parseJson)
+                    .block();
+
+            if (orders != null && orders.isArray()) {
+                for (JsonNode order : orders) {
+                    if (!countsTowardRevenue(order)) continue;
+
+                    LocalDate placedOn = parseOrderDate(order);
+                    if (placedOn == null) continue;
+
+                    String bucket = bucketLabel(period, placedOn);
+                    BigDecimal amount = order.path("totalAmount").isNumber()
+                            ? order.path("totalAmount").decimalValue()
+                            : BigDecimal.ZERO;
+                    revenueByBucket.merge(bucket, amount, BigDecimal::add);
+                }
+            }
+        } catch (Exception e) {
+            // Downstream failure must not fabricate revenue — report zeros instead.
+            log.warn("Order service call failed while building revenue series: {}", e.getMessage());
         }
 
+        List<TimeSeriesEntryDTO> entries = new ArrayList<>();
+        for (int i = entryCount - 1; i >= 0; i--) {
+            String label = generateLabel(period, today, i);
+            String bucket = bucketLabel(period, offsetDate(period, today, i));
+            entries.add(new TimeSeriesEntryDTO(
+                    label,
+                    revenueByBucket.getOrDefault(bucket, BigDecimal.ZERO).setScale(2, RoundingMode.HALF_UP)
+            ));
+        }
         return entries;
+    }
+
+    /** Cancelled and refunded orders are not revenue. */
+    private boolean countsTowardRevenue(JsonNode order) {
+        String status = order.path("status").asText("");
+        return !("CANCELLED".equalsIgnoreCase(status) || "REFUNDED".equalsIgnoreCase(status));
+    }
+
+    private LocalDate parseOrderDate(JsonNode order) {
+        String raw = order.path("createdAt").asText(null);
+        if (raw == null || raw.isBlank()) return null;
+        try {
+            return LocalDateTime.parse(raw).toLocalDate();
+        } catch (DateTimeParseException e) {
+            try {
+                return LocalDate.parse(raw.substring(0, Math.min(10, raw.length())));
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+    }
+
+    private LocalDate offsetDate(String period, LocalDate today, int offset) {
+        return switch (period) {
+            case "daily" -> today.minusDays(offset);
+            case "weekly" -> today.minusWeeks(offset);
+            case "monthly" -> today.minusMonths(offset);
+            default -> today;
+        };
+    }
+
+    /** Groups a date into the same bucket the axis label represents. */
+    private String bucketLabel(String period, LocalDate date) {
+        return switch (period) {
+            case "daily" -> date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            case "weekly" -> date.get(WeekFields.ISO.weekBasedYear()) + "-W"
+                    + date.get(WeekFields.ISO.weekOfWeekBasedYear());
+            case "monthly" -> date.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+            default -> "";
+        };
     }
 
     private String generateLabel(String period, LocalDate today, int offset) {
@@ -298,20 +380,6 @@ public class DashboardAnalyticsService {
         };
     }
 
-    private BigDecimal generateRevenueValue(String period, int offset) {
-        // Generate deterministic but realistic-looking revenue values
-        double baseRevenue = switch (period) {
-            case "daily" -> 45000.0;
-            case "weekly" -> 315000.0;
-            case "monthly" -> 1350000.0;
-            default -> 0.0;
-        };
-
-        // Add some variation based on offset to simulate realistic data
-        double variation = Math.sin(offset * 0.5) * baseRevenue * 0.2 + baseRevenue;
-        return BigDecimal.valueOf(variation).setScale(2, RoundingMode.HALF_UP);
-    }
-
     /**
      * Fetches top selling products from the order-service, sorted descending by
      * totalQuantitySold and capped at the configured top-products-limit (default 10).
@@ -324,7 +392,7 @@ public class DashboardAnalyticsService {
 
         List<TopProductDTO> products = webClientBuilder.build()
                 .get()
-                .uri(orderServiceUrl + "/api/orders/top-products?limit=" + limit)
+                .uri(orderServiceUrl + "/api/v1/orders/top-products?limit=" + limit)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<TopProductDTO>>() {})
                 .timeout(timeout)
