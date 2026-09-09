@@ -10,6 +10,8 @@ import com.example.repository.ShipmentEventRepository;
 import com.example.repository.ShipmentRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,8 @@ import java.util.UUID;
 @Service
 @Transactional
 public class ShipmentServiceImpl implements IShipmentService {
+
+    private static final Logger log = LoggerFactory.getLogger(ShipmentServiceImpl.class);
 
     private final ShipmentRepository shipments;
     private final ShipmentEventRepository shipmentEvents;
@@ -216,7 +220,15 @@ public class ShipmentServiceImpl implements IShipmentService {
         payload.put("carrier", shipment.getCarrier());
         payload.put("estimatedDelivery", shipment.getEstimatedDelivery());
         payload.put("lastStatusNote", shipment.getLastStatusNote());
-        kafkaTemplate.send("shipment-events", new SagaEvent(shipment.getOrderId(), type, toJson(payload)));
+        // The shipment is already persisted. Announcing it is a side effect, so a
+        // broker that is down or missing the topic must not fail the hand-off —
+        // it previously blocked the request and threw, losing the shipment entirely.
+        try {
+            kafkaTemplate.send("shipment-events", new SagaEvent(shipment.getOrderId(), type, toJson(payload)));
+        } catch (Exception e) {
+            log.error("Shipment {} saved but the {} event could not be published: {}",
+                    shipment.getShipmentNumber(), type, e.getMessage());
+        }
     }
 
     private String toJson(Object payload) {

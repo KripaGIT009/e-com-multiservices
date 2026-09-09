@@ -341,6 +341,26 @@ app.post('/api/auth/register', async (req, res) => {
     res.status(201).json({ token, refreshToken: issueRefreshToken(authUser), user: authUser });
   } catch (err) {
     const status = err.response?.status;
+
+    // No HTTP response means the connection failed, not that the write did.
+    if (!err.response && ['ECONNRESET', 'ECONNABORTED', 'EPIPE'].includes(err.code)) {
+      try {
+        const created = (await axios.get(`${USER_SERVICE}/api/users/email/${req.body.email}`)).data;
+        if (created?.id) {
+          console.warn(`Registration connection dropped but the account was created (${err.code})`);
+          const authUser = {
+            id: created.id, username: created.username, email: created.email, role: 'CUSTOMER',
+          };
+          const token = jwt.sign(authUser, JWT_SECRET, { expiresIn: '24h' });
+          await mergeGuestCart(req, res, created.id);
+          return res.status(201).json({ token, refreshToken: issueRefreshToken(authUser), user: authUser });
+        }
+      } catch (_) { /* genuinely not created — fall through to the error below */ }
+      return res.status(503).json({
+        error: 'We could not reach the account service. Please try again in a moment.',
+      });
+    }
+
     if (status === 409) {
       const detail = String(err.response?.data?.message || '');
       return res.status(409).json({
@@ -944,6 +964,32 @@ app.post('/api/seller/orders/:orderId/ship', authenticateSeller, requireApproved
       carrierTrackingUrl: (chosen.trackingUrlTemplate || '').replace('{trackingNumber}', trackingNumber),
       estimatedDelivery: new Date(Date.now() + (chosen.estimatedDays || 5) * 86400000).toISOString(),
     })).data;
+
+    // The seller may have picked a different courier than checkout provisionally
+    // assigned. Write their choice back, or the order — and the customer's tracking
+    // page — would keep naming a courier that never collected the parcel.
+    try {
+      await axios.patch(`${ORDER_SERVICE}/api/v1/orders/${order.id}/delivery`, {
+        deliveryPartnerCode: chosen.code,
+        deliveryPartnerName: chosen.name,
+        expectedDelivery: new Date(Date.now() + (chosen.estimatedDays || 5) * 86400000)
+          .toISOString().slice(0, 19),
+      });
+    } catch (e) {
+      console.error(`Shipment ${shipment.id} created but the order courier was not updated:`, e.message);
+    }
+
+    // Handing the parcel over is what makes an order shipped. Without this the
+    // seller sees it move, then finds it back in "To fulfil" on the next reload.
+    try {
+      await axios.patch(
+        `${ORDER_SERVICE}/api/v1/orders/${order.id}/status`,
+        null,
+        { params: { status: 'SHIPPED' } }
+      );
+    } catch (e) {
+      console.error(`Shipment ${shipment.id} created but order ${order.id} stayed ${order.status}:`, e.message);
+    }
 
     res.status(201).json({ ...shipment, generatedTrackingNumber: true });
   } catch (e) {
