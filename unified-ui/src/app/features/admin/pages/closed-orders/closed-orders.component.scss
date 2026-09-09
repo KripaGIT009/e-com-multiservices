@@ -20,7 +20,7 @@
   &__title {
     font-size: 1.625rem;
     font-weight: 700;
-    color: var(--mis-text-primary, #1a1a2e);
+    color: var(--mis-text-primary, #1C1917);
     margin: 0;
   }
 
@@ -74,14 +74,14 @@
   &__kpi-value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1f2937;
+    color: #1C1917;
     line-height: 1.2;
   }
 
   &__kpi-label {
     font-size: 0.8rem;
     font-weight: 500;
-    color: var(--mis-text-secondary, #6b7280);
+    color: var(--mis-text-secondary, #78716C);
     text-transform: uppercase;
     letter-spacing: 0.025em;
   }
@@ -95,7 +95,7 @@
   &__section-title {
     font-size: 1.25rem;
     font-weight: 600;
-    color: var(--mis-text-primary, #1f2937);
+    color: var(--mis-text-primary, #1C1917);
     margin: 0 0 1rem;
   }
 
@@ -129,11 +129,11 @@
     padding: 0.875rem 1rem;
     font-weight: 600;
     font-size: 0.75rem;
-    color: var(--mis-text-secondary, #6b7280);
+    color: var(--mis-text-secondary, #78716C);
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    background: #FDFAF8;
+    border-bottom: 1px solid #F2E8E2;
     white-space: nowrap;
 
     &--product {
@@ -147,7 +147,7 @@
   }
 
   &__row {
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid #FAF6F3;
     transition: background-color 0.15s;
 
     &:last-child {
@@ -155,13 +155,13 @@
     }
 
     &:hover {
-      background: #f9fafb;
+      background: #FDFAF8;
     }
   }
 
   &__td {
     padding: 0.875rem 1rem;
-    color: #374151;
+    color: #44403C;
     vertical-align: middle;
 
     &--product {
@@ -175,7 +175,7 @@
 
   &__empty {
     text-align: center;
-    color: #9ca3af;
+    color: #A8A29E;
     padding: 3rem 1rem !important;
     font-style: italic;
   }
@@ -200,8 +200,8 @@
     height: 40px;
     border-radius: 6px;
     object-fit: cover;
-    background: #f3f4f6;
-    border: 1px solid #e5e7eb;
+    background: #FAF6F3;
+    border: 1px solid #F2E8E2;
     flex-shrink: 0;
   }
 
@@ -214,7 +214,7 @@
 
   &__product-name {
     font-weight: 500;
-    color: #1f2937;
+    color: #1C1917;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -223,7 +223,7 @@
 
   &__product-sku {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: #78716C;
   }
 
   // ─── Customer Cell ─────────────────────────────────────────────────────────
@@ -236,12 +236,12 @@
 
   &__customer-name {
     font-weight: 500;
-    color: #1f2937;
+    color: #1C1917;
   }
 
   &__customer-phone {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: #78716C;
   }
 
   // ─── Amount Cell ───────────────────────────────────────────────────────────
@@ -254,14 +254,14 @@
 
   &__amount {
     font-weight: 600;
-    color: #1f2937;
+    color: #1C1917;
   }
 
   &__payment-method {
     font-size: 0.7rem;
     font-weight: 500;
-    color: #6b7280;
-    background: #f3f4f6;
+    color: #78716C;
+    background: #FAF6F3;
     padding: 1px 6px;
     border-radius: 4px;
     display: inline-block;
@@ -272,7 +272,7 @@
 
   &__cancel-reason {
     font-size: 0.8rem;
-    color: #6b7280;
+    color: #78716C;
     font-style: italic;
   }
 
@@ -315,7 +315,7 @@
 
   &__details-panel {
     padding: 1.25rem 1.5rem;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid #F2E8E2;
     background: #fafbfc;
   }
 
@@ -337,10 +337,10 @@
   &__details-heading {
     font-size: 0.875rem;
     font-weight: 600;
-    color: #1f2937;
+    color: #1C1917;
     margin: 0 0 0.75rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #e5e7eb;
+    border-bottom: 1px solid #F2E8E2;
   }
 
   &__details-list {
@@ -353,12 +353,12 @@
 
     dt {
       font-weight: 500;
-      color: #6b7280;
+      color: #78716C;
     }
 
     dd {
       margin: 0;
-      color: #374151;
+      color: #44403C;
       font-weight: 500;
     }
   }
@@ -371,7 +371,7 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 1rem 1.25rem;
-    border-top: 1px solid #f3f4f6;
+    border-top: 1px solid #FAF6F3;
     flex-wrap: wrap;
   }
 
@@ -382,16 +382,16 @@
     padding: 0.375rem 0.75rem;
     font-size: 0.8rem;
     font-weight: 500;
-    color: #374151;
+    color: #44403C;
     background: #ffffff;
-    border: 1px solid #e5e7eb;
+    border: 1px solid #F2E8E2;
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.15s, border-color 0.15s;
 
     &:hover:not(:disabled) {
-      background: #f9fafb;
-      border-color: #d1d5db;
+      background: #FDFAF8;
+      border-color: #E2D3C9;
     }
 
     &:disabled {
@@ -423,7 +423,7 @@
 
   &__pagination-info {
     font-size: 0.75rem;
-    color: #6b7280;
+    color: #78716C;
     margin-left: 0.75rem;
   }
 }

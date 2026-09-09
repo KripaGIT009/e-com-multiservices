@@ -9,7 +9,7 @@
   margin: 0 0 1.25rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: #1C1917;
 }
 
 // Loading state
@@ -23,7 +23,7 @@
   display: inline-block;
   height: 16px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background: linear-gradient(90deg, #F2E8E2 25%, #FAF6F3 50%, #F2E8E2 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -57,7 +57,7 @@
 .empty-state {
   text-align: center;
   padding: 2rem 1rem;
-  color: #64748b;
+  color: #78716C;
 
   p {
     margin: 0;
@@ -73,14 +73,14 @@
 
   thead {
     tr {
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 2px solid #F2E8E2;
     }
 
     th {
       padding: 0.75rem 0.5rem;
       text-align: left;
       font-weight: 600;
-      color: #64748b;
+      color: #78716C;
       font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -99,11 +99,11 @@
 
   tbody {
     tr {
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid #FAF6F3;
       transition: background-color 0.15s ease;
 
       &:hover {
-        background-color: #f8fafc;
+        background-color: #FDFAF8;
       }
 
       &:last-child {
@@ -113,7 +113,7 @@
 
     td {
       padding: 0.75rem 0.5rem;
-      color: #334155;
+      color: #44403C;
     }
   }
 }
@@ -121,12 +121,12 @@
 .rank-cell {
   text-align: center;
   font-weight: 600;
-  color: #64748b;
+  color: #78716C;
 }
 
 .name-cell {
   font-weight: 500;
-  color: #1e293b;
+  color: #1C1917;
 }
 
 .qty-cell {

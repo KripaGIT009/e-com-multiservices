@@ -8,7 +8,7 @@
   margin: 0 0 1.5rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: #1C1917;
 }
 
 // Toast notification
@@ -100,7 +100,7 @@
   display: inline-block;
   height: 16px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background: linear-gradient(90deg, #F2E8E2 25%, #FAF6F3 50%, #F2E8E2 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -138,7 +138,7 @@
 .empty-state {
   text-align: center;
   padding: 3rem 1rem;
-  color: #64748b;
+  color: #78716C;
 
   p {
     margin: 0;
@@ -162,14 +162,14 @@
 
   thead {
     tr {
-      border-bottom: 2px solid #e2e8f0;
+      border-bottom: 2px solid #F2E8E2;
     }
 
     th {
       padding: 0.875rem 1rem;
       text-align: left;
       font-weight: 600;
-      color: #64748b;
+      color: #78716C;
       font-size: 0.8rem;
       text-transform: uppercase;
       letter-spacing: 0.05em;
@@ -178,11 +178,11 @@
 
   tbody {
     .return-row {
-      border-bottom: 1px solid #f1f5f9;
+      border-bottom: 1px solid #FAF6F3;
       transition: background-color 0.15s ease;
 
       &:hover {
-        background-color: #f8fafc;
+        background-color: #FDFAF8;
       }
 
       &:last-child {
@@ -192,14 +192,14 @@
 
     td {
       padding: 0.875rem 1rem;
-      color: #334155;
+      color: #44403C;
     }
   }
 }
 
 .id-cell {
   font-weight: 600;
-  color: #1e293b;
+  color: #1C1917;
 }
 
 .order-id-cell {
@@ -215,7 +215,7 @@
 }
 
 .date-cell {
-  color: #64748b;
+  color: #78716C;
 }
 
 .status-cell {
@@ -227,7 +227,7 @@
 }
 
 .no-actions {
-  color: #94a3b8;
+  color: #A8A29E;
 }
 
 // Status badges
@@ -257,7 +257,7 @@
 }
 
 .status-default {
-  background: #f1f5f9;
+  background: #FAF6F3;
   color: #475569;
 }
 

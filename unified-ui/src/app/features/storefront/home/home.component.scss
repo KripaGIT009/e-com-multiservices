@@ -61,15 +61,15 @@
 
     &--primary {
       background:
-        radial-gradient(600px 300px at 85% 15%, rgba(255, 255, 255, 0.12), transparent 60%),
-        linear-gradient(140deg, var(--mis-chrome) 0%, var(--mis-chrome-deep) 100%);
+        radial-gradient(600px 300px at 85% 15%, rgba(255, 255, 255, 0.18), transparent 60%),
+        linear-gradient(125deg, var(--mis-primary) 0%, #F0503F 45%, var(--mis-accent) 100%);
       color: #fff;
     }
 
     &--accent {
       background:
-        radial-gradient(500px 260px at 80% 20%, rgba(255, 255, 255, 0.16), transparent 60%),
-        linear-gradient(140deg, var(--mis-primary) 0%, #D9531E 100%);
+        radial-gradient(500px 260px at 80% 20%, rgba(255, 255, 255, 0.10), transparent 60%),
+        linear-gradient(140deg, var(--mis-chrome) 0%, var(--mis-chrome-deep) 100%);
       color: #fff;
       cursor: pointer;
       transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -134,7 +134,7 @@
     border: 0;
     border-radius: var(--mis-radius-pill);
     background: #fff;
-    color: var(--mis-chrome-deep);
+    color: var(--mis-ink);
     font-family: inherit;
     font-size: var(--mis-text-md);
     font-weight: 600;
@@ -185,7 +185,7 @@
     height: 40px;
     border-radius: var(--mis-radius-sm);
     background: var(--mis-chrome-tint);
-    color: var(--mis-chrome);
+    color: var(--mis-primary);
     font-size: 21px;
     flex-shrink: 0;
   }
@@ -201,6 +201,67 @@
     margin: 2px 0 0;
     font-size: var(--mis-text-xs);
     color: var(--mis-ink-muted);
+  }
+}
+
+// ── Promo strip ──────────────────────────────────────────────────────────────
+// The only place the pink accent leads. Kept to one message so it stays loud.
+.promo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 48px;
+  padding: 20px 28px;
+  border-radius: var(--mis-radius-md);
+  background: linear-gradient(100deg, var(--mis-accent) 0%, #F0503F 100%);
+  color: #fff;
+
+  &__flag {
+    margin: 0;
+    padding: 5px 12px;
+    border-radius: var(--mis-radius-pill);
+    background: rgba(255, 255, 255, 0.22);
+    font-size: var(--mis-text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__headline {
+    margin: 0;
+    flex: 1;
+    min-width: 240px;
+    font-size: var(--mis-text-lg);
+    font-weight: 600;
+  }
+
+  &__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border: 0;
+    border-radius: var(--mis-radius-pill);
+    background: #fff;
+    color: var(--mis-accent-dark);
+    font-family: inherit;
+    font-size: var(--mis-text-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+
+    .material-icons { font-size: 18px; }
+
+    &:hover { transform: translateX(2px); }
+  }
+}
+
+@media (max-width: 600px) {
+  .promo {
+    padding: 18px 20px;
+
+    &__cta { width: 100%; justify-content: center; }
   }
 }
 
@@ -225,13 +286,13 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 
   &:hover {
-    border-color: var(--mis-chrome);
-    box-shadow: var(--mis-shadow-md);
+    border-color: var(--mis-primary);
+    box-shadow: var(--mis-shadow-warm);
     transform: translateY(-2px);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mis-chrome);
+    outline: 2px solid var(--mis-primary);
     outline-offset: 2px;
   }
 }
@@ -248,12 +309,12 @@
   .material-icons { font-size: 26px; }
 
   // Tints cycle so a row of tiles reads as a set rather than a rainbow.
-  &[data-tone='1'] { background: #E8F0EC; color: #2D6A4F; }
-  &[data-tone='2'] { background: #FDEAE0; color: #C2410C; }
-  &[data-tone='3'] { background: #E7EEF6; color: #1D4E89; }
-  &[data-tone='4'] { background: #F3EAF7; color: #6B21A8; }
-  &[data-tone='5'] { background: #FBF0DA; color: #92700E; }
-  &[data-tone='6'] { background: #E4F1F1; color: #0F5B57; }
+  &[data-tone='1'] { background: #FDEAE0; color: #C2410C; }
+  &[data-tone='2'] { background: #E9EDF5; color: #334565; }
+  &[data-tone='3'] { background: #F3EAF7; color: #6B21A8; }
+  &[data-tone='4'] { background: #FBF0DA; color: #92700E; }
+  &[data-tone='5'] { background: #FBE9EC; color: #9F1239; }
+  &[data-tone='6'] { background: #EDEBF7; color: #4338CA; }
 }
 
 .category-name {
@@ -290,13 +351,13 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 
   &:hover {
-    border-color: var(--mis-line-strong);
-    box-shadow: var(--mis-shadow-md);
+    border-color: var(--mis-primary);
+    box-shadow: var(--mis-shadow-warm);
     transform: translateY(-2px);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--mis-chrome);
+    outline: 2px solid var(--mis-primary);
     outline-offset: 2px;
   }
 }
@@ -383,8 +444,8 @@
 
   &:hover {
     background: var(--mis-chrome-tint);
-    border-color: var(--mis-chrome);
-    color: var(--mis-chrome-deep);
+    border-color: var(--mis-primary);
+    color: var(--mis-primary-dark);
   }
 }
 

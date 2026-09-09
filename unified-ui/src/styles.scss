@@ -28,14 +28,13 @@ h1, h2, h3, h4 {
 }
 
 a {
-  color: var(--mis-chrome);
+  color: var(--mis-primary-dark);
   text-decoration: none;
   transition: color 0.15s ease;
 
   &:hover {
-    // Stay within the same hue rather than jumping teal -> orange, which read as
-    // an unrelated colour system.
-    color: var(--mis-chrome-deep);
+    // Stay within the same hue rather than jumping to an unrelated colour.
+    color: var(--mis-primary);
     text-decoration: underline;
   }
 }
@@ -63,9 +62,10 @@ img {
   -webkit-font-smoothing: antialiased;
 }
 
-// A visible focus ring everywhere, so keyboard users are never lost.
+// A visible focus ring everywhere, so keyboard users are never lost. Saffron rather
+// than chrome — it reads clearly on both white surfaces and the dark chrome.
 :focus-visible {
-  outline: 2px solid var(--mis-chrome);
+  outline: 2px solid var(--mis-primary);
   outline-offset: 2px;
 }
 

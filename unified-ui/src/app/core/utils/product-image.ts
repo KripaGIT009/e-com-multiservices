@@ -12,12 +12,12 @@
 
 /** Brand-derived tints, paired so the glyph always meets contrast on its ground. */
 const TONES: ReadonlyArray<{ bg: string; fg: string }> = [
-  { bg: '#E8F0EC', fg: '#2D6A4F' }, // green
-  { bg: '#FDEAE0', fg: '#C2410C' }, // saffron
-  { bg: '#E7EEF6', fg: '#1D4E89' }, // indigo
-  { bg: '#F3EAF7', fg: '#6B21A8' }, // plum
-  { bg: '#FBF0DA', fg: '#92700E' }, // turmeric
-  { bg: '#E4F1F1', fg: '#0F5B57' }, // teal
+  { bg: '#FFECE2', fg: '#C2410C' }, // saffron
+  { bg: '#FDE7EF', fg: '#BE185D' }, // pink
+  { bg: '#FEF3C7', fg: '#92700E' }, // turmeric
+  { bg: '#F3E8FF', fg: '#7E22CE' }, // plum
+  { bg: '#FFE4E6', fg: '#9F1239' }, // rose
+  { bg: '#EDE9FE', fg: '#5B21B6' }, // violet
 ];
 
 /** Stable hash so the same product always gets the same tile. */

@@ -18,7 +18,7 @@
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
-    color: #1f2937;
+    color: #1C1917;
   }
 
   &__icon {
@@ -64,8 +64,8 @@
     }
 
     &--skeleton {
-      background: #f9fafb;
-      border-color: #e5e7eb;
+      background: #FDFAF8;
+      border-color: #F2E8E2;
       padding: 1rem 0.75rem;
     }
   }
@@ -149,7 +149,7 @@
 }
 
 .skeleton-bar {
-  background: #e5e7eb;
+  background: #F2E8E2;
   border-radius: 4px;
   animation: pulse 1.5s ease-in-out infinite;
 

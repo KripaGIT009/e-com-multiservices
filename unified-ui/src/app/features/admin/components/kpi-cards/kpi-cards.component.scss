@@ -44,7 +44,7 @@
   &__label {
     font-size: 0.8rem;
     font-weight: 500;
-    color: #6b7280;
+    color: #78716C;
     text-transform: uppercase;
     letter-spacing: 0.025em;
   }
@@ -52,7 +52,7 @@
   &__value {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #1f2937;
+    color: #1C1917;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -63,20 +63,20 @@
     .kpi-card__icon {
       width: 48px;
       height: 48px;
-      background: #e5e7eb;
+      background: #F2E8E2;
     }
 
     .kpi-card__label {
       width: 80px;
       height: 12px;
-      background: #e5e7eb;
+      background: #F2E8E2;
       border-radius: 4px;
     }
 
     .kpi-card__value {
       width: 100px;
       height: 20px;
-      background: #e5e7eb;
+      background: #F2E8E2;
       border-radius: 4px;
     }
   }

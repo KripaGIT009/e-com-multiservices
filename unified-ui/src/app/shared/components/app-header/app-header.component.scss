@@ -1,9 +1,8 @@
 // =============================================================================
 // Site header — utility bar · main row · category nav
 //
-// Replaces a solid saffron block sitting above a bright-green (#138808) nav bar.
-// Chrome is now brand green, the main row is white, and saffron is reserved for
-// actions so it reads as something you can click.
+// Chrome is a deep ink so saffron can carry the brand: the main row is white and
+// saffron is reserved for actions, so it reads as something you can click.
 // =============================================================================
 
 @import '../../styles/variables';
@@ -109,8 +108,8 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus-within {
-    border-color: var(--mis-chrome);
-    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+    border-color: var(--mis-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.14);
   }
 
   &__icon {
@@ -163,7 +162,7 @@
   transition: background-color 0.15s ease;
 
   &:hover { background: var(--mis-primary-dark); }
-  &:focus-visible { outline: 2px solid var(--mis-chrome); outline-offset: 2px; }
+  &:focus-visible { outline: 2px solid var(--mis-primary); outline-offset: 2px; }
 }
 
 // ── Actions ──────────────────────────────────────────────────────────────────
@@ -204,13 +203,13 @@
   height: 38px;
   border-radius: 50%;
   background: var(--mis-chrome-tint);
-  color: var(--mis-chrome-deep);
+  color: var(--mis-primary-dark);
   flex-shrink: 0;
 
   .material-icons { font-size: 20px; }
 
   &--cart {
-    background: var(--mis-chrome);
+    background: var(--mis-primary);
     color: #fff;
   }
 }
@@ -328,7 +327,7 @@
 
   &:hover,
   &.active {
-    color: var(--mis-chrome-deep);
+    color: var(--mis-primary-dark);
     background: var(--mis-chrome-tint);
   }
 
@@ -340,11 +339,11 @@
   margin-right: 10px;
   padding: 8px 16px;
   border-radius: var(--mis-radius-pill);
-  background: var(--mis-chrome);
+  background: var(--mis-primary);
   color: #fff;
   font-weight: 600;
 
-  &:hover { background: var(--mis-chrome-deep); color: #fff; }
+  &:hover { background: var(--mis-primary-dark); color: #fff; }
 }
 
 // ── Category drawer ──────────────────────────────────────────────────────────
@@ -352,7 +351,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(20, 33, 28, 0.5);
+  background: rgba(26, 31, 43, 0.5);
 }
 
 .side-menu {
@@ -373,7 +372,7 @@
     align-items: center;
     gap: 12px;
     padding: 18px 20px;
-    background: var(--mis-chrome);
+    background: linear-gradient(120deg, var(--mis-primary) 0%, var(--mis-accent) 100%);
     color: #fff;
   }
 
@@ -439,7 +438,7 @@
     text-decoration: none;
     cursor: pointer;
 
-    &:hover { background: var(--mis-chrome-tint); color: var(--mis-chrome-deep); }
+    &:hover { background: var(--mis-chrome-tint); color: var(--mis-primary-dark); }
   }
 
   &__arrow { color: var(--mis-ink-faint); }
