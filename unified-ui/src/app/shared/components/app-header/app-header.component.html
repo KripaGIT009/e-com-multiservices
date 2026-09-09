@@ -103,12 +103,16 @@
 
               <!-- Signed out: sign-in is the first thing in the menu, as on Amazon. -->
               <div class="account-menu__auth" *ngIf="!isAuthenticated">
-                <a routerLink="/auth/login" class="account-menu__signin" (click)="closeAccountMenu()">
+                <a
+                  routerLink="/auth/login"
+                  [queryParams]="{ returnUrl }"
+                  class="account-menu__signin"
+                  (click)="closeAccountMenu()">
                   Sign in
                 </a>
                 <p class="account-menu__hint">
                   New customer?
-                  <a routerLink="/auth/register" (click)="closeAccountMenu()">Start here</a>
+                  <a routerLink="/auth/register" [queryParams]="{ returnUrl }" (click)="closeAccountMenu()">Start here</a>
                 </p>
               </div>
 

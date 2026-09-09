@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { CartService } from '../../../core/services/cart.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { productPlaceholder } from '../../../core/utils/product-image';
 
@@ -70,6 +71,7 @@ export class ProductListComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private authService: AuthService,
+    private cartService: CartService,
     private notificationService: NotificationService
   ) {}
 
@@ -233,8 +235,7 @@ export class ProductListComponent implements OnInit {
 
   addToCart(product: Product, event: Event): void {
     event.stopPropagation();
-    const userId = this.authService.currentUser?.id || 'guest-user';
-    this.http.post(`/api/cart/${userId}/items`, { itemId: product.id, quantity: 1 }).subscribe({
+    this.cartService.addItem(product.id, 1).subscribe({
       next: () => {
         this.notificationService.show(`${product.name} added to cart!`, 'success');
       },

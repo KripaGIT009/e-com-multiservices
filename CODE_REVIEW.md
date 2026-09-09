@@ -482,3 +482,71 @@ See the commit for detail. The Sign-up button was silently dead: the phone valid
 and gender were collected but never stored; the display name became the username
 verbatim, spaces included. The email and phone "Verify" buttons were removed — they
 set a flag and showed "OTP sent" without contacting anything.
+
+---
+
+# Appendix C — Guest-to-signed-in flow
+
+Reported as "after adding item in cart and then login going to my profile section".
+The redirect was the visible half; underneath it, the cart was being lost.
+
+## Signing in silently emptied the cart — **VERIFIED**
+
+Guest carts and user carts are separate rows keyed by different ids, and nothing
+joined them at sign-in. Everything added before signing in stayed on the orphaned
+guest cart:
+
+```
+guest cart before sign-in : 2 lines, 3 units
+signed-in cart after      : 0 lines          ← basket gone
+guest cart still holds    : 2 lines          ← orphaned
+```
+
+The BFF now merges the guest cart into the account on both login and registration,
+then clears the guest cookie. Quantities are **added** to any line the user already
+had for the same product rather than overwriting it:
+
+```
+signed-in cart : item1 x3
+guest cart     : item1 x2, item5 x1
+after sign-in  : item1 x5, item5 x1
+```
+
+The merge is never allowed to fail the sign-in — a merge error is logged and
+swallowed, because losing a cart is bad but refusing the login is worse.
+
+## Sign-in dumped shoppers on their profile
+
+`login.component.ts` sent every `CUSTOMER` to `/account` regardless of where they
+came from, and nothing captured the page they were on.
+
+- `AuthGuard` now passes the attempted URL as `returnUrl`.
+- The header's sign-in and register links pass the current URL.
+- Login and registration honour it, defaulting to `/home` — back to shopping, not the
+  account page.
+- Only same-origin relative paths are accepted, so the parameter cannot be used to
+  bounce someone to another site.
+
+### The guard's returnUrl was being thrown away
+
+`AuthGuard` navigated to `/login`, which `app-routing.module.ts` redirects to
+`/auth/login` — and Angular's `redirectTo` **drops query parameters**. The guard now
+navigates to `/auth/login` directly.
+
+## The cart badge did not update on add
+
+`CartService` owns the badge and refreshes on identity change, but the product list
+and product detail pages posted to `/api/cart/...` directly, so the count stayed stale
+until the next navigation. Both now go through `CartService.addItem()`.
+
+## Verified in a browser
+
+```
+cart badge as guest        : 1
+sign-in page url           : /auth/login?returnUrl=%2Fstorefront%2Fproducts
+landed on after sign-in    : /storefront/products
+cart badge after sign-in   : 1  (kept)
+
+/checkout while signed out -> /auth/login?returnUrl=%2Fcheckout
+after sign-in              -> /checkout
+```
