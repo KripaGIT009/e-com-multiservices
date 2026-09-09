@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
+import { CartService } from '../../../core/services/cart.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { RecentlyViewedService } from '../../../core/services/recently-viewed.service';
 
@@ -30,6 +31,7 @@ export class ProductDetailComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private authService: AuthService,
+    private cartService: CartService,
     private notificationService: NotificationService,
     private recentlyViewed: RecentlyViewedService
   ) {}
@@ -57,9 +59,8 @@ export class ProductDetailComponent implements OnInit {
 
   addToCart(): void {
     if (!this.product) return;
-    const userId = this.authService.currentUser?.id || 'guest-user';
-    this.http
-      .post(`/api/cart/${userId}/items`, { itemId: this.product.id, quantity: this.quantity })
+    this.cartService
+      .addItem(this.product.id, this.quantity)
       .subscribe({
         next: () => {
           this.notificationService.show(`${this.product!.name} added to cart!`, 'success');

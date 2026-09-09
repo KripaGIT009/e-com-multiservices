@@ -140,6 +140,60 @@ const authenticateAny = (req, res, next) => {
 const issueRefreshToken = (user) =>
   jwt.sign({ ...user, aud: 'refresh' }, JWT_SECRET, { expiresIn: '7d' });
 
+const clearGuestCookie = (res) => {
+  if (res && !res.headersSent) {
+    res.setHeader('Set-Cookie', `${GUEST_COOKIE}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0`);
+  }
+};
+
+/**
+ * Folds this browser's guest cart into the account that just signed in.
+ *
+ * Without this, everything added before signing in silently disappeared — the items
+ * stayed on the orphaned guest cart while the user's own cart came back empty.
+ * Quantities are added to any line the user already had for the same product.
+ *
+ * Never allowed to fail the sign-in: a merge problem is logged and swallowed, because
+ * losing the cart is bad but refusing the login is worse.
+ */
+const mergeGuestCart = async (req, res, userId) => {
+  const cookie = readCookie(req, GUEST_COOKIE);
+  if (!cookie) return;
+
+  let guestId;
+  try {
+    guestId = jwt.verify(cookie, JWT_SECRET, { audience: 'guest-cart' }).gid;
+  } catch (_) {
+    return clearGuestCookie(res);
+  }
+
+  try {
+    const guestCart = (await axios.get(`${CART_SERVICE}/carts/user/${guestId}`)).data;
+    const guestItems = (await axios.get(`${CART_SERVICE}/carts/${guestCart.id}/items`)).data || [];
+    if (!guestItems.length) return clearGuestCookie(res);
+
+    const userCart = await getOrCreateCart(parseInt(userId, 10));
+    for (const gi of guestItems) {
+      const existing = await findCartItem(userCart.id, gi.itemId);
+      if (existing) {
+        await axios.put(`${CART_SERVICE}/carts/${userCart.id}/items/${existing.id}`, {
+          quantity: existing.quantity + gi.quantity,
+        });
+      } else {
+        await axios.post(`${CART_SERVICE}/carts/${userCart.id}/items`, {
+          itemId: gi.itemId, itemName: gi.itemName, quantity: gi.quantity, price: gi.price,
+        });
+      }
+    }
+
+    await axios.delete(`${CART_SERVICE}/carts/${guestCart.id}/clear`).catch(() => {});
+    clearGuestCookie(res);
+    console.log(`[cart] merged ${guestItems.length} guest line(s) into user ${userId}`);
+  } catch (e) {
+    console.warn('[cart] guest cart merge failed:', e.message);
+  }
+};
+
 const adminAuth = (req) => {
   const username = req.user?.username || req.user?.sub || req.user?.email || 'admin';
   const role = req.user?.role && req.user.role !== 'ADMIN' ? req.user.role : 'ADMIN';
@@ -180,6 +234,7 @@ app.post('/api/auth/login', async (req, res) => {
       JWT_SECRET, { expiresIn: '24h' }
     );
     const user = { id: uid, username: data.username, email: data.email, role: data.role || 'CUSTOMER' };
+    await mergeGuestCart(req, res, uid);
     res.json({ token, refreshToken: issueRefreshToken(user), user });
   } catch (err) { res.status(401).json({ error: 'Invalid credentials' }); }
 });
@@ -270,6 +325,7 @@ app.post('/api/auth/register', async (req, res) => {
       JWT_SECRET, { expiresIn: '24h' }
     );
     const authUser = { id: user.id, username: user.username, email: user.email, role: 'CUSTOMER' };
+    await mergeGuestCart(req, res, user.id);
     res.status(201).json({ token, refreshToken: issueRefreshToken(authUser), user: authUser });
   } catch (err) {
     const status = err.response?.status;

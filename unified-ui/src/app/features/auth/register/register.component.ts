@@ -6,7 +6,7 @@ import {
   AbstractControl,
   ValidationErrors,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -69,6 +69,7 @@ export class RegisterComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private route: ActivatedRoute,
     private router: Router
   ) {
     this.registerForm = this.fb.group(
@@ -171,9 +172,13 @@ export class RegisterComponent {
             `Welcome, ${response.user.username || 'there'}! Your account is ready.`,
             'success'
           );
-          // register() already stored the session, so send them into the app
-          // rather than back to a login page they no longer need.
-          this.router.navigate(['/account']);
+          // register() already stored the session, so send them into the app rather
+          // than back to a login page they no longer need — and back to whatever they
+          // were doing if they were interrupted mid-flow.
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          const isSafe = !!returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')
+            && !returnUrl.startsWith('/auth');
+          this.router.navigateByUrl(isSafe ? returnUrl! : '/home');
         },
         error: (err: HttpErrorResponse) => {
           this.isSubmitting = false;

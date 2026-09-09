@@ -135,6 +135,11 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
     private host: ElementRef<HTMLElement>
   ) {}
 
+  /** Current location, so sign-in can return here afterwards. */
+  get returnUrl(): string {
+    return this.router.url;
+  }
+
   toggleAccountMenu(event: Event): void {
     event.stopPropagation();
     this.accountMenuOpen = !this.accountMenuOpen;

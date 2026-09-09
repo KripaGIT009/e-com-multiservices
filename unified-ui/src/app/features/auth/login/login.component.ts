@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -21,6 +21,7 @@ export class LoginComponent {
     private fb: FormBuilder,
     private authService: AuthService,
     private notificationService: NotificationService,
+    private route: ActivatedRoute,
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -37,6 +38,26 @@ export class LoginComponent {
     this.router.navigate(['/home']);
   }
 
+  /**
+   * Where to land after signing in.
+   *
+   * Prefers wherever the user was trying to go — added to a cart, then asked to sign
+   * in, they should come back to the cart, not be dropped on their profile page.
+   * Only same-origin relative paths are honoured, so the query parameter cannot be
+   * used to bounce someone to another site.
+   */
+  private redirectAfterAuth(role: string): string {
+    if (role === 'ADMIN') return '/admin';
+
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const isSafe = !!returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//');
+    if (isSafe && !returnUrl!.startsWith('/auth') && !returnUrl!.startsWith('/login')) {
+      return returnUrl!;
+    }
+    // No destination in mind — back to shopping, not the account page.
+    return '/home';
+  }
+
   onSubmit(): void {
     this.submitError = null;
 
@@ -50,9 +71,7 @@ export class LoginComponent {
     this.authService.login(this.loginForm.value).subscribe({
       next: (response) => {
         this.isSubmitting = false;
-        const role = response.user.role;
-        const redirect = role === 'ADMIN' ? '/admin' : role === 'CUSTOMER' ? '/account' : '/home';
-        this.router.navigate([redirect]);
+        this.router.navigateByUrl(this.redirectAfterAuth(response.user.role));
       },
       error: () => {
         this.isSubmitting = false;
