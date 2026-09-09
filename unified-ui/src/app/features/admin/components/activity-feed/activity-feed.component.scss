@@ -7,7 +7,7 @@
   &__title {
     font-size: 1rem;
     font-weight: 600;
-    color: #1f2937;
+    color: #1C1917;
     margin: 0 0 1rem 0;
   }
 
@@ -24,7 +24,7 @@
     flex-direction: column;
     gap: 0.25rem;
     padding: 0.75rem 0;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid #FAF6F3;
 
     &:last-child {
       border-bottom: none;
@@ -51,7 +51,7 @@
   &__username {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #1f2937;
+    color: #1C1917;
   }
 
   &__badge {
@@ -71,7 +71,7 @@
 
   &__timestamp {
     font-size: 0.75rem;
-    color: #9ca3af;
+    color: #A8A29E;
     white-space: nowrap;
   }
 
@@ -111,7 +111,7 @@
   &__empty {
     text-align: center;
     padding: 2rem;
-    color: #9ca3af;
+    color: #A8A29E;
     font-size: 0.875rem;
   }
 }
@@ -133,14 +133,14 @@
 }
 
 .badge--view {
-  background: #f3f4f6;
+  background: #FAF6F3;
   color: #4b5563;
 }
 
 // Skeleton loading
 .skeleton-line {
   height: 14px;
-  background: #e5e7eb;
+  background: #F2E8E2;
   border-radius: 4px;
 
   &--short {

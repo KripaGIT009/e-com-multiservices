@@ -11,7 +11,7 @@
   padding: 32px 16px;
   background:
     radial-gradient(1200px 500px at 15% 0%, rgba(255, 107, 53, 0.10), transparent 60%),
-    radial-gradient(900px 500px at 100% 100%, rgba(45, 106, 79, 0.10), transparent 55%),
+    radial-gradient(900px 500px at 100% 100%, rgba(35, 43, 58, 0.08), transparent 55%),
     var(--mis-background);
 }
 
@@ -34,7 +34,9 @@
   gap: 20px;
   padding: 48px 40px;
   color: #fff;
-  background: linear-gradient(155deg, var(--mis-secondary) 0%, var(--mis-secondary-dark) 100%);
+  background:
+    radial-gradient(500px 300px at 80% 10%, rgba(255, 255, 255, 0.16), transparent 60%),
+    linear-gradient(155deg, var(--mis-primary) 0%, #F0503F 45%, var(--mis-accent) 100%);
 
   &__logo {
     width: 240px;
@@ -74,7 +76,8 @@
 
     .material-icons {
       font-size: 20px;
-      color: var(--mis-cta-gold);
+      color: #fff;
+      opacity: 0.9;
     }
   }
 }
@@ -164,7 +167,7 @@
 
     &:focus-within {
       border-color: var(--mis-primary);
-      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.16);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.18);
     }
 
     &--invalid {

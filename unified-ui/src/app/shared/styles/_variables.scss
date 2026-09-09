@@ -13,13 +13,13 @@
   // Brand Colors
   --mis-primary:        #FF6B35;   // Saffron/orange — CTAs, buttons, links
   --mis-primary-dark:   #E55A24;   // Hover state for primary
-  --mis-secondary:      #2D6A4F;   // Deep green — headers, accents
-  --mis-secondary-dark: #1E4D38;   // Hover state for secondary
-  --mis-background:     #FFF8F0;   // Cream — page background
+  --mis-secondary:      #1C1917;   // Warm off-black — secondary buttons, steppers
+  --mis-secondary-dark: #0C0A09;   // Hover state for secondary
+  --mis-background:     #FFF9F5;   // Warm cream — page background
   --mis-surface:        #FFFFFF;   // Card/panel background
-  --mis-text-primary:   #1A1A1A;   // Main body text
-  --mis-text-secondary: #6B6B6B;   // Muted/secondary text
-  --mis-border:         #E8D5C4;   // Warm border color
+  --mis-text-primary:   #1C1917;   // Main body text
+  --mis-text-secondary: #78716C;   // Muted/secondary text
+  --mis-border:         #F2E8E2;   // Warm border color
 
   // Semantic Colors
   --mis-error:          #D32F2F;   // Error states
@@ -27,9 +27,9 @@
   --mis-warning:        #F57C00;   // Warning states
 
   // Amazon-India inspired additions
-  --mis-header-dark:    #232F3E;   // Dark navy header background
-  --mis-header-light:   #37475A;   // Lighter navy for hover/accents
-  --mis-nav-green:      #232F3E;   // Dark nav bar (matches header)
+  --mis-header-dark:    #1C1917;   // Chrome — header/nav background
+  --mis-header-light:   #292524;   // Lighter chrome for hover/accents
+  --mis-nav-green:      #1C1917;   // Deprecated alias, kept for existing consumers
   --mis-cta-gold:       #FFD814;   // Gold CTA buttons
   --mis-cta-gold-dark:  #F7CA00;   // Hover state for gold CTA
   --mis-price-red:      #CC0C39;   // Discount/sale price color
@@ -52,11 +52,11 @@
   // ---------------------------------------------------------------------------
   --mis-sidebar-width:            250px;
   --mis-sidebar-width-collapsed:  64px;
-  --mis-sidebar-bg:               #1A1A2E;
-  --mis-sidebar-text:             #CCCCCC;
+  --mis-sidebar-bg:               #1C1917;
+  --mis-sidebar-text:             #D6D3D1;
   --mis-sidebar-active-bg:        #FF6B35;
   --mis-sidebar-active-text:      #FFFFFF;
-  --mis-sidebar-hover-bg:         #2A2A4A;
+  --mis-sidebar-hover-bg:         #292524;
   --mis-admin-topbar-height:      60px;
   --mis-admin-content-padding:    24px;
 
@@ -102,20 +102,28 @@
   // Saffron is reserved for things you can click — that is what makes it read as
   // an action rather than decoration.
   // ---------------------------------------------------------------------------
-  --mis-chrome:          #2D6A4F;   // primary chrome: category nav, footer
-  --mis-chrome-deep:     #1E4D38;   // utility bar, hover states
-  --mis-chrome-tint:     #E8F0EC;   // pale green wash for selected/hover surfaces
-  --mis-page-bg:         #F4F6F5;   // canvas behind cards
-  --mis-line:            #E4E8E6;   // hairline borders
-  --mis-line-strong:     #CFD6D2;   // input borders, dividers that must read
-  --mis-ink:             #14211C;   // primary text
-  --mis-ink-muted:       #5C6B65;   // secondary text
-  --mis-ink-faint:       #8A968F;   // placeholders, meta
+  --mis-chrome:          #1C1917;   // warm off-black: utility bar, footer, panels
+  --mis-chrome-deep:     #0C0A09;   // deepest chrome, hover states
+  --mis-chrome-tint:     #FFF1EA;   // warm saffron wash for hover/selected surfaces
+  --mis-page-bg:         #FFF9F5;   // warm cream canvas
+  --mis-line:            #F2E8E2;   // hairline borders, warm
+  --mis-line-strong:     #E2D3C9;   // input borders, dividers that must read
+  --mis-ink:             #1C1917;   // primary text
+  --mis-ink-muted:       #78716C;   // secondary text
+  --mis-ink-faint:       #A8A29E;   // placeholders, meta
+
+  // The one accent. Reserved for deals, urgency and promo — never decoration,
+  // or it stops signalling anything.
+  --mis-accent:          #E11D62;   // hot pink
+  --mis-accent-dark:     #BE185D;
+  --mis-accent-tint:     #FDE7EF;
 
   // Elevation — flat by default, lift only on interaction.
-  --mis-shadow-sm:       0 1px 2px rgba(20, 33, 28, 0.06);
-  --mis-shadow-md:       0 4px 14px rgba(20, 33, 28, 0.08);
-  --mis-shadow-lg:       0 12px 32px rgba(20, 33, 28, 0.12);
+  --mis-shadow-sm:       0 1px 2px rgba(28, 25, 23, 0.05);
+  --mis-shadow-md:       0 6px 18px rgba(28, 25, 23, 0.09);
+  --mis-shadow-lg:       0 16px 40px rgba(28, 25, 23, 0.14);
+  // Saffron-tinted lift, for cards and CTAs that should feel warm on hover.
+  --mis-shadow-warm:     0 10px 28px rgba(255, 107, 53, 0.22);
 
   // Radius scale
   --mis-radius-sm:       6px;
@@ -143,13 +151,13 @@
 // Brand Colors
 $mis-primary:        #FF6B35;
 $mis-primary-dark:   #E55A24;
-$mis-secondary:      #2D6A4F;
-$mis-secondary-dark: #1E4D38;
-$mis-background:     #FFF8F0;
+$mis-secondary:      #1C1917;
+$mis-secondary-dark: #0C0A09;
+$mis-background:     #FFF9F5;
 $mis-surface:        #FFFFFF;
-$mis-text-primary:   #1A1A1A;
-$mis-text-secondary: #6B6B6B;
-$mis-border:         #E8D5C4;
+$mis-text-primary:   #1C1917;
+$mis-text-secondary: #78716C;
+$mis-border:         #F2E8E2;
 
 // Semantic Colors
 $mis-error:          #D32F2F;
@@ -157,9 +165,9 @@ $mis-success:        #388E3C;
 $mis-warning:        #F57C00;
 
 // Amazon-India inspired additions
-$mis-header-dark:    #232F3E;
-$mis-header-light:   #37475A;
-$mis-nav-green:      #232F3E;
+$mis-header-dark:    #1C1917;
+$mis-header-light:   #292524;
+$mis-nav-green:      #1C1917;
 $mis-cta-gold:       #FFD814;
 $mis-cta-gold-dark:  #F7CA00;
 $mis-price-red:      #CC0C39;
@@ -182,11 +190,11 @@ $mis-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
 // ---------------------------------------------------------------------------
 $mis-sidebar-width:            250px;
 $mis-sidebar-width-collapsed:  64px;
-$mis-sidebar-bg:               #1A1A2E;
-$mis-sidebar-text:             #CCCCCC;
+$mis-sidebar-bg:               #1C1917;
+$mis-sidebar-text:             #D6D3D1;
 $mis-sidebar-active-bg:        #FF6B35;
 $mis-sidebar-active-text:      #FFFFFF;
-$mis-sidebar-hover-bg:         #2A2A4A;
+$mis-sidebar-hover-bg:         #292524;
 $mis-admin-topbar-height:      60px;
 $mis-admin-content-padding:    24px;
 
@@ -200,19 +208,21 @@ $mis-auth-card-shadow:         0 8px 32px rgba(0, 0, 0, 0.12);
 $mis-auth-card-padding:        40px;
 // Retired: an indigo/violet pair that belonged to no part of the brand and sat
 // directly under the saffron header. Auth pages now use the brand chrome.
-$mis-auth-gradient-start:      #2D6A4F;
-$mis-auth-gradient-end:        #1E4D38;
+$mis-auth-gradient-start:      #FF6B35;
+$mis-auth-gradient-end:        #E11D62;
 
 // Surface system (compile-time mirror of the custom properties above)
-$mis-chrome:        #2D6A4F;
-$mis-chrome-deep:   #1E4D38;
-$mis-chrome-tint:   #E8F0EC;
-$mis-page-bg:       #F4F6F5;
-$mis-line:          #E4E8E6;
-$mis-line-strong:   #CFD6D2;
-$mis-ink:           #14211C;
-$mis-ink-muted:     #5C6B65;
-$mis-ink-faint:     #8A968F;
+$mis-chrome:        #1C1917;
+$mis-chrome-deep:   #0C0A09;
+$mis-chrome-tint:   #FFF1EA;
+$mis-page-bg:       #FFF9F5;
+$mis-line:          #F2E8E2;
+$mis-line-strong:   #E2D3C9;
+$mis-ink:           #1C1917;
+$mis-ink-muted:     #78716C;
+$mis-ink-faint:     #A8A29E;
+$mis-accent:        #E11D62;
+$mis-accent-dark:   #BE185D;
 $mis-container:     1280px;
 
 // ---------------------------------------------------------------------------

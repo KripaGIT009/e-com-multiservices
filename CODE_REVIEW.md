@@ -364,22 +364,26 @@ or CSS was copied, and the project stays on SCSS rather than adopting Tailwind).
 ## Design system
 
 The storefront was running **five unrelated colour systems at once**: a saffron
-header, a bright-green (`#138808`) category nav, a navy (`#232F3E`) hero, a purple
-auth gradient (`#667eea` → `#764ba2`) and a green footer. The login page read as a
-different product from the storefront it sat inside.
+header, a bright-green () category nav, a navy () hero, a purple
+auth gradient ( → ) and a green footer.
 
-One system now:
+Two palettes were tried and rejected by the user before the current one — brand green
+read heavy across large areas, and a neutral charcoal read flat. The brief then became
+"eye-catching". The system is now **Saffron Pop**:
 
 | Role | Colour | Used for |
 |---|---|---|
-| Chrome | `--mis-chrome` `#2D6A4F` | Category nav, footer, brand panels |
-| Chrome deep | `--mis-chrome-deep` `#1E4D38` | Utility bar, hover states |
-| Action | `--mis-primary` `#FF6B35` | CTAs only — buttons, cart badge, search |
-| Canvas | `--mis-page-bg` `#F4F6F5` | Page background |
-| Surface | `#FFFFFF` | Cards |
+| Brand / action |   | CTAs, nav pill, cart, search, focus rings |
+| Chrome |   | Utility bar, footer, admin sidebar, second hero panel |
+| Accent |   | Deals and urgency only — promo strip, hero gradient end |
+| Canvas |   | Warm cream page background |
+| Surface |  | Cards |
 
-Saffron is now reserved for things you can click, which is what makes it read as an
-action rather than decoration. Added a surface/ink/line/elevation/radius/type scale so
+Saffron is reserved for things you can click, so it reads as an action rather than
+decoration; hot pink is reserved for a single promotional message, so it keeps
+signalling. Neutrals were re-tempered from cool slate to warm stone — 272 colour
+literals across 21 stylesheets — so the admin no longer reads as a different product
+from the storefront. Added a surface/ink/line/elevation/radius/type scale so
 components stop inventing their own greys — 29 hardcoded `#ffffff` and a scatter of
 one-off greys were spread across the component stylesheets.
 

@@ -1,6 +1,6 @@
 // =============================================================================
 // Register — split brand/form layout, built on the shared design tokens.
-// The previous version sat on a purple gradient (#667eea → #764ba2) that belonged
+// The previous version sat on a purple gradient (#FF6B35 → #E11D62) that belonged
 // to no part of the brand palette and clashed with the orange header above it.
 // =============================================================================
 
@@ -68,7 +68,7 @@
     &:hover:not(:disabled) { background: var(--mis-primary-dark); }
 
     &:disabled {
-      background: #E0E0E0;
+      background: #E2D3C9;
       color: #9A9A9A;
       cursor: not-allowed;
     }

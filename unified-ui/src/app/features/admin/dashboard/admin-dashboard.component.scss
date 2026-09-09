@@ -126,21 +126,21 @@
       .admin-dashboard__kpi-icon {
         width: 48px;
         height: 48px;
-        background: #e5e7eb;
+        background: #F2E8E2;
         border-radius: 12px;
       }
 
       .admin-dashboard__kpi-label {
         width: 80px;
         height: 12px;
-        background: #e5e7eb;
+        background: #F2E8E2;
         border-radius: 4px;
       }
 
       .admin-dashboard__kpi-value {
         width: 60px;
         height: 20px;
-        background: #e5e7eb;
+        background: #F2E8E2;
         border-radius: 4px;
       }
     }
@@ -161,7 +161,7 @@
     }
 
     &--orders {
-      background: linear-gradient(135deg, #667eea, #764ba2);
+      background: linear-gradient(135deg, #FF6B35, #E11D62);
     }
 
     &--active {
@@ -326,7 +326,7 @@
     td {
       padding: 1rem 1.25rem;
       color: $mis-text-primary;
-      border-bottom: 1px solid #f3f4f6;
+      border-bottom: 1px solid #FAF6F3;
       vertical-align: middle;
     }
 
