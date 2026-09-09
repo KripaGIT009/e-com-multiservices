@@ -3,11 +3,15 @@ import { RouterModule, Routes } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { OrderHistoryComponent } from './order-history/order-history.component';
 import { ReturnRequestComponent } from './return-request/return-request.component';
+import { WishlistComponent } from './wishlist/wishlist.component';
+import { RecentlyViewedComponent } from './recently-viewed/recently-viewed.component';
 
 const routes: Routes = [
   { path: '', component: ProfileComponent },
   { path: 'orders', component: OrderHistoryComponent },
   { path: 'returns', component: ReturnRequestComponent },
+  { path: 'wishlist', component: WishlistComponent },
+  { path: 'recently-viewed', component: RecentlyViewedComponent },
 ];
 
 @NgModule({

@@ -19,6 +19,7 @@ Status is **verified against the running stack**, not aspirational.
 | cart-service | 8006 | cart_service (5437) | built | Carts and cart items |
 | checkout-service | 8007 | checkout_service (5438) | partial | Checkout records. Not a saga orchestrator |
 | return-service | 8008 | return_service (5439) | built | Return requests, approve/reject/refund |
+| wishlist-service | 8016 | wishlist_service (5443) | built | Saved items, price-drop detection, move-to-cart |
 | logistics-service | 8009→8088 | logistics_service (5440) | partial | Shipments. **Jar is stale vs source** |
 | notification-service | 8010 | notification_service (5441) | partial | Kafka consumer. No real email/SMS transport |
 | admin-service | 8011 | admin_db (5442) | built | Admin users, management proxy, audit log, dashboard analytics |
@@ -47,7 +48,7 @@ Ports are reserved. None of these exist.
 | search-service | 8013 | 3 | OpenSearch indexing and query |
 | pricing-service | 8014 | 4 | MRP, selling price, effective dates, price history |
 | promotion-service | 8015 | 4 | Coupons, offers, usage limits |
-| wishlist-service | 8016 | 5 | Wishlists, price-drop and back-in-stock triggers |
+
 | address-service | 8017 | 5 | Customer address book |
 | warehouse-service | 8018 | 10 | Warehouses, picking, packing, transfers |
 | review-service | 8019 | 12 | Ratings, reviews, verified purchase |

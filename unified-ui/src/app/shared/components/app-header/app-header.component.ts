@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -20,6 +20,41 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   searchQuery = '';
   selectedCategory = 'All';
   cartCount = 0;
+  accountMenuOpen = false;
+
+  /**
+   * Account menu.
+   *
+   * `route` is a working destination. `pending` marks an entry whose backing service
+   * is not built yet — those render as disabled with the reason, rather than as links
+   * that look live and go nowhere. See docs/service-catalog.md for the roadmap.
+   */
+  accountMenuSections: Array<{
+    title: string;
+    items: Array<{ label: string; route?: string; pending?: string }>;
+  }> = [
+    {
+      title: 'Your Lists',
+      items: [
+        { label: 'Your Wish List', route: '/account/wishlist' },
+        { label: 'Keep shopping for', route: '/account/recently-viewed' },
+        { label: 'Your Recommendations', pending: 'recommendation-service' },
+        { label: 'Your Subscribe & Save Items', pending: 'subscription billing' },
+      ],
+    },
+    {
+      title: 'Your Account',
+      items: [
+        { label: 'Your Account', route: '/account' },
+        { label: 'Your Orders', route: '/account/orders' },
+        { label: 'Memberships & Subscriptions', pending: 'subscription billing' },
+        { label: 'Your Seller Account', pending: 'seller-service' },
+        { label: 'Manage Your Content and Devices', pending: 'digital content' },
+        { label: 'Your Music Library', pending: 'digital content' },
+        { label: 'Register for a free Business Account', pending: 'seller-service' },
+      ],
+    },
+  ];
 
   categories: string[] = [
     'All',
@@ -96,8 +131,37 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private cartService: CartService,
-    private router: Router
+    private router: Router,
+    private host: ElementRef<HTMLElement>
   ) {}
+
+  toggleAccountMenu(event: Event): void {
+    event.stopPropagation();
+    this.accountMenuOpen = !this.accountMenuOpen;
+  }
+
+  closeAccountMenu(): void {
+    this.accountMenuOpen = false;
+  }
+
+  onAccountMenuItem(item: { route?: string; pending?: string }): void {
+    if (!item.route) return;          // pending entries are inert
+    this.closeAccountMenu();
+    this.router.navigate([item.route]);
+  }
+
+  // Clicking anywhere else, or pressing Escape, dismisses the menu.
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.accountMenuOpen && !this.host.nativeElement.contains(event.target as Node)) {
+      this.closeAccountMenu();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeAccountMenu();
+  }
 
   ngOnInit(): void {
     this.userSubscription = this.authService.currentUser$.subscribe((user) => {
