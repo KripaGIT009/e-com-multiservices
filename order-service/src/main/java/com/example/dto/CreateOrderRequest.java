@@ -15,4 +15,11 @@ public class CreateOrderRequest {
     private String customerId;
     private List<CreateOrderItemRequest> items;
     private String notes;
+
+    /** Collected by the checkout form. Previously accepted and silently discarded. */
+    private ShippingAddressDTO shippingAddress;
+
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
 }

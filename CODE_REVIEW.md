@@ -550,3 +550,72 @@ cart badge after sign-in   : 1  (kept)
 /checkout while signed out -> /auth/login?returnUrl=%2Fcheckout
 after sign-in              -> /checkout
 ```
+
+---
+
+# Appendix D — Admin order details were blank
+
+Reported as the admin portal showing a product and amount but an empty
+Customer / Phone / Email / Address / Expected block. This is §2.3 surfacing in the UI:
+the data was never stored, so there was nothing to render.
+
+## Root cause
+
+`active-orders.component.ts` hardcoded the fields it could not get:
+
+```ts
+customerName: `Customer #${o.customerId}`,
+customerPhone: '',
+customerEmail: '',
+deliveryAddress: '',
+expectedDelivery: '',
+```
+
+because `order-service` had no columns for any of it. The checkout form collected a
+full address, posted it, and Jackson discarded it silently.
+
+## Fixed
+
+**order-service** gained a `ShippingAddress` embeddable (`ship_*` columns) plus
+`customer_name`, `customer_email` and `customer_phone`. All nullable, so
+`ddl-auto: update` added them without touching existing rows — this particular change
+did not need Flyway, which only blocks destructive or narrowing migrations.
+
+Address and customer are **snapshots**, not references: an order must show where it
+was actually sent and who placed it even after the customer edits their profile or
+deletes the address ([order-flow](flows/order-flow.md)).
+
+**The BFF** now maps `shippingAddress` explicitly instead of spreading it into `rest`
+where it fell out, normalises the phone, and snapshots the customer from the token and
+their profile. **An order without a deliverable address is now rejected with 400**
+rather than silently accepted as undeliverable.
+
+**The admin list** reads the real values, falling back to `Customer #id` only for
+orders placed before the fields existed. `expectedDelivery` is derived as order date
+plus five days — a standard window, clearly labelled, not a fabricated promise;
+logistics-service will supply a real date.
+
+Orders are also now sorted newest-first. They came back in creation order, so with
+10 to a page the newest — the ones an admin is most likely acting on — were on the
+last page.
+
+## Verified
+
+An order placed through the real checkout UI:
+
+```
+name : Priya Sharma
+phone: 9876543299
+email: e2e.1788933701282@example.com
+addr : 88 MG Road, Indiranagar, Bengaluru, Karnataka - 560038
+```
+
+and rendered in the admin panel with Phone, Email, Address and Expected all populated.
+Orders created before this change correctly show `(none)` rather than inventing values.
+
+## Still open
+
+`/admin/orders/:id` (`order-details.component.ts`) is **entirely mock** — it calls
+`loadMockOrder()` and never touches the API, returning a hardcoded "Rajesh Kumar" and
+turmeric order. Nothing links to it, so it is only reachable by typing the URL, but it
+is the same fabricated-data problem and should either be wired to the API or removed.

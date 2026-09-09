@@ -42,6 +42,10 @@ public class OrderServiceImpl implements IOrderService {
             .customerId(request.getCustomerId())
             .status(OrderStatus.PENDING)
             .notes(request.getNotes())
+            .shippingAddress(toEmbeddedAddress(request.getShippingAddress()))
+            .customerName(request.getCustomerName())
+            .customerEmail(request.getCustomerEmail())
+            .customerPhone(request.getCustomerPhone())
             .build();
 
         // Add order items
@@ -186,6 +190,43 @@ public class OrderServiceImpl implements IOrderService {
             .createdAt(order.getCreatedAt())
             .updatedAt(order.getUpdatedAt())
             .notes(order.getNotes())
+            .shippingAddress(toAddressDTO(order.getShippingAddress()))
+            .shippingAddressLine(order.getShippingAddress() != null
+                ? order.getShippingAddress().toSingleLine() : null)
+            .customerName(order.getCustomerName())
+            .customerEmail(order.getCustomerEmail())
+            .customerPhone(order.getCustomerPhone())
+            .build();
+    }
+
+    private com.example.entity.ShippingAddress toEmbeddedAddress(
+            com.example.dto.ShippingAddressDTO dto) {
+        if (dto == null) return null;
+        return com.example.entity.ShippingAddress.builder()
+            .fullName(dto.getFullName())
+            .addressLine1(dto.getAddressLine1())
+            .addressLine2(dto.getAddressLine2())
+            .city(dto.getCity())
+            .state(dto.getState())
+            .postalCode(dto.getPostalCode())
+            .phone(dto.getPhone())
+            // Single-market for now; recorded so it does not have to be inferred later.
+            .country(dto.getCountry() != null ? dto.getCountry() : "India")
+            .build();
+    }
+
+    private com.example.dto.ShippingAddressDTO toAddressDTO(
+            com.example.entity.ShippingAddress a) {
+        if (a == null) return null;
+        return com.example.dto.ShippingAddressDTO.builder()
+            .fullName(a.getFullName())
+            .addressLine1(a.getAddressLine1())
+            .addressLine2(a.getAddressLine2())
+            .city(a.getCity())
+            .state(a.getState())
+            .postalCode(a.getPostalCode())
+            .phone(a.getPhone())
+            .country(a.getCountry())
             .build();
     }
 }
