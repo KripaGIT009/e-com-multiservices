@@ -35,6 +35,10 @@ public class UserRequest {
     
     @Pattern(regexp = "^\\+?[0-9\\s\\-\\(\\)]{7,20}$", message = "Phone number must be valid")
     private String phoneNumber;
+
+    @Pattern(regexp = "^(MALE|FEMALE|OTHER|PREFER_NOT_TO_SAY)$",
+             message = "Gender must be MALE, FEMALE, OTHER or PREFER_NOT_TO_SAY")
+    private String gender;
     
     @Pattern(regexp = "^https?://.*$", message = "Profile picture URL must be a valid HTTP or HTTPS URL")
     private String profilePictureUrl;

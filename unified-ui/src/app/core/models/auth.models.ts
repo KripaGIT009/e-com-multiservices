@@ -26,8 +26,14 @@ export interface LoginRequest {
 
 export interface RegisterRequest {
   email: string;
-  username: string;
   password: string;
+  /** Display name. The BFF splits it into first/last and derives a username. */
+  name?: string;
+  /** Explicit username, when the caller has one. Otherwise derived from `name`. */
+  username?: string;
+  /** Ten-digit Indian mobile number, already normalised. */
+  phone?: string;
+  gender?: string;
 }
 
 export interface AuthResponse {

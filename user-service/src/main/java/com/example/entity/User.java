@@ -45,6 +45,9 @@ public class User {
     @Column(length = 20)
     private String phoneNumber;
 
+    @Column(length = 20)
+    private String gender;
+
     @Column(length = 500)
     private String profilePictureUrl;
 
