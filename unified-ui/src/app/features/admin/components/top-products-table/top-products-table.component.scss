@@ -2,14 +2,14 @@
   background: #fff;
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(124, 42, 15, 0.1);
 }
 
 .table-title {
   margin: 0 0 1.25rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1C1917;
+  color: #43281B;
 }
 
 // Loading state
@@ -113,7 +113,7 @@
 
     td {
       padding: 0.75rem 0.5rem;
-      color: #44403C;
+      color: #6B4433;
     }
   }
 }
@@ -126,7 +126,7 @@
 
 .name-cell {
   font-weight: 500;
-  color: #1C1917;
+  color: #43281B;
 }
 
 .qty-cell {

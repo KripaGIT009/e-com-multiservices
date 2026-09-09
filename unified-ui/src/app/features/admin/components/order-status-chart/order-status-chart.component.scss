@@ -2,14 +2,14 @@
   background: #fff;
   border-radius: 8px;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(124, 42, 15, 0.1);
 }
 
 .chart-title {
   margin: 0 0 1.25rem;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #1C1917;
+  color: #43281B;
 }
 
 // Loading state
@@ -110,7 +110,7 @@
 .total-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1C1917;
+  color: #43281B;
 }
 
 // Legend
@@ -129,7 +129,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: #44403C;
+  color: #6B4433;
 }
 
 .legend-color {
@@ -146,5 +146,5 @@
 
 .legend-count {
   font-weight: 600;
-  color: #1C1917;
+  color: #43281B;
 }

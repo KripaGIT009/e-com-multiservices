@@ -1,7 +1,7 @@
 .barcode-scanner {
   background: #ffffff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(124, 42, 15, 0.1);
   padding: 1.25rem;
   margin-bottom: 1.5rem;
 
@@ -20,7 +20,7 @@
   &__title {
     font-size: 1rem;
     font-weight: 600;
-    color: #1C1917;
+    color: #43281B;
     margin: 0;
   }
 
@@ -102,7 +102,7 @@
     &--active {
       border-style: solid;
       border-color: #10b981;
-      background: #000000;
+      background: #43281B;
       min-height: 320px;
     }
   }
@@ -217,7 +217,7 @@
     border: 1px solid #E2D3C9;
     border-radius: 6px;
     font-size: 0.875rem;
-    color: #1C1917;
+    color: #43281B;
     transition: border-color 0.2s ease;
 
     &:focus {

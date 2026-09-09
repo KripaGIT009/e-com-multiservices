@@ -367,29 +367,55 @@ The storefront was running **five unrelated colour systems at once**: a saffron
 header, a bright-green (`#138808`) category nav, a navy (`#232F3E`) hero, a purple
 auth gradient (`#667eea` → `#764ba2`) and a green footer.
 
-Two palettes were tried and rejected before the current one — brand green read heavy
-across large areas and muddied the orange, and a neutral charcoal chrome read flat.
-The brief then became "eye-catching". The system is now **Saffron Pop**:
+Three palettes were tried before the current one. Brand green read heavy across large
+areas and muddied the saffron; a neutral charcoal chrome read flat; and a warm
+off-black was rejected as still too dark. Green and black are both retired as UI
+colours. The palette is now warm end to end:
 
 | Role | Colour | Used for |
 |---|---|---|
 | Brand / action | `--mis-primary` `#FF6B35` | CTAs, nav pill, cart, search, focus rings, card hover |
-| Chrome | `--mis-chrome` `#1C1917` | Utility bar, footer, admin sidebar, second hero panel |
-| Accent | `--mis-accent` `#E11D62` | Deals and urgency only — promo strip, hero gradient end |
+| Chrome | `--mis-chrome` `#A63A16` / `#7C2A0F` | Utility bar, footer, admin sidebar |
+| Dark note | `--mis-plum` `#6B2151` | Second hero panel, auth gradient end, success states |
+| Accent | `--mis-accent` `#E11D62` | Deals and urgency only — promo strip, hero gradient |
+| Text | `--mis-ink` `#43281B` | Deep warm brown, not black |
 | Canvas | `--mis-page-bg` `#FFF9F5` | Warm cream page background |
-| Surface | `#FFFFFF` | Cards |
 
 Saffron is reserved for things you can click, so it reads as an action rather than
 decoration; hot pink has a single job — one promotional message — so it keeps
-signalling. Neutrals were re-tempered from cool slate to warm stone (272 colour
-literals across 21 stylesheets) so the admin no longer reads as a different product
-from the storefront. Semantic colours and chart hues were left alone because they
-carry meaning, and `--mis-success` stays green: there it means "this succeeded",
-which is a convention rather than a brand choice.
+signalling. Neutrals were re-tempered from cool slate to warm stone, and every
+near-black literal, shadow and overlay was moved into the brown scale: 272 + 106
+colour values across 23 stylesheets. Admin follows the same system rather than its
+own indigo-black.
 
-Verified by reading computed styles from the running app rather than by eye, since
-this session's image budget was exhausted. A sweep of every rendered element found no
-green on either the storefront or the admin dashboard.
+### Contrast
+
+White on saffron measured **2.84:1**, below even the 3.0 large-text floor — a real
+accessibility failure that predated this work but mattered more once saffron became
+the primary action colour. Rather than dull the saffron, saffron fills now take a dark
+label (`#43281B`, **4.75:1**) and *lighten* on hover (`#FF7F4F`, 5.39:1) so contrast
+rises rather than falls. 17 label/hover pairs across 8 stylesheets.
+
+Measured on the running app:
+
+| | Ratio |
+|---|---|
+| White on utility bar `#7C2A0F` | 9.57:1 |
+| White on footer `#A63A16` | 6.49:1 |
+| Dark label on saffron CTA | 4.75:1 |
+| White on plum hero | 10.71:1 |
+| White on pink promo | 4.61:1 |
+| Body text on canvas | 12.91:1 |
+| Muted text on white card | 4.84:1 |
+
+All pass WCAG AA for body text.
+
+### Verification
+
+Checked by reading computed styles from the running app rather than by eye, since this
+session's image budget was exhausted. A sweep of every visible element on the home,
+products, login and admin dashboard pages found **no black and no green** on any of
+them, and no white-on-saffron combination remaining.
 
 ## Changed
 

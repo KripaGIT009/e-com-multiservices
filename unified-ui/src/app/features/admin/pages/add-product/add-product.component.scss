@@ -46,11 +46,11 @@
 
     &-active {
       background: $mis-primary;
-      color: #fff;
+      color: var(--mis-on-primary);
       border-color: $mis-primary;
 
       &:hover {
-        background: $mis-primary-dark;
+        background: $mis-primary-hover;
       }
     }
   }
@@ -431,11 +431,11 @@
 
     &--publish {
       background: $mis-primary;
-      color: #ffffff;
+      color: var(--mis-on-primary);
       border-color: $mis-primary;
 
       &:hover:not(:disabled) {
-        background: $mis-primary-dark;
+        background: $mis-primary-hover;
         border-color: $mis-primary-dark;
       }
     }
