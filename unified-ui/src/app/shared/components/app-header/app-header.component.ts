@@ -48,10 +48,10 @@ export class AppHeaderComponent implements OnInit, OnDestroy {
         { label: 'Your Account', route: '/account' },
         { label: 'Your Orders', route: '/account/orders' },
         { label: 'Memberships & Subscriptions', pending: 'subscription billing' },
-        { label: 'Your Seller Account', pending: 'seller-service' },
+        { label: 'Your Seller Account', route: '/seller' },
         { label: 'Manage Your Content and Devices', pending: 'digital content' },
         { label: 'Your Music Library', pending: 'digital content' },
-        { label: 'Register for a free Business Account', pending: 'seller-service' },
+        { label: 'Register for a free Business Account', route: '/seller/register' },
       ],
     },
   ];

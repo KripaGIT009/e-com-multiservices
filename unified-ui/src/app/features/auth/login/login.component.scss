@@ -103,3 +103,12 @@
   .field__control,
   .btn { transition: none; }
 }
+
+// Inline route out of a dead end when the credentials belong to a seller.
+.auth-alert__action {
+  display: inline-block;
+  margin-left: 4px;
+  color: var(--mis-error);
+  font-weight: 600;
+  text-decoration: underline;
+}

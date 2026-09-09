@@ -226,8 +226,18 @@ app.post('/api/auth/login', async (req, res) => {
       } catch (_) { return res.status(401).json({ error: 'Invalid credentials' }); }
     }
     let loginRes;
-    try { loginRes = await axios.post(`${USER_SERVICE}/api/auth/login`, { email: loginEmail, password }); }
-    catch (e) { return res.status(401).json({ error: 'Invalid credentials' }); }
+    try {
+      loginRes = await axios.post(`${USER_SERVICE}/api/auth/login`, { email: loginEmail, password });
+    } catch (e) {
+      try {
+        await axios.post(`${SELLER_SERVICE}/api/sellers/login`, { email: loginEmail, password });
+        return res.status(401).json({
+          error: 'That is a seller account. Please sign in through the seller portal.',
+          sellerAccount: true,
+        });
+      } catch (_) { /* not a seller either — a plain bad login */ }
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
     const data = loginRes.data;
     const uid  = data?.userId || data?.id;
     if (!uid) return res.status(401).json({ error: 'Invalid credentials' });

@@ -713,3 +713,42 @@ code was violating.
   ([checkout-flow](docs/flows/checkout-flow.md)).
 - Seller settlement and payouts are not modelled.
 - `/admin/orders/:id` is still entirely mock.
+
+---
+
+# Appendix F — The seller portal was unreachable
+
+Reported as valid seller credentials being rejected with "Invalid email or password".
+
+The credentials were fine. Seller sign-in lives at `/seller/login`, and **nothing in
+the UI linked to it** — so the natural thing is to try the normal login page, which
+authenticates against user-service, where no seller exists. A correct password looked
+like a wrong one.
+
+Two fixes, because either alone leaves the trap:
+
+**Discoverability.** The account menu's "Your Seller Account" and "Register for a free
+Business Account" were still marked `pending: 'seller-service'` from when that service
+did not exist. They now route to `/seller` and `/seller/register`. Added a
+"Sell on MyIndianStore" footer link and a "Seller sign in" line on the login page.
+
+**A useful failure.** When a customer login fails, the BFF now retries against
+seller-service. If the password matches *there*, it says so and the login page offers
+a link to the seller portal.
+
+This reveals nothing to someone without valid credentials — the seller password has to
+be correct before the different message appears. Verified:
+
+| Input | Response |
+|---|---|
+| Seller email + correct seller password | "That is a seller account…" + link |
+| Seller email + wrong password | `Invalid credentials` |
+| Unknown email | `Invalid credentials` |
+| Customer credentials | 200, unaffected |
+
+It deliberately does not sign them in across realms — silently switching realm on a
+login attempt would be surprising. It points at the right door.
+
+Verified end to end in a browser: the message and link appear, the link lands on
+`/seller/login`, signing in there reaches the dashboard showing "Approved — your
+listings are live", and both menu entries render live rather than "Soon".
