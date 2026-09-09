@@ -462,15 +462,49 @@ app.delete('/api/items/:id', authenticateAdmin, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 // CART — customer
 // ═══════════════════════════════════════════════════════════════════════════════
-const GUEST_CART_USER_ID = 999999;
+// Guest carts live above this floor so they cannot collide with real user ids.
+const GUEST_ID_FLOOR = 900000000;
+const GUEST_COOKIE = 'mis_guest';
+
+const readCookie = (req, name) =>
+  (req.headers.cookie || '')
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(name + '='))
+    ?.slice(name.length + 1);
+
+/**
+ * Returns this browser's own guest cart id, issuing one if it has none.
+ *
+ * Signed rather than a bare number so a visitor cannot read another guest's cart by
+ * editing the cookie. httpOnly keeps it away from page scripts.
+ */
+const guestCartId = (req, res) => {
+  const existing = readCookie(req, GUEST_COOKIE);
+  if (existing) {
+    try {
+      return jwt.verify(existing, JWT_SECRET, { audience: 'guest-cart' }).gid;
+    } catch (_) { /* tampered or expired — issue a fresh one */ }
+  }
+
+  const gid = GUEST_ID_FLOOR + Math.floor(Math.random() * 99999999);
+  if (res && !res.headersSent) {
+    const token = jwt.sign({ gid, aud: 'guest-cart' }, JWT_SECRET, { expiresIn: '30d' });
+    res.cookie
+      ? res.cookie(GUEST_COOKIE, token, { httpOnly: true, sameSite: 'lax', maxAge: 2592000000 })
+      : res.setHeader('Set-Cookie',
+          `${GUEST_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000`);
+  }
+  return gid;
+};
 
 /**
  * The cart always belongs to the caller. :userId in the path is ignored — it was
  * previously trusted, which let anyone read or mutate any cart by id.
  */
-const cartOwner = (req) => {
+const cartOwner = (req, res) => {
   const user = resolveUser(req);
-  return user?.id ? parseInt(user.id, 10) : GUEST_CART_USER_ID;
+  return user?.id ? parseInt(user.id, 10) : guestCartId(req, res);
 };
 
 /** Resolves (creating if needed) the caller's cart. */
@@ -495,7 +529,7 @@ const findCartItem = async (cartId, itemId) => {
 
 app.get('/api/cart/:userId', async (req, res) => {
   try {
-    const cart = await getOrCreateCart(cartOwner(req));
+    const cart = await getOrCreateCart(cartOwner(req, res));
     let items = [];
     try { items = (await axios.get(`${CART_SERVICE}/carts/${cart.id}/items`)).data; }
     catch (e) { /* no items yet */ }
@@ -505,7 +539,7 @@ app.get('/api/cart/:userId', async (req, res) => {
 
 app.post('/api/cart/:userId/items', async (req, res) => {
   try {
-    const cart = await getOrCreateCart(cartOwner(req));
+    const cart = await getOrCreateCart(cartOwner(req, res));
     const item = (await axios.get(`${ITEM_SERVICE}/items/${req.body.itemId}`)).data;
     const quantity = Math.max(1, parseInt(req.body.quantity, 10) || 1);
 
@@ -528,7 +562,7 @@ app.post('/api/cart/:userId/items', async (req, res) => {
 
 app.put('/api/cart/:userId/items/:itemId', async (req, res) => {
   try {
-    const cart = await getOrCreateCart(cartOwner(req));
+    const cart = await getOrCreateCart(cartOwner(req, res));
     // cart-service keys on the cart-item row id, not the product id the UI sends.
     const line = await findCartItem(cart.id, req.params.itemId);
     if (!line) return res.status(404).json({ error: 'Item not in cart' });
@@ -538,7 +572,7 @@ app.put('/api/cart/:userId/items/:itemId', async (req, res) => {
 
 app.delete('/api/cart/:userId/items/:itemId', async (req, res) => {
   try {
-    const cart = await getOrCreateCart(cartOwner(req));
+    const cart = await getOrCreateCart(cartOwner(req, res));
     const line = await findCartItem(cart.id, req.params.itemId);
     if (!line) return res.status(404).json({ error: 'Item not in cart' });
     await axios.delete(`${CART_SERVICE}/carts/${cart.id}/items/${line.id}`);
@@ -550,7 +584,7 @@ app.delete('/api/cart/:userId/items/:itemId', async (req, res) => {
 // had just bought. Exposed so the checkout flow can clear it.
 app.delete('/api/cart/:userId/clear', async (req, res) => {
   try {
-    const cart = await getOrCreateCart(cartOwner(req));
+    const cart = await getOrCreateCart(cartOwner(req, res));
     await axios.delete(`${CART_SERVICE}/carts/${cart.id}/clear`);
     res.status(204).send();
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to clear cart' }); }

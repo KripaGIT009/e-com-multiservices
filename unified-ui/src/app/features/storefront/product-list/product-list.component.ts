@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { productPlaceholder } from '../../../core/utils/product-image';
 
 interface Product {
   id: number;
@@ -61,7 +62,6 @@ export class ProductListComponent implements OnInit {
     { label: 'Featured', value: 'featured' },
     { label: 'Price: Low to High', value: 'price-asc' },
     { label: 'Price: High to Low', value: 'price-desc' },
-    { label: 'Avg. Customer Review', value: 'rating' },
     { label: 'Newest Arrivals', value: 'newest' },
   ];
 
@@ -127,31 +127,24 @@ export class ProductListComponent implements OnInit {
    * M.R.P. shown beside it.
    */
   private toDisplayProduct(item: Product): Product {
-    const inStock = (item as unknown as { quantity?: number }).quantity !== 0;
-    const originalPrice = item.price ? Math.round(item.price * 1.3) : undefined;
-    const discount =
-      originalPrice && item.price
-        ? Math.round(((originalPrice - item.price) / originalPrice) * 100)
-        : undefined;
-
     return {
       ...item,
       imageUrl: item.imageUrl || this.getProductImage(item.name, item.category, item.id),
-      originalPrice,
-      discount,
-      inStock,
-      // Ratings belong to review-service; show none until it can supply them
-      // rather than inventing a number the customer would read as real.
-      rating: undefined,
-      reviewCount: undefined,
-      sponsored: false,
-      freeDelivery: true,
+      // Stock is the one display field the catalogue actually knows.
+      inStock: (item as unknown as { quantity?: number }).quantity !== 0,
+      // Everything below needs a service that does not exist yet. Omit it rather
+      // than fabricate it — a customer reads these as facts about the product.
+      originalPrice: undefined,   // pricing-service
+      discount: undefined,        // pricing-service / promotion-service
+      rating: undefined,          // review-service
+      reviewCount: undefined,     // review-service
+      sponsored: false,           // no ad platform
+      freeDelivery: false,        // no shipping rules engine
     };
   }
 
-  private getProductImage(name: string, category: string, id: number): string {
-    const seed = (name || category || 'product').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 20) + id;
-    return `https://picsum.photos/seed/${seed}/300/300`;
+  private getProductImage(name: string, _category: string, id: number): string {
+    return productPlaceholder(name, id);
   }
 
   applyFilters(): void {
@@ -175,17 +168,8 @@ export class ProductListComponent implements OnInit {
       filtered = filtered.filter((p) => p.price <= +this.priceMax);
     }
 
-    // Filter by rating
-    if (this.selectedRatings.length > 0) {
-      const minRating = Math.min(...this.selectedRatings);
-      filtered = filtered.filter((p) => (p.rating || 0) >= minRating);
-    }
-
-    // Filter by discount
-    if (this.selectedDiscounts.length > 0) {
-      const minDiscount = Math.min(...this.selectedDiscounts.map(Number));
-      filtered = filtered.filter((p) => (p.discount || 0) >= minDiscount);
-    }
+    // Rating and discount filters are intentionally absent: review-service and
+    // pricing-service do not exist yet, so there is nothing to filter on.
 
     // Sort
     switch (this.sortBy) {
@@ -194,9 +178,6 @@ export class ProductListComponent implements OnInit {
         break;
       case 'price-desc':
         filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
         break;
       case 'newest':
         filtered.sort((a, b) => b.id - a.id);

@@ -60,40 +60,6 @@
         </ul>
       </div>
 
-      <!-- Deals & Discounts -->
-      <div class="filter-group">
-        <h3 class="filter-title">Deals & Discounts</h3>
-        <ul class="filter-options">
-          <li *ngFor="let discount of discountOptions">
-            <label class="filter-checkbox">
-              <input
-                type="checkbox"
-                [checked]="selectedDiscounts.includes(discount.value)"
-                (change)="onDiscountChange(discount.value, $any($event.target).checked)" />
-              <span>{{ discount.label }}</span>
-            </label>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Customer Review -->
-      <div class="filter-group">
-        <h3 class="filter-title">Customer Review</h3>
-        <ul class="filter-options rating-options">
-          <li *ngFor="let star of [4, 3, 2, 1]">
-            <label class="filter-checkbox rating-label">
-              <input
-                type="checkbox"
-                [checked]="selectedRatings.includes(star)"
-                (change)="onRatingChange(star, $any($event.target).checked)" />
-              <span class="stars" [attr.aria-label]="star + ' stars and up'">
-                <span *ngFor="let s of getStars(star)" class="star" [class.filled]="s === 1">★</span>
-              </span>
-              <span class="rating-text">& Up</span>
-            </label>
-          </li>
-        </ul>
-      </div>
     </aside>
 
     <!-- Product Grid -->
@@ -131,27 +97,10 @@
           <div class="product-details">
             <h2 class="product-name">{{ product.name }}</h2>
 
-            <!-- Rating -->
-            <div class="product-rating" *ngIf="product.rating">
-              <span class="stars">
-                <span *ngFor="let s of getStars(product.rating)" class="star" [class.filled]="s === 1">★</span>
-              </span>
-              <span class="review-count">({{ product.reviewCount | number }})</span>
-            </div>
-
             <!-- Price -->
             <div class="product-pricing">
-              <span class="discount-badge" *ngIf="product.discount">-{{ product.discount }}%</span>
               <span class="current-price">₹{{ product.price | number:'1.0-0' }}</span>
             </div>
-            <div class="original-price" *ngIf="product.originalPrice">
-              M.R.P: <span class="strikethrough">₹{{ product.originalPrice | number:'1.0-0' }}</span>
-            </div>
-
-            <!-- Delivery -->
-            <p class="delivery-info" *ngIf="product.freeDelivery">
-              FREE Delivery by Tomorrow
-            </p>
 
             <!-- Stock Status -->
             <p class="stock-status in-stock" *ngIf="product.inStock">In stock</p>
