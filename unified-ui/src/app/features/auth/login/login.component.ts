@@ -14,6 +14,9 @@ export class LoginComponent {
   isSubmitting = false;
   showPassword = false;
 
+  /** Shown in the form itself, so the reason survives a dismissed toast. */
+  submitError: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -35,8 +38,11 @@ export class LoginComponent {
   }
 
   onSubmit(): void {
+    this.submitError = null;
+
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      this.submitError = 'Please enter your email address and password.';
       return;
     }
 
@@ -50,7 +56,8 @@ export class LoginComponent {
       },
       error: () => {
         this.isSubmitting = false;
-        this.notificationService.show('Invalid email or password.', 'error');
+        this.submitError = 'Invalid email or password. Please try again.';
+        this.notificationService.show(this.submitError, 'error');
       },
     });
   }

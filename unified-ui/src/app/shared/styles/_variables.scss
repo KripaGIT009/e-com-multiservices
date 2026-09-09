@@ -95,6 +95,45 @@
   --mis-badge-delivered-text:     #2E7D32;
   --mis-badge-cancelled-bg:       #FFEBEE;
   --mis-badge-cancelled-text:     #C62828;
+
+  // ---------------------------------------------------------------------------
+  // Surface system
+  // Chrome is brand green, actions are saffron, canvas is a warm neutral.
+  // Saffron is reserved for things you can click — that is what makes it read as
+  // an action rather than decoration.
+  // ---------------------------------------------------------------------------
+  --mis-chrome:          #2D6A4F;   // primary chrome: category nav, footer
+  --mis-chrome-deep:     #1E4D38;   // utility bar, hover states
+  --mis-chrome-tint:     #E8F0EC;   // pale green wash for selected/hover surfaces
+  --mis-page-bg:         #F4F6F5;   // canvas behind cards
+  --mis-line:            #E4E8E6;   // hairline borders
+  --mis-line-strong:     #CFD6D2;   // input borders, dividers that must read
+  --mis-ink:             #14211C;   // primary text
+  --mis-ink-muted:       #5C6B65;   // secondary text
+  --mis-ink-faint:       #8A968F;   // placeholders, meta
+
+  // Elevation — flat by default, lift only on interaction.
+  --mis-shadow-sm:       0 1px 2px rgba(20, 33, 28, 0.06);
+  --mis-shadow-md:       0 4px 14px rgba(20, 33, 28, 0.08);
+  --mis-shadow-lg:       0 12px 32px rgba(20, 33, 28, 0.12);
+
+  // Radius scale
+  --mis-radius-sm:       6px;
+  --mis-radius-md:       10px;
+  --mis-radius-xl:       20px;
+  --mis-radius-pill:     999px;
+
+  // Type scale
+  --mis-text-xs:         0.75rem;
+  --mis-text-sm:         0.8125rem;
+  --mis-text-md:         0.9375rem;
+  --mis-text-lg:         1.125rem;
+  --mis-text-xl:         1.5rem;
+  --mis-text-2xl:        2rem;
+
+  // Layout
+  --mis-container:       1280px;
+  --mis-gutter:          20px;
 }
 
 // ---------------------------------------------------------------------------
@@ -159,8 +198,22 @@ $mis-auth-card-bg:             #FFFFFF;
 $mis-auth-card-radius:         16px;
 $mis-auth-card-shadow:         0 8px 32px rgba(0, 0, 0, 0.12);
 $mis-auth-card-padding:        40px;
-$mis-auth-gradient-start:      #667eea;
-$mis-auth-gradient-end:        #764ba2;
+// Retired: an indigo/violet pair that belonged to no part of the brand and sat
+// directly under the saffron header. Auth pages now use the brand chrome.
+$mis-auth-gradient-start:      #2D6A4F;
+$mis-auth-gradient-end:        #1E4D38;
+
+// Surface system (compile-time mirror of the custom properties above)
+$mis-chrome:        #2D6A4F;
+$mis-chrome-deep:   #1E4D38;
+$mis-chrome-tint:   #E8F0EC;
+$mis-page-bg:       #F4F6F5;
+$mis-line:          #E4E8E6;
+$mis-line-strong:   #CFD6D2;
+$mis-ink:           #14211C;
+$mis-ink-muted:     #5C6B65;
+$mis-ink-faint:     #8A968F;
+$mis-container:     1280px;
 
 // ---------------------------------------------------------------------------
 // Status Badge Color Map (compile-time)

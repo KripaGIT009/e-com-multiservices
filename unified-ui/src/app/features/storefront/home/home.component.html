@@ -1,28 +1,73 @@
-<!-- Hero Banner -->
-<section class="hero-banner" aria-label="Welcome to MyIndianStore">
-  <div class="hero-content">
-    <div class="hero-text">
-      <h1 class="hero-title">Welcome to <span class="brand-highlight">My Indian Store</span></h1>
-      <p class="hero-subtitle">Discover authentic Indian products — from handcrafted textiles to organic spices, traditional wear to modern electronics. Made in India, for the world.</p>
-      <button
-        class="btn-shop-now"
-        (click)="navigateToProducts()"
-        aria-label="Shop Now">
-        🛒 Shop Now
+<!-- Hero -->
+<section class="hero" aria-label="Welcome to MyIndianStore">
+  <article class="hero__panel hero__panel--primary">
+    <div class="hero__body">
+      <p class="hero__eyebrow">Made in India, for the world</p>
+      <h1 class="hero__title">Everything Indian,<br />in one place</h1>
+      <p class="hero__lede">
+        Handcrafted textiles, organic spices, traditional wear and modern
+        electronics — delivered to your door.
+      </p>
+      <button class="hero__cta" (click)="navigateToProducts()">
+        Shop now <span class="material-icons" aria-hidden="true">arrow_outward</span>
       </button>
     </div>
-    <div class="hero-image">
-      <img
-        src="https://picsum.photos/seed/indianmarket/400/300"
-        alt="Indian marketplace with colorful products"
-        loading="lazy" />
+  </article>
+
+  <article
+    class="hero__panel hero__panel--accent"
+    tabindex="0"
+    role="button"
+    aria-label="Browse spices and masalas"
+    (click)="navigateToCategory('/storefront/products?category=home-kitchen')"
+    (keydown.enter)="navigateToCategory('/storefront/products?category=home-kitchen')">
+    <div class="hero__body">
+      <p class="hero__eyebrow">Pantry essentials</p>
+      <h2 class="hero__subtitle">Spices &amp;<br />masalas</h2>
+      <p class="hero__lede hero__lede--tight">Ground fresh, sourced direct.</p>
+      <span class="hero__link">Explore <span class="material-icons" aria-hidden="true">arrow_outward</span></span>
+    </div>
+  </article>
+</section>
+
+<!-- Trust strip -->
+<section class="trust" aria-label="Why shop with us">
+  <div class="trust__item">
+    <span class="trust__icon material-icons" aria-hidden="true">local_shipping</span>
+    <div>
+      <p class="trust__title">Express delivery</p>
+      <p class="trust__note">Fast dispatch across India</p>
+    </div>
+  </div>
+  <div class="trust__item">
+    <span class="trust__icon material-icons" aria-hidden="true">assignment_return</span>
+    <div>
+      <p class="trust__title">Easy returns</p>
+      <p class="trust__note">7 days, no questions asked</p>
+    </div>
+  </div>
+  <div class="trust__item">
+    <span class="trust__icon material-icons" aria-hidden="true">verified_user</span>
+    <div>
+      <p class="trust__title">Secure payments</p>
+      <p class="trust__note">UPI, cards and net banking</p>
+    </div>
+  </div>
+  <div class="trust__item">
+    <span class="trust__icon material-icons" aria-hidden="true">support_agent</span>
+    <div>
+      <p class="trust__title">Real support</p>
+      <p class="trust__note">Talk to a person, not a bot</p>
     </div>
   </div>
 </section>
 
 <!-- Shop by Category -->
 <section class="category-section" aria-label="Shop by Category">
-  <h2 class="section-title">Shop by Category</h2>
+  <header class="section-head">
+    <h2 class="section-title">Shop by category</h2>
+    <p class="section-note">Browse the aisles our customers reach for most</p>
+  </header>
 
   <div class="category-grid">
     <article
@@ -33,13 +78,9 @@
       [attr.aria-label]="'Browse ' + category.name"
       (click)="navigateToCategory(category.link)"
       (keydown.enter)="navigateToCategory(category.link)">
-      <div class="category-image-wrapper">
-        <img
-          [src]="category.image"
-          [alt]="category.name"
-          class="category-image"
-          loading="lazy" />
-      </div>
+      <span class="category-icon" [attr.data-tone]="category.tone" aria-hidden="true">
+        <span class="material-icons">{{ category.icon }}</span>
+      </span>
       <div class="category-info">
         <h3 class="category-name">{{ category.name }}</h3>
         <p class="category-subtitle">{{ category.subtitle }}</p>
@@ -50,7 +91,10 @@
 
 <!-- Featured Products -->
 <section class="featured-section" aria-label="Featured Products">
-  <h2 class="section-title">Featured Products</h2>
+  <header class="section-head">
+    <h2 class="section-title">Featured products</h2>
+    <p class="section-note">Hand-picked from across the catalogue</p>
+  </header>
 
   <div *ngIf="isLoading" class="loading-state" role="status" aria-live="polite">
     <p>Loading products...</p>

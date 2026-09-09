@@ -1,0 +1,259 @@
+// =============================================================================
+// Shared auth layout — split brand panel + form panel.
+// Imported by both the login and register pages so they cannot drift apart.
+// =============================================================================
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background:
+    radial-gradient(1200px 500px at 15% 0%, rgba(255, 107, 53, 0.10), transparent 60%),
+    radial-gradient(900px 500px at 100% 100%, rgba(45, 106, 79, 0.10), transparent 55%),
+    var(--mis-background);
+}
+
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 1000px;
+  background: var(--mis-surface);
+  border-radius: var(--mis-radius-lg);
+  box-shadow: 0 12px 40px rgba(26, 26, 26, 0.10);
+  overflow: hidden;
+}
+
+// ── Brand panel ──────────────────────────────────────────────────────────────
+.auth-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding: 48px 40px;
+  color: #fff;
+  background: linear-gradient(155deg, var(--mis-secondary) 0%, var(--mis-secondary-dark) 100%);
+
+  &__logo {
+    width: 240px;
+    max-width: 80%;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  &__lede {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  &__points {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.94);
+    }
+
+    .material-icons {
+      font-size: 20px;
+      color: var(--mis-cta-gold);
+    }
+  }
+}
+
+// ── Form panel ───────────────────────────────────────────────────────────────
+.auth-panel {
+  padding: 44px 44px 40px;
+  max-height: 100vh;
+  overflow-y: auto;
+
+  &__header {
+    margin-bottom: 24px;
+  }
+
+  &__title {
+    margin: 0 0 6px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--mis-text-primary);
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--mis-text-secondary);
+  }
+}
+
+.auth-link {
+  color: var(--mis-link-blue);
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+  }
+}
+
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 12px 14px;
+  border: 1px solid rgba(211, 47, 47, 0.28);
+  border-left: 3px solid var(--mis-error);
+  border-radius: var(--mis-radius);
+  background: rgba(211, 47, 47, 0.06);
+  color: var(--mis-error);
+  font-size: 0.875rem;
+  line-height: 1.5;
+
+  .material-icons {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+// ── Fields ───────────────────────────────────────────────────────────────────
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &__label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--mis-text-primary);
+  }
+
+  &__control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 12px;
+    border: 1px solid var(--mis-border);
+    border-radius: var(--mis-radius);
+    background: var(--mis-surface);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus-within {
+      border-color: var(--mis-primary);
+      box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.16);
+    }
+
+    &--invalid {
+      border-color: var(--mis-error);
+
+      &:focus-within {
+        box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.14);
+      }
+    }
+
+    &--select {
+      position: relative;
+    }
+
+    input,
+    select {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 0;
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--mis-text-primary);
+
+      &::placeholder {
+        color: #9a9a9a;
+      }
+    }
+
+    select {
+      appearance: none;
+      cursor: pointer;
+      padding-right: 24px;
+    }
+  }
+
+  &__icon {
+    font-size: 20px;
+    color: var(--mis-text-secondary);
+    flex-shrink: 0;
+  }
+
+  // "+91" sits inside the control so the field reads as one unit.
+  &__prefix {
+    padding-right: 10px;
+    border-right: 1px solid var(--mis-border);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--mis-text-secondary);
+    flex-shrink: 0;
+  }
+
+  &__chevron {
+    position: absolute;
+    right: 10px;
+    font-size: 20px;
+    color: var(--mis-text-secondary);
+    pointer-events: none;
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--mis-text-secondary);
+    cursor: pointer;
+
+    &:hover { color: var(--mis-text-primary); }
+    &:focus-visible { outline: 2px solid var(--mis-primary); outline-offset: 2px; }
+
+    .material-icons { font-size: 20px; }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--mis-text-secondary);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--mis-error);
+  }
+}
+

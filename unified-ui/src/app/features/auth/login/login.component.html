@@ -1,116 +1,111 @@
-<section class="auth-page" aria-label="Login to MyIndianStore">
-  <div class="auth-card">
-    <!-- Logo -->
-    <div class="auth-card__logo">
-      <img src="assets/images/logo.svg" alt="MyIndianStore" class="auth-card__logo-img" />
-    </div>
+<section class="auth-page" aria-labelledby="login-heading">
+  <div class="auth-shell">
 
-    <!-- Lock icon and heading -->
-    <div class="auth-card__header">
-      <span class="auth-card__icon" aria-hidden="true">🔒</span>
-      <h1 class="auth-card__heading">Login to Your Account</h1>
-    </div>
+    <!-- Brand panel — decorative on desktop, hidden on mobile -->
+    <aside class="auth-aside" aria-hidden="true">
+      <img src="assets/images/logo-white.svg" alt="" class="auth-aside__logo" />
+      <h2 class="auth-aside__title">Welcome back</h2>
+      <p class="auth-aside__lede">
+        Pick up where you left off — your cart, your orders and your saved
+        addresses are waiting.
+      </p>
+      <ul class="auth-aside__points">
+        <li><span class="material-icons">inventory_2</span> Track every order in one place</li>
+        <li><span class="material-icons">bolt</span> Faster checkout with saved details</li>
+        <li><span class="material-icons">local_offer</span> Members-only pricing</li>
+      </ul>
+    </aside>
 
-    <!-- Aria-live region for error announcements -->
-    <div aria-live="polite" aria-atomic="true" class="auth-card__announcements">
-      <span *ngIf="email?.invalid && email?.touched && email?.errors?.['required']">
-        Email is required.
-      </span>
-      <span *ngIf="email?.invalid && email?.touched && email?.errors?.['email']">
-        Please enter a valid email.
-      </span>
-      <span *ngIf="password?.invalid && password?.touched && password?.errors?.['required']">
-        Password is required.
-      </span>
-      <span *ngIf="password?.invalid && password?.touched && password?.errors?.['minlength']">
-        Password must be at least 8 characters.
-      </span>
-    </div>
+    <!-- Form panel -->
+    <div class="auth-panel">
+      <header class="auth-panel__header">
+        <h1 id="login-heading" class="auth-panel__title">Sign in</h1>
+        <p class="auth-panel__subtitle">
+          New to MyIndianStore?
+          <a routerLink="/auth/register" class="auth-link">Create an account</a>
+        </p>
+      </header>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-card__form" novalidate>
-      <!-- Email field -->
-      <div class="auth-card__field">
-        <label for="login-email" class="auth-card__label">Email Address</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">✉</span>
-          <input
-            id="login-email"
-            type="email"
-            formControlName="email"
-            class="auth-card__input"
-            [class.auth-card__input--invalid]="email?.invalid && email?.touched"
-            placeholder="Enter your email"
-            aria-describedby="login-email-error"
-          />
-        </div>
-        <span id="login-email-error" class="auth-card__error" *ngIf="email?.invalid && email?.touched">
-          <span *ngIf="email?.errors?.['required']">Email is required.</span>
-          <span *ngIf="email?.errors?.['email']">Please enter a valid email.</span>
-        </span>
+      <div class="auth-alert" role="alert" *ngIf="submitError">
+        <span class="material-icons" aria-hidden="true">error_outline</span>
+        <span>{{ submitError }}</span>
       </div>
 
-      <!-- Password field -->
-      <div class="auth-card__field">
-        <label for="login-password" class="auth-card__label">Password</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">🔒</span>
-          <input
-            [type]="showPassword ? 'text' : 'password'"
-            id="login-password"
-            formControlName="password"
-            class="auth-card__input auth-card__input--with-toggle"
-            [class.auth-card__input--invalid]="password?.invalid && password?.touched"
-            placeholder="Enter your password"
-            aria-describedby="login-password-error"
-          />
-          <button
-            type="button"
-            class="auth-card__toggle-password"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
+        <!-- Email -->
+        <div class="field">
+          <label for="login-email" class="field__label">Email address</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="email?.invalid && email?.touched"
           >
-            <span aria-hidden="true">{{ showPassword ? '🙈' : '👁' }}</span>
-          </button>
+            <span class="material-icons field__icon" aria-hidden="true">mail_outline</span>
+            <input
+              id="login-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="you@example.com"
+              [attr.aria-invalid]="email?.invalid && email?.touched"
+              aria-describedby="login-email-error"
+            />
+          </div>
+          <p id="login-email-error" class="field__error" *ngIf="email?.invalid && email?.touched">
+            <ng-container *ngIf="email?.errors?.['required']">Please enter your email address.</ng-container>
+            <ng-container *ngIf="email?.errors?.['email']">That does not look like a valid email address.</ng-container>
+          </p>
         </div>
-        <span id="login-password-error" class="auth-card__error" *ngIf="password?.invalid && password?.touched">
-          <span *ngIf="password?.errors?.['required']">Password is required.</span>
-          <span *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters.</span>
-        </span>
-      </div>
 
-      <!-- Forgot Password link -->
-      <div class="auth-card__forgot">
-        <a routerLink="/auth/forgot-password" class="auth-card__link">Forgot Password?</a>
-      </div>
+        <!-- Password -->
+        <div class="field">
+          <label for="login-password" class="field__label">Password</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="password?.invalid && password?.touched"
+          >
+            <span class="material-icons field__icon" aria-hidden="true">lock_outline</span>
+            <input
+              id="login-password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              [attr.aria-invalid]="password?.invalid && password?.touched"
+              aria-describedby="login-password-error"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              <span class="material-icons" aria-hidden="true">
+                {{ showPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          <p id="login-password-error" class="field__error" *ngIf="password?.invalid && password?.touched">
+            <ng-container *ngIf="password?.errors?.['required']">Please enter your password.</ng-container>
+            <ng-container *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters.</ng-container>
+          </p>
+        </div>
 
-      <!-- Login button -->
-      <button
-        type="submit"
-        class="auth-card__btn auth-card__btn--primary"
-        [disabled]="isSubmitting"
-      >
-        {{ isSubmitting ? 'Signing in...' : 'Login' }}
-      </button>
+        <div class="auth-row">
+          <a routerLink="/auth/forgot-password" class="auth-link">Forgot password?</a>
+        </div>
 
-      <!-- Divider -->
-      <div class="auth-card__divider">
-        <span class="auth-card__divider-text">or</span>
-      </div>
+        <button type="submit" class="btn btn--primary" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Sign in</span>
+          <span *ngIf="isSubmitting" class="btn__loading">
+            <span class="spinner" aria-hidden="true"></span> Signing in…
+          </span>
+        </button>
 
-      <!-- Cancel button -->
-      <button
-        type="button"
-        class="auth-card__btn auth-card__btn--outlined"
-        (click)="onCancel()"
-      >
-        Cancel
-      </button>
-    </form>
-
-    <!-- Sign Up link -->
-    <p class="auth-card__footer">
-      Don't have an account?
-      <a routerLink="/auth/register" class="auth-card__link">Sign Up</a>
-    </p>
+        <button type="button" class="btn btn--ghost" (click)="onCancel()">
+          Continue browsing
+        </button>
+      </form>
+    </div>
   </div>
 </section>

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 
+import { productPlaceholder } from '../../../core/utils/product-image';
+
 interface Product {
   id: number;
   name: string;
@@ -14,7 +16,10 @@ interface Product {
 interface ShopCategory {
   name: string;
   subtitle: string;
-  image: string;
+  /** Material Icons ligature. */
+  icon: string;
+  /** Tile tint, 1-6, cycling through the brand-derived palette. */
+  tone: number;
   link: string;
 }
 
@@ -31,49 +36,57 @@ export class HomeComponent implements OnInit {
     {
       name: 'Ethnic Wear',
       subtitle: 'Sarees, Kurtas & Lehengas',
-      image: 'https://picsum.photos/seed/ethnicwear/300/200',
+      icon: 'checkroom',
+      tone: 1,
       link: '/storefront/products?category=fashion',
     },
     {
       name: 'Spices & Masalas',
-      subtitle: 'Authentic Indian Flavors',
-      image: 'https://picsum.photos/seed/indianspices/300/200',
+      subtitle: 'Authentic Indian flavours',
+      icon: 'restaurant',
+      tone: 2,
       link: '/storefront/products?category=home-kitchen',
     },
     {
       name: 'Electronics',
-      subtitle: 'Phones, Laptops & Gadgets',
-      image: 'https://picsum.photos/seed/indiaelectronics/300/200',
+      subtitle: 'Phones, laptops & gadgets',
+      icon: 'devices',
+      tone: 3,
       link: '/storefront/products?category=electronics',
     },
     {
       name: 'Handcrafted Decor',
-      subtitle: 'Artisan Home Decor',
-      image: 'https://picsum.photos/seed/indiandecor/300/200',
+      subtitle: 'Artisan home decor',
+      icon: 'chair',
+      tone: 4,
       link: '/storefront/products?category=home-kitchen',
     },
     {
       name: 'Ayurveda & Wellness',
-      subtitle: 'Natural Health Products',
-      image: 'https://picsum.photos/seed/ayurveda/300/200',
+      subtitle: 'Natural health products',
+      icon: 'spa',
+      tone: 5,
       link: '/storefront/products?category=beauty',
     },
     {
-      name: 'Jewelry & Accessories',
-      subtitle: 'Traditional & Modern',
-      image: 'https://picsum.photos/seed/indianjewelry/300/200',
+      name: 'Jewellery',
+      subtitle: 'Traditional & modern',
+      icon: 'diamond',
+      tone: 6,
       link: '/storefront/products?category=fashion',
     },
     {
       name: 'Cricket & Sports',
-      subtitle: 'Gear & Equipment',
-      image: 'https://picsum.photos/seed/cricketsports/300/200',
+      subtitle: 'Gear & equipment',
+      icon: 'sports_cricket',
+      tone: 1,
       link: '/storefront/products?category=sports-fitness',
     },
     {
       name: 'Books & Stationery',
-      subtitle: 'Bestsellers & More',
-      image: 'https://picsum.photos/seed/indianbooks/300/200',
+      subtitle: 'Bestsellers & more',
+      icon: 'menu_book',
+      tone: 2,
       link: '/storefront/products?category=books',
     },
   ];
@@ -87,9 +100,9 @@ export class HomeComponent implements OnInit {
   private loadFeaturedProducts(): void {
     this.http.get<Product[]>('/api/items').subscribe({
       next: (items) => {
-        this.featuredProducts = items.slice(0, 8).map((item, index) => ({
+        this.featuredProducts = items.slice(0, 8).map((item) => ({
           ...item,
-          imageUrl: item.imageUrl || `https://picsum.photos/seed/product${item.id || index}/300/300`,
+          imageUrl: item.imageUrl || productPlaceholder(item.name, item.id),
         }));
         // If no products from API, show dummy products
         if (this.featuredProducts.length === 0) {
@@ -104,17 +117,18 @@ export class HomeComponent implements OnInit {
     });
   }
 
+  /** Shown only when the catalogue API is unreachable, so the page is never blank. */
   private getDummyProducts(): Product[] {
-    return [
-      { id: 1, name: 'Banarasi Silk Saree', description: 'Pure silk with gold zari', price: 4500, imageUrl: 'https://picsum.photos/seed/saree/300/300', category: 'fashion' },
-      { id: 2, name: 'Ethnic Kurta - Men', description: 'Cotton printed kurta', price: 899, imageUrl: 'https://picsum.photos/seed/kurta/300/300', category: 'fashion' },
-      { id: 3, name: 'Garam Masala Premium 200g', description: 'Blend of 12 spices', price: 199, imageUrl: 'https://picsum.photos/seed/garammasala/300/300', category: 'home-kitchen' },
-      { id: 4, name: 'Brass Diya Set', description: 'Traditional oil lamp set of 4', price: 650, imageUrl: 'https://picsum.photos/seed/brassdiya/300/300', category: 'home-kitchen' },
-      { id: 5, name: 'Wireless Earbuds Pro', description: 'Active noise cancellation', price: 2999, imageUrl: 'https://picsum.photos/seed/earbudsindia/300/300', category: 'electronics' },
-      { id: 6, name: 'Anarkali Suit - Women', description: 'Embroidered floor length', price: 2200, imageUrl: 'https://picsum.photos/seed/anarkali/300/300', category: 'fashion' },
-      { id: 7, name: 'Cricket Bat - English Willow', description: 'Tournament grade', price: 3499, imageUrl: 'https://picsum.photos/seed/cricketbat/300/300', category: 'sports-fitness' },
-      { id: 8, name: 'Organic Turmeric Powder 500g', description: 'Premium Lakadong turmeric', price: 349, imageUrl: 'https://picsum.photos/seed/turmeric/300/300', category: 'home-kitchen' },
-    ];
+    return ([
+      { id: 1, name: 'Banarasi Silk Saree', description: 'Pure silk with gold zari', price: 4500, imageUrl: '', category: 'fashion' },
+      { id: 2, name: 'Ethnic Kurta - Men', description: 'Cotton printed kurta', price: 899, imageUrl: '', category: 'fashion' },
+      { id: 3, name: 'Garam Masala Premium 200g', description: 'Blend of 12 spices', price: 199, imageUrl: '', category: 'home-kitchen' },
+      { id: 4, name: 'Brass Diya Set', description: 'Traditional oil lamp set of 4', price: 650, imageUrl: '', category: 'home-kitchen' },
+      { id: 5, name: 'Wireless Earbuds Pro', description: 'Active noise cancellation', price: 2999, imageUrl: '', category: 'electronics' },
+      { id: 6, name: 'Anarkali Suit - Women', description: 'Embroidered floor length', price: 2200, imageUrl: '', category: 'fashion' },
+      { id: 7, name: 'Cricket Bat - English Willow', description: 'Tournament grade', price: 3499, imageUrl: '', category: 'sports-fitness' },
+      { id: 8, name: 'Organic Turmeric Powder 500g', description: 'Premium Lakadong turmeric', price: 349, imageUrl: '', category: 'home-kitchen' },
+    ] as Product[]).map((p) => ({ ...p, imageUrl: productPlaceholder(p.name, p.id) }));
   }
 
   navigateToProducts(): void {

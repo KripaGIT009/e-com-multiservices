@@ -352,3 +352,99 @@ are the *before* state.
 - **user-service `/api/auth/reset-password` is still `permitAll()`.** Acceptable only
   while the service is not reachable from outside the Docker network.
 - **`logistics-service`'s jar is stale** relative to its sources.
+
+---
+
+# Appendix B — Design pass and further fixes
+
+A second round after the initial audit, taking design direction from a commercial
+reference the user supplied (layout rhythm and component structure only — no markup
+or CSS was copied, and the project stays on SCSS rather than adopting Tailwind).
+
+## Design system
+
+The storefront was running **five unrelated colour systems at once**: a saffron
+header, a bright-green (`#138808`) category nav, a navy (`#232F3E`) hero, a purple
+auth gradient (`#667eea` → `#764ba2`) and a green footer. The login page read as a
+different product from the storefront it sat inside.
+
+One system now:
+
+| Role | Colour | Used for |
+|---|---|---|
+| Chrome | `--mis-chrome` `#2D6A4F` | Category nav, footer, brand panels |
+| Chrome deep | `--mis-chrome-deep` `#1E4D38` | Utility bar, hover states |
+| Action | `--mis-primary` `#FF6B35` | CTAs only — buttons, cart badge, search |
+| Canvas | `--mis-page-bg` `#F4F6F5` | Page background |
+| Surface | `#FFFFFF` | Cards |
+
+Saffron is now reserved for things you can click, which is what makes it read as an
+action rather than decoration. Added a surface/ink/line/elevation/radius/type scale so
+components stop inventing their own greys — 29 hardcoded `#ffffff` and a scatter of
+one-off greys were spread across the component stylesheets.
+
+## Changed
+
+- **Header** rebuilt as three rows — a deep-green utility bar (support, delivery,
+  locale), a white row with the logo, a pill search and circular account/cart
+  actions, and a white category nav with a green "All" pill. It was a solid saffron
+  block above a bright-green bar.
+- **Home** replaced the navy hero — whose "hero image" was a random `picsum` photo of
+  a fog-covered railway line — with a two-panel green/saffron hero, plus a four-card
+  trust strip.
+- **Product cards** unified across home and listing: square image panel, clamped
+  two-line title, price, stock, saffron add-to-cart.
+- **Listing page** given a proper filter rail, results bar and breadcrumb (which was
+  rendering as a numbered list, "1. Home 2. Products").
+- **Login** moved onto the same shared auth layout as register, via a new
+  `shared/styles/_auth.scss` partial so the two pages cannot drift apart.
+- **Mobile** product grids go two-up instead of one-up; the home page is now 3,747px
+  tall rather than 7,616px (nine screens). No horizontal overflow at 390px.
+
+## Fabricated data removed
+
+§3.3 was only half-fixed the first time. Deriving M.R.P. as `price × 1.3` made the
+discount badge arithmetically consistent, but every product in the catalogue then
+showed an identical "−23% off" — which is not a discount, it is an invented one.
+Also removed a hardcoded "FREE Delivery by Tomorrow" on every card.
+
+Ratings, review counts, M.R.P., discounts, sponsored flags and delivery promises are
+now omitted entirely, each with a comment naming the service that will supply it
+(review-service, pricing-service, promotion-service). The rating and discount
+**filters** were removed with them — left in place they would have filtered on fields
+nothing populates and silently emptied the grid.
+
+**§3.4 product imagery** — `picsum.photos/seed/<name>` returned an arbitrary photo per
+seed: the Golden Gate Bridge for "Ethnic Kurta – Men", the Flatiron Building for
+"Banarasi Silk Saree". Replaced with `core/utils/product-image.ts`, which generates a
+deterministic branded SVG tile from the product's initials. No external service, no
+blank tiles, and honest about there being no photograph. Category tiles likewise use
+icons instead of random photography.
+
+## New finding — anonymous visitors shared one cart — **VERIFIED**
+
+Not previously reported. Every unauthenticated visitor was mapped to `userId 999999`,
+so they all shared a single cart:
+
+```
+visitor A: cartId 27, userId 999999, 4 items
+visitor B: cartId 27, userId 999999, 4 items   ← same basket
+```
+
+One shopper's basket was visible to every other anonymous visitor. Each browser now
+gets its own guest id above a reserved floor, carried in a **signed, httpOnly**
+cookie so it cannot be claimed by editing it:
+
+```
+visitor A: cartId 32, userId 918363875   A adds 2 units -> A sees 2
+visitor B: cartId 33, userId 910192491                  -> B still sees 0
+```
+
+## Registration
+
+See the commit for detail. The Sign-up button was silently dead: the phone validator
+`/^\d{10}$/` rejected every shape a browser autofills (`09250444838`,
+`+91 92504 44838`), and an invalid form returned early without saying anything. Phone
+and gender were collected but never stored; the display name became the username
+verbatim, spaces included. The email and phone "Verify" buttons were removed — they
+set a flag and showed "OTP sent" without contacting anything.

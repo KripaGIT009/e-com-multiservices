@@ -6,38 +6,80 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: #EAEDED;
+  background: var(--mis-page-bg);
   font-family: var(--mis-font-family);
   font-size: var(--mis-font-size-base);
-  color: var(--mis-text-primary);
+  color: var(--mis-ink);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+// Headings carry the brand's tighter tracking; body copy stays comfortable.
+h1, h2, h3, h4 {
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--mis-ink);
+}
+
 a {
-  color: var(--mis-link-blue);
+  color: var(--mis-chrome);
   text-decoration: none;
+  transition: color 0.15s ease;
 
   &:hover {
-    color: var(--mis-primary-dark);
+    // Stay within the same hue rather than jumping teal -> orange, which read as
+    // an unrelated colour system.
+    color: var(--mis-chrome-deep);
     text-decoration: underline;
   }
 }
 
-// Professional button reset
 button {
   font-family: inherit;
 }
 
-// Smooth scrolling
-html {
-  scroll-behavior: smooth;
+img {
+  max-width: 100%;
 }
 
-// Responsive table utility — horizontal scroll below 768px
+// Material Icons ship as a ligature font; keep them from inheriting text styling.
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+// A visible focus ring everywhere, so keyboard users are never lost.
+:focus-visible {
+  outline: 2px solid var(--mis-chrome);
+  outline-offset: 2px;
+}
+
+.main-content {
+  min-height: 60vh;
+}
+
+// Horizontal scroll utility for wide tables below 768px.
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
