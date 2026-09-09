@@ -364,28 +364,32 @@ or CSS was copied, and the project stays on SCSS rather than adopting Tailwind).
 ## Design system
 
 The storefront was running **five unrelated colour systems at once**: a saffron
-header, a bright-green () category nav, a navy () hero, a purple
-auth gradient ( → ) and a green footer.
+header, a bright-green (`#138808`) category nav, a navy (`#232F3E`) hero, a purple
+auth gradient (`#667eea` → `#764ba2`) and a green footer.
 
-Two palettes were tried and rejected by the user before the current one — brand green
-read heavy across large areas, and a neutral charcoal read flat. The brief then became
-"eye-catching". The system is now **Saffron Pop**:
+Two palettes were tried and rejected before the current one — brand green read heavy
+across large areas and muddied the orange, and a neutral charcoal chrome read flat.
+The brief then became "eye-catching". The system is now **Saffron Pop**:
 
 | Role | Colour | Used for |
 |---|---|---|
-| Brand / action |   | CTAs, nav pill, cart, search, focus rings |
-| Chrome |   | Utility bar, footer, admin sidebar, second hero panel |
-| Accent |   | Deals and urgency only — promo strip, hero gradient end |
-| Canvas |   | Warm cream page background |
-| Surface |  | Cards |
+| Brand / action | `--mis-primary` `#FF6B35` | CTAs, nav pill, cart, search, focus rings, card hover |
+| Chrome | `--mis-chrome` `#1C1917` | Utility bar, footer, admin sidebar, second hero panel |
+| Accent | `--mis-accent` `#E11D62` | Deals and urgency only — promo strip, hero gradient end |
+| Canvas | `--mis-page-bg` `#FFF9F5` | Warm cream page background |
+| Surface | `#FFFFFF` | Cards |
 
 Saffron is reserved for things you can click, so it reads as an action rather than
-decoration; hot pink is reserved for a single promotional message, so it keeps
-signalling. Neutrals were re-tempered from cool slate to warm stone — 272 colour
-literals across 21 stylesheets — so the admin no longer reads as a different product
-from the storefront. Added a surface/ink/line/elevation/radius/type scale so
-components stop inventing their own greys — 29 hardcoded `#ffffff` and a scatter of
-one-off greys were spread across the component stylesheets.
+decoration; hot pink has a single job — one promotional message — so it keeps
+signalling. Neutrals were re-tempered from cool slate to warm stone (272 colour
+literals across 21 stylesheets) so the admin no longer reads as a different product
+from the storefront. Semantic colours and chart hues were left alone because they
+carry meaning, and `--mis-success` stays green: there it means "this succeeded",
+which is a convention rather than a brand choice.
+
+Verified by reading computed styles from the running app rather than by eye, since
+this session's image budget was exhausted. A sweep of every rendered element found no
+green on either the storefront or the admin dashboard.
 
 ## Changed
 
