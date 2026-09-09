@@ -12,30 +12,33 @@
 :root {
   // Brand Colors
   --mis-primary:        #FF6B35;   // Saffron/orange — CTAs, buttons, links
-  --mis-primary-dark:   #E55A24;   // Hover state for primary
-  --mis-secondary:      #1C1917;   // Warm off-black — secondary buttons, steppers
-  --mis-secondary-dark: #0C0A09;   // Hover state for secondary
+  --mis-primary-dark:   #E55A24;   // Darker saffron, for text on light surfaces
+  --mis-primary-hover:  #FF7F4F;   // Hover for saffron fills — lighter, so the
+                                   // dark label's contrast rises rather than falls
+  --mis-on-primary:     #43281B;   // Label colour on saffron fills (4.75:1)
+  --mis-secondary:      #A63A16;   // Deep terracotta — secondary buttons, steppers
+  --mis-secondary-dark: #7C2A0F;   // Hover state for secondary
   --mis-background:     #FFF9F5;   // Warm cream — page background
   --mis-surface:        #FFFFFF;   // Card/panel background
-  --mis-text-primary:   #1C1917;   // Main body text
-  --mis-text-secondary: #78716C;   // Muted/secondary text
-  --mis-border:         #F2E8E2;   // Warm border color
+  --mis-text-primary:   #43281B;   // Main body text — deep warm brown
+  --mis-text-secondary: #8A6B5C;   // Muted/secondary text
+  --mis-border:         #F2E4DA;   // Warm border color
 
   // Semantic Colors
-  --mis-error:          #D32F2F;   // Error states
-  --mis-success:        #388E3C;   // Success states
-  --mis-warning:        #F57C00;   // Warning states
+  --mis-error:          #C62828;   // Error states
+  --mis-success:        #6B2151;   // Success states — plum, since green is retired
+  --mis-warning:        #B45309;   // Warning states
 
   // Amazon-India inspired additions
-  --mis-header-dark:    #1C1917;   // Chrome — header/nav background
-  --mis-header-light:   #292524;   // Lighter chrome for hover/accents
-  --mis-nav-green:      #1C1917;   // Deprecated alias, kept for existing consumers
+  --mis-header-dark:    #A63A16;   // Chrome — header/nav background
+  --mis-header-light:   #C2481D;   // Lighter chrome for hover/accents
+  --mis-nav-green:      #A63A16;   // Deprecated alias, kept for existing consumers
   --mis-cta-gold:       #FFD814;   // Gold CTA buttons
   --mis-cta-gold-dark:  #F7CA00;   // Hover state for gold CTA
   --mis-price-red:      #CC0C39;   // Discount/sale price color
   --mis-link-blue:      #007185;   // Product link color
   --mis-star-orange:    #DE7921;   // Star rating color
-  --mis-stock-green:    #067D62;   // In-stock indicator
+  --mis-stock-green:    #8A6B5C;   // In-stock indicator (name is legacy — no longer green)
 
   // Typography
   --mis-font-family:    'Poppins', 'Noto Sans', sans-serif;
@@ -52,11 +55,11 @@
   // ---------------------------------------------------------------------------
   --mis-sidebar-width:            250px;
   --mis-sidebar-width-collapsed:  64px;
-  --mis-sidebar-bg:               #1C1917;
-  --mis-sidebar-text:             #D6D3D1;
+  --mis-sidebar-bg:               #7C2A0F;
+  --mis-sidebar-text:             #F5DFD3;
   --mis-sidebar-active-bg:        #FF6B35;
   --mis-sidebar-active-text:      #FFFFFF;
-  --mis-sidebar-hover-bg:         #292524;
+  --mis-sidebar-hover-bg:         #933313;
   --mis-admin-topbar-height:      60px;
   --mis-admin-content-padding:    24px;
 
@@ -75,24 +78,24 @@
   // Status Badge Color Tokens
   // Requirements: 10.2
   // ---------------------------------------------------------------------------
-  --mis-badge-active-bg:          #E8F5E9;
-  --mis-badge-active-text:        #2E7D32;
+  --mis-badge-active-bg:          #F6E9F1;
+  --mis-badge-active-text:        #6B2151;
   --mis-badge-inactive-bg:        #F5F5F5;
   --mis-badge-inactive-text:      #757575;
-  --mis-badge-in-stock-bg:        #E8F5E9;
-  --mis-badge-in-stock-text:      #2E7D32;
+  --mis-badge-in-stock-bg:        #F6EDE7;
+  --mis-badge-in-stock-text:      #6B4433;
   --mis-badge-low-stock-bg:       #FFF3E0;
   --mis-badge-low-stock-text:     #E65100;
   --mis-badge-out-of-stock-bg:    #FFEBEE;
   --mis-badge-out-of-stock-text:  #C62828;
   --mis-badge-pending-bg:         #E3F2FD;
   --mis-badge-pending-text:       #1565C0;
-  --mis-badge-confirmed-bg:       #E0F2F1;
-  --mis-badge-confirmed-text:     #00695C;
+  --mis-badge-confirmed-bg:       #F6E9F1;
+  --mis-badge-confirmed-text:     #6B2151;
   --mis-badge-shipped-bg:         #F3E5F5;
   --mis-badge-shipped-text:       #6A1B9A;
-  --mis-badge-delivered-bg:       #E8F5E9;
-  --mis-badge-delivered-text:     #2E7D32;
+  --mis-badge-delivered-bg:       #F6E9F1;
+  --mis-badge-delivered-text:     #4A1638;
   --mis-badge-cancelled-bg:       #FFEBEE;
   --mis-badge-cancelled-text:     #C62828;
 
@@ -102,15 +105,15 @@
   // Saffron is reserved for things you can click — that is what makes it read as
   // an action rather than decoration.
   // ---------------------------------------------------------------------------
-  --mis-chrome:          #1C1917;   // warm off-black: utility bar, footer, panels
-  --mis-chrome-deep:     #0C0A09;   // deepest chrome, hover states
+  --mis-chrome:          #A63A16;   // deep terracotta: utility bar, footer, panels
+  --mis-chrome-deep:     #7C2A0F;   // deepest chrome, hover states
   --mis-chrome-tint:     #FFF1EA;   // warm saffron wash for hover/selected surfaces
   --mis-page-bg:         #FFF9F5;   // warm cream canvas
-  --mis-line:            #F2E8E2;   // hairline borders, warm
-  --mis-line-strong:     #E2D3C9;   // input borders, dividers that must read
-  --mis-ink:             #1C1917;   // primary text
-  --mis-ink-muted:       #78716C;   // secondary text
-  --mis-ink-faint:       #A8A29E;   // placeholders, meta
+  --mis-line:            #F2E4DA;   // hairline borders, warm
+  --mis-line-strong:     #E3CDBF;   // input borders, dividers that must read
+  --mis-ink:             #43281B;   // primary text — deep warm brown, not black
+  --mis-ink-muted:       #8A6B5C;   // secondary text
+  --mis-ink-faint:       #B29A8C;   // placeholders, meta
 
   // The one accent. Reserved for deals, urgency and promo — never decoration,
   // or it stops signalling anything.
@@ -118,10 +121,14 @@
   --mis-accent-dark:     #BE185D;
   --mis-accent-tint:     #FDE7EF;
 
+  // Deep plum — the palette's dark note, used where black would otherwise sit.
+  --mis-plum:            #6B2151;
+  --mis-plum-deep:       #4A1638;
+
   // Elevation — flat by default, lift only on interaction.
-  --mis-shadow-sm:       0 1px 2px rgba(28, 25, 23, 0.05);
-  --mis-shadow-md:       0 6px 18px rgba(28, 25, 23, 0.09);
-  --mis-shadow-lg:       0 16px 40px rgba(28, 25, 23, 0.14);
+  --mis-shadow-sm:       0 1px 2px rgba(124, 42, 15, 0.06);
+  --mis-shadow-md:       0 6px 18px rgba(124, 42, 15, 0.10);
+  --mis-shadow-lg:       0 16px 40px rgba(124, 42, 15, 0.16);
   // Saffron-tinted lift, for cards and CTAs that should feel warm on hover.
   --mis-shadow-warm:     0 10px 28px rgba(255, 107, 53, 0.22);
 
@@ -151,29 +158,31 @@
 // Brand Colors
 $mis-primary:        #FF6B35;
 $mis-primary-dark:   #E55A24;
-$mis-secondary:      #1C1917;
-$mis-secondary-dark: #0C0A09;
+$mis-primary-hover:  #FF7F4F;
+$mis-on-primary:     #43281B;
+$mis-secondary:      #A63A16;
+$mis-secondary-dark: #7C2A0F;
 $mis-background:     #FFF9F5;
 $mis-surface:        #FFFFFF;
-$mis-text-primary:   #1C1917;
-$mis-text-secondary: #78716C;
-$mis-border:         #F2E8E2;
+$mis-text-primary:   #43281B;
+$mis-text-secondary: #8A6B5C;
+$mis-border:         #F2E4DA;
 
 // Semantic Colors
-$mis-error:          #D32F2F;
-$mis-success:        #388E3C;
-$mis-warning:        #F57C00;
+$mis-error:          #C62828;
+$mis-success:        #6B2151;
+$mis-warning:        #B45309;
 
 // Amazon-India inspired additions
-$mis-header-dark:    #1C1917;
-$mis-header-light:   #292524;
-$mis-nav-green:      #1C1917;
+$mis-header-dark:    #A63A16;
+$mis-header-light:   #C2481D;
+$mis-nav-green:      #A63A16;
 $mis-cta-gold:       #FFD814;
 $mis-cta-gold-dark:  #F7CA00;
 $mis-price-red:      #CC0C39;
 $mis-link-blue:      #007185;
 $mis-star-orange:    #DE7921;
-$mis-stock-green:    #067D62;
+$mis-stock-green:    #8A6B5C;   // name is legacy — no longer green
 
 // Typography
 $mis-font-family:    'Poppins', 'Noto Sans', sans-serif;
@@ -190,11 +199,11 @@ $mis-shadow:         0 2px 8px rgba(0, 0, 0, 0.08);
 // ---------------------------------------------------------------------------
 $mis-sidebar-width:            250px;
 $mis-sidebar-width-collapsed:  64px;
-$mis-sidebar-bg:               #1C1917;
-$mis-sidebar-text:             #D6D3D1;
+$mis-sidebar-bg:               #7C2A0F;
+$mis-sidebar-text:             #F5DFD3;
 $mis-sidebar-active-bg:        #FF6B35;
 $mis-sidebar-active-text:      #FFFFFF;
-$mis-sidebar-hover-bg:         #292524;
+$mis-sidebar-hover-bg:         #933313;
 $mis-admin-topbar-height:      60px;
 $mis-admin-content-padding:    24px;
 
@@ -212,17 +221,19 @@ $mis-auth-gradient-start:      #FF6B35;
 $mis-auth-gradient-end:        #E11D62;
 
 // Surface system (compile-time mirror of the custom properties above)
-$mis-chrome:        #1C1917;
-$mis-chrome-deep:   #0C0A09;
+$mis-chrome:        #A63A16;
+$mis-chrome-deep:   #7C2A0F;
 $mis-chrome-tint:   #FFF1EA;
 $mis-page-bg:       #FFF9F5;
-$mis-line:          #F2E8E2;
-$mis-line-strong:   #E2D3C9;
-$mis-ink:           #1C1917;
-$mis-ink-muted:     #78716C;
-$mis-ink-faint:     #A8A29E;
+$mis-line:          #F2E4DA;
+$mis-line-strong:   #E3CDBF;
+$mis-ink:           #43281B;
+$mis-ink-muted:     #8A6B5C;
+$mis-ink-faint:     #B29A8C;
 $mis-accent:        #E11D62;
 $mis-accent-dark:   #BE185D;
+$mis-plum:          #6B2151;
+$mis-plum-deep:     #4A1638;
 $mis-container:     1280px;
 
 // ---------------------------------------------------------------------------
@@ -231,16 +242,16 @@ $mis-container:     1280px;
 // ---------------------------------------------------------------------------
 $mis-badge-colors: (
   'active': (
-    bg: #E8F5E9,
-    text: #2E7D32
+    bg: #F6E9F1,
+    text: #6B2151
   ),
   'inactive': (
     bg: #F5F5F5,
     text: #757575
   ),
   'in-stock': (
-    bg: #E8F5E9,
-    text: #2E7D32
+    bg: #F6E9F1,
+    text: #6B2151
   ),
   'low-stock': (
     bg: #FFF3E0,
@@ -255,16 +266,16 @@ $mis-badge-colors: (
     text: #1565C0
   ),
   'confirmed': (
-    bg: #E0F2F1,
-    text: #00695C
+    bg: #F6E9F1,
+    text: #4A1638
   ),
   'shipped': (
     bg: #F3E5F5,
     text: #6A1B9A
   ),
   'delivered': (
-    bg: #E8F5E9,
-    text: #2E7D32
+    bg: #F6E9F1,
+    text: #6B2151
   ),
   'cancelled': (
     bg: #FFEBEE,

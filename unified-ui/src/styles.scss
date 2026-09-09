@@ -8,6 +8,9 @@
 
 html {
   scroll-behavior: smooth;
+  // Without this the root keeps the UA's black and any element that only inherits
+  // from it (form controls, unstyled buttons) renders black.
+  color: var(--mis-ink);
 }
 
 body {
@@ -39,8 +42,12 @@ a {
   }
 }
 
-button {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
+  color: inherit;
 }
 
 img {

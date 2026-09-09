@@ -16,8 +16,8 @@
   }
 
   &__success {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: #F6E9F1;
+    color: #6B2151;
     border-radius: $mis-radius;
     padding: 0.875rem 1.25rem;
     margin-bottom: 1.5rem;
@@ -93,7 +93,7 @@
 
     &--save {
       background-color: $mis-primary;
-      color: #fff;
+      color: var(--mis-on-primary);
 
       &:hover {
         background-color: $mis-primary-dark;

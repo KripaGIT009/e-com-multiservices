@@ -30,7 +30,7 @@
 
     &--add {
       background-color: $mis-primary;
-      color: #fff;
+      color: var(--mis-on-primary);
 
       &:hover {
         background-color: $mis-primary-dark;

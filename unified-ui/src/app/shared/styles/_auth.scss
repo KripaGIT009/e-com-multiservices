@@ -22,7 +22,7 @@
   max-width: 1000px;
   background: var(--mis-surface);
   border-radius: var(--mis-radius-lg);
-  box-shadow: 0 12px 40px rgba(26, 26, 26, 0.10);
+  box-shadow: 0 12px 40px rgba(67, 40, 27, 0.10);
   overflow: hidden;
 }
 
@@ -36,7 +36,7 @@
   color: #fff;
   background:
     radial-gradient(500px 300px at 80% 10%, rgba(255, 255, 255, 0.16), transparent 60%),
-    linear-gradient(155deg, var(--mis-primary) 0%, #F0503F 45%, var(--mis-accent) 100%);
+    linear-gradient(155deg, var(--mis-primary) 0%, var(--mis-accent) 55%, var(--mis-plum) 100%);
 
   &__logo {
     width: 240px;

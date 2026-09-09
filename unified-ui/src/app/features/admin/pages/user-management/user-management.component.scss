@@ -4,7 +4,7 @@
   margin: 0 auto;
 
   &__header { margin-bottom: 1.5rem; }
-  &__title { font-size: 1.5rem; font-weight: 600; color: #1C1917; margin: 0; }
+  &__title { font-size: 1.5rem; font-weight: 600; color: #43281B; margin: 0; }
 
   &__success {
     display: flex; align-items: center; gap: 0.5rem;
@@ -41,9 +41,9 @@
 
   &__edit-form {
     background: #fff; border: 1px solid #E2D3C9; border-radius: 8px;
-    padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(124, 42, 15,0.05);
   }
-  &__form-title { font-size: 1.125rem; font-weight: 600; color: #1C1917; margin: 0 0 1rem; }
+  &__form-title { font-size: 1.125rem; font-weight: 600; color: #43281B; margin: 0 0 1rem; }
   &__form-error {
     padding: 0.5rem 0.75rem; background: #f8d7da; border: 1px solid #f5c6cb;
     border-radius: 4px; color: #721c24; font-size: 0.8rem; margin-bottom: 1rem;
@@ -64,7 +64,7 @@
 
   &__table-wrapper {
     background: #fff; border: 1px solid #E2D3C9; border-radius: 8px;
-    overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    overflow: hidden; box-shadow: 0 2px 8px rgba(124, 42, 15,0.05);
   }
   &__table {
     width: 100%; border-collapse: collapse; font-size: 0.875rem;

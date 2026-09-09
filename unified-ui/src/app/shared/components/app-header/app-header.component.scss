@@ -157,11 +157,11 @@
   border: 0;
   border-radius: var(--mis-radius-pill);
   background: var(--mis-primary);
-  color: #fff;
+  color: var(--mis-on-primary);
   cursor: pointer;
   transition: background-color 0.15s ease;
 
-  &:hover { background: var(--mis-primary-dark); }
+  &:hover { background: var(--mis-primary-hover); }
   &:focus-visible { outline: 2px solid var(--mis-primary); outline-offset: 2px; }
 }
 
@@ -210,7 +210,7 @@
 
   &--cart {
     background: var(--mis-primary);
-    color: #fff;
+    color: var(--mis-on-primary);
   }
 }
 
@@ -242,7 +242,7 @@
   border: 2px solid var(--mis-surface);
   border-radius: var(--mis-radius-pill);
   background: var(--mis-primary);
-  color: #fff;
+  color: var(--mis-on-primary);
   font-size: 11px;
   font-weight: 700;
   line-height: 15px;
@@ -340,10 +340,10 @@
   padding: 8px 16px;
   border-radius: var(--mis-radius-pill);
   background: var(--mis-primary);
-  color: #fff;
+  color: var(--mis-on-primary);
   font-weight: 600;
 
-  &:hover { background: var(--mis-primary-dark); color: #fff; }
+  &:hover { background: var(--mis-primary-hover); color: #fff; }
 }
 
 // ── Category drawer ──────────────────────────────────────────────────────────
@@ -351,7 +351,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(26, 31, 43, 0.5);
+  background: rgba(67, 40, 27, 0.5);
 }
 
 .side-menu {

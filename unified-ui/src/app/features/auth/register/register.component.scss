@@ -63,9 +63,9 @@
 
   &--primary {
     background: var(--mis-primary);
-    color: #fff;
+    color: var(--mis-on-primary);
 
-    &:hover:not(:disabled) { background: var(--mis-primary-dark); }
+    &:hover:not(:disabled) { background: var(--mis-primary-hover); }
 
     &:disabled {
       background: #E2D3C9;
@@ -79,7 +79,7 @@
     border-color: var(--mis-border);
     color: var(--mis-text-primary);
 
-    &:hover { background: rgba(0, 0, 0, 0.03); }
+    &:hover { background: rgba(124, 42, 15, 0.03); }
   }
 
   &__loading {

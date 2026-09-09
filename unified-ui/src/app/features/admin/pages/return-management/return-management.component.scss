@@ -8,7 +8,7 @@
   margin: 0 0 1.5rem;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1C1917;
+  color: #43281B;
 }
 
 // Toast notification
@@ -23,7 +23,7 @@
   border-radius: 6px;
   font-size: 0.9rem;
   font-weight: 500;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(124, 42, 15, 0.15);
   z-index: 1000;
   animation: slideIn 0.3s ease;
 
@@ -150,7 +150,7 @@
 .table-container {
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(124, 42, 15, 0.1);
   overflow: hidden;
 }
 
@@ -192,14 +192,14 @@
 
     td {
       padding: 0.875rem 1rem;
-      color: #44403C;
+      color: #6B4433;
     }
   }
 }
 
 .id-cell {
   font-weight: 600;
-  color: #1C1917;
+  color: #43281B;
 }
 
 .order-id-cell {
