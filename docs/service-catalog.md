@@ -48,7 +48,6 @@ Ports are reserved. None of these exist.
 | search-service | 8013 | 3 | OpenSearch indexing and query |
 | pricing-service | 8014 | 4 | MRP, selling price, effective dates, price history |
 | promotion-service | 8015 | 4 | Coupons, offers, usage limits |
-
 | address-service | 8017 | 5 | Customer address book |
 | warehouse-service | 8018 | 10 | Warehouses, picking, packing, transfers |
 | review-service | 8019 | 12 | Ratings, reviews, verified purchase |
