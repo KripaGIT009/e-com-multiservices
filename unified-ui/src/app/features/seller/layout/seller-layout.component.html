@@ -11,9 +11,15 @@
       <span class="material-icons" aria-hidden="true">menu</span>
     </button>
 
-    <a routerLink="/home" class="topbar__brand" aria-label="MyIndianStore home">
+    <a routerLink="/seller/dashboard" class="topbar__brand" aria-label="Seller Central home">
       <img src="assets/images/logo.svg" alt="" class="topbar__logo" />
       <span class="topbar__tag">Seller Central</span>
+    </a>
+
+    <!-- Leaving for the storefront should be a deliberate, separate action. -->
+    <a routerLink="/home" class="topbar__exit">
+      <span class="material-icons" aria-hidden="true">storefront</span>
+      <span class="topbar__exit-label">View storefront</span>
     </a>
 
     <div class="topbar__spacer"></div>

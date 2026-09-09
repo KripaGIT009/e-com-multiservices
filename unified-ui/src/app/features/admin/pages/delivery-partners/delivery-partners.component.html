@@ -1,0 +1,128 @@
+<section class="dp" aria-labelledby="dp-heading">
+  <header class="dp__head">
+    <div>
+      <h1 id="dp-heading" class="dp__title">Delivery partners</h1>
+      <p class="dp__note">
+        Couriers available to the platform. Orders are assigned the fastest active
+        partner that covers the customer's pincode.
+      </p>
+    </div>
+    <span class="dp__count">{{ activeCount }} of {{ partners.length }} active</span>
+  </header>
+
+  <!-- Coverage check: answers "who can deliver here?" without placing an order -->
+  <div class="probe">
+    <label for="probe-pin" class="probe__label">Check coverage for a pincode</label>
+    <div class="probe__row">
+      <input
+        id="probe-pin"
+        class="probe__input"
+        [(ngModel)]="testPincode"
+        maxlength="6"
+        inputmode="numeric"
+        placeholder="560025"
+        (keydown.enter)="checkCoverage()" />
+      <button type="button" class="btn btn--ghost" (click)="checkCoverage()">Check</button>
+    </div>
+    <p class="probe__result" *ngIf="testResult">
+      <ng-container *ngIf="testResult.length > 0">
+        <strong>{{ testResult[0].name }}</strong> would be assigned
+        ({{ testResult[0].estimatedDays }} days).
+        Also available: {{ testResult.length - 1 }} other{{ testResult.length === 2 ? '' : 's' }}.
+      </ng-container>
+      <ng-container *ngIf="testResult.length === 0">
+        No active partner covers that pincode — an order there could not be assigned a courier.
+      </ng-container>
+    </p>
+  </div>
+
+  <p class="dp__state" *ngIf="isLoading">Loading partners…</p>
+
+  <table class="dp__table" *ngIf="!isLoading">
+    <thead>
+      <tr>
+        <th scope="col">Courier</th>
+        <th scope="col">Coverage</th>
+        <th scope="col" class="num">Transit</th>
+        <th scope="col" class="num">Base rate</th>
+        <th scope="col">Status</th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <ng-container *ngFor="let p of partners">
+        <tr [class.is-off]="!p.active">
+          <td>
+            <p class="dp__name">{{ p.name }}</p>
+            <p class="dp__code">{{ p.code }}</p>
+          </td>
+          <td>{{ coverage(p) }}</td>
+          <td class="num">{{ p.estimatedDays }} days</td>
+          <td class="num">₹{{ p.baseRate }}</td>
+          <td>
+            <span class="badge" [class.badge--on]="p.active">
+              {{ p.active ? 'Active' : 'Disabled' }}
+            </span>
+          </td>
+          <td class="dp__actions">
+            <button type="button" (click)="edit(p)" [disabled]="savingId === p.id">Edit</button>
+            <button type="button" (click)="toggleActive(p)" [disabled]="savingId === p.id">
+              {{ p.active ? 'Disable' : 'Enable' }}
+            </button>
+          </td>
+        </tr>
+
+        <!-- Inline editor, so the row stays in context -->
+        <tr class="dp__editor" *ngIf="editing && editing.id === p.id">
+          <td colspan="6">
+            <div class="editor">
+              <div class="editor__field">
+                <label [attr.for]="'name-' + p.id">Display name</label>
+                <input [id]="'name-' + p.id" [(ngModel)]="editing.name" />
+              </div>
+              <div class="editor__field">
+                <label [attr.for]="'days-' + p.id">Transit days</label>
+                <input [id]="'days-' + p.id" type="number" min="1" [(ngModel)]="editing.estimatedDays" />
+              </div>
+              <div class="editor__field">
+                <label [attr.for]="'rate-' + p.id">Base rate (₹)</label>
+                <input [id]="'rate-' + p.id" type="number" min="0" [(ngModel)]="editing.baseRate" />
+              </div>
+              <div class="editor__field editor__field--wide">
+                <label [attr.for]="'pins-' + p.id">Serviceable pincode prefixes</label>
+                <input
+                  [id]="'pins-' + p.id"
+                  [(ngModel)]="editing.servicePincodePrefixes"
+                  placeholder="Leave empty for nationwide, or e.g. 56,57,58" />
+                <p class="editor__hint">
+                  Comma-separated. A customer's pincode must start with one of these.
+                </p>
+              </div>
+              <div class="editor__field editor__field--wide">
+                <label [attr.for]="'url-' + p.id">Tracking URL template</label>
+                <input
+                  [id]="'url-' + p.id"
+                  [(ngModel)]="editing.trackingUrlTemplate"
+                  placeholder="https://courier.example/track?awb={trackingNumber}" />
+                <p class="editor__hint">
+                  <code>&#123;trackingNumber&#125;</code> is replaced when a shipment is created.
+                </p>
+              </div>
+              <div class="editor__actions">
+                <button type="button" class="btn btn--ghost" (click)="cancel()">Cancel</button>
+                <button type="button" class="btn btn--primary" (click)="save()" [disabled]="savingId === p.id">
+                  {{ savingId === p.id ? 'Saving…' : 'Save' }}
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
+    </tbody>
+  </table>
+
+  <p class="dp__footnote">
+    Shipments are recorded in MyIndianStore but are not lodged with the couriers' own
+    systems, so tracking numbers are generated here rather than issued by the carrier.
+  </p>
+</section>

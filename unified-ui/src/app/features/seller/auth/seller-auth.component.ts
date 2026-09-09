@@ -60,6 +60,21 @@ export class SellerAuthComponent {
     return !!c && c.invalid && c.touched;
   }
 
+  /**
+   * Where to land after signing in — back to whatever seller page they were trying
+   * to reach. Only same-origin seller paths are honoured, so the parameter cannot
+   * bounce them elsewhere.
+   */
+  private destination(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const safe = !!returnUrl
+      && returnUrl.startsWith('/seller/')
+      && !returnUrl.startsWith('//')
+      && !returnUrl.startsWith('/seller/login')
+      && !returnUrl.startsWith('/seller/register');
+    return safe ? returnUrl! : '/seller/dashboard';
+  }
+
   switchMode(): void {
     this.router.navigate([this.mode === 'login' ? '/seller/register' : '/seller/login']);
   }
@@ -76,7 +91,7 @@ export class SellerAuthComponent {
     const done = {
       next: () => {
         this.isSubmitting = false;
-        this.router.navigate(['/seller/dashboard']);
+        this.router.navigateByUrl(this.destination());
       },
       error: (err: HttpErrorResponse) => {
         this.isSubmitting = false;
@@ -99,7 +114,7 @@ export class SellerAuthComponent {
         next: () => {
           this.isSubmitting = false;
           this.notify.show('Seller account created. An admin will review it shortly.', 'success');
-          this.router.navigate(['/seller/dashboard']);
+          this.router.navigateByUrl(this.destination());
         },
       });
     }

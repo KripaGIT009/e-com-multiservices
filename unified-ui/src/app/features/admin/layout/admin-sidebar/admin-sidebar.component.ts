@@ -50,6 +50,8 @@ export class AdminSidebarComponent {
         { label: 'Closed Orders', icon: 'archive', route: '/admin/orders/closed' },
       ]
     },
+    { label: 'Delivery Partners', icon: 'local_shipping', route: '/admin/delivery-partners' },
+    { label: 'Sellers', icon: 'storefront', route: '/admin/sellers' },
     { label: 'Categories', icon: 'category', route: '/admin/categories' },
     { label: 'Reviews', icon: 'star_rate', route: '/admin/reviews' },
     { label: 'Earnings', icon: 'attach_money', route: '/admin/earnings' },
