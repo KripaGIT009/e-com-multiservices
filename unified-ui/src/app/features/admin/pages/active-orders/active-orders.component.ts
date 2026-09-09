@@ -121,7 +121,9 @@ export class ActiveOrdersComponent implements OnInit {
         // Map backend orders to ActiveOrder interface and filter active ones
         this.orders = (backendOrders || [])
           .filter(o => o.status !== 'DELIVERED' && o.status !== 'CANCELLED')
-          .map(o => this.mapBackendOrder(o));
+          .map(o => this.mapBackendOrder(o))
+          .sort((a, b) => (b.orderDate || '').localeCompare(a.orderDate || '')
+                       || (b.orderId || '').localeCompare(a.orderId || ''));
         this.applyFilters();
         this.isLoading = false;
       },
@@ -142,16 +144,30 @@ export class ActiveOrdersComponent implements OnInit {
       productImage: 'assets/images/placeholder-product.png',
       productSku: firstItem?.description || `SKU-${firstItem?.productId || '?'}`,
       quantity: firstItem?.quantity || 1,
-      customerName: `Customer #${o.customerId}`,
-      customerPhone: '',
-      customerEmail: '',
+      // Snapshots taken when the order was placed. Orders created before the order
+      // model carried them fall back to the id, which is all that was ever recorded.
+      customerName: o.customerName || `Customer #${o.customerId}`,
+      customerPhone: o.customerPhone || '',
+      customerEmail: o.customerEmail || '',
       amount: o.totalAmount || 0,
       paymentMethod: 'Online',
       orderDate: o.createdAt ? o.createdAt.split('T')[0] : '',
       status: this.mapStatus(o.status),
-      deliveryAddress: '',
-      expectedDelivery: '',
+      deliveryAddress: o.shippingAddressLine || '',
+      expectedDelivery: this.estimateDelivery(o.createdAt),
     };
+  }
+
+  /**
+   * Standard delivery window until logistics-service can supply a real promise date.
+   * Derived from the order date rather than invented, and clearly a window.
+   */
+  private estimateDelivery(createdAt?: string): string {
+    if (!createdAt) return '';
+    const placed = new Date(createdAt);
+    if (isNaN(placed.getTime())) return '';
+    placed.setDate(placed.getDate() + 5);
+    return placed.toISOString().split('T')[0];
   }
 
   private mapStatus(backendStatus: string): OrderStatus {

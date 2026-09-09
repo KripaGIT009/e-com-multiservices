@@ -797,18 +797,58 @@ app.get('/api/orders/:orderId', authenticateAny, async (req, res) => {
 });
 app.post('/api/orders', authenticateToken, async (req, res) => {
   try {
-    const { items, ...rest } = req.body;
-    const mappedItems = (items || []).map(item => ({
+    const { items, shippingAddress, notes } = req.body;
+
+    if (!items || !items.length)
+      return res.status(400).json({ error: 'An order needs at least one item.' });
+
+    const mappedItems = items.map(item => ({
       productId: String(item.itemId || item.productId || ''),
       productName: item.name || item.productName || '',
       quantity: item.quantity || 1,
       unitPrice: item.price || item.unitPrice || 0,
       description: item.sku || item.description || null
     }));
-    const payload = { ...rest, items: mappedItems, customerId: String(req.user.id) };
+
+    const address = shippingAddress ? {
+      fullName: shippingAddress.fullName || null,
+      addressLine1: shippingAddress.addressLine1 || null,
+      addressLine2: shippingAddress.addressLine2 || null,
+      city: shippingAddress.city || null,
+      state: shippingAddress.state || null,
+      postalCode: shippingAddress.postalCode || null,
+      phone: shippingAddress.phone ? normaliseIndianMobile(shippingAddress.phone) || shippingAddress.phone : null,
+      country: shippingAddress.country || 'India',
+    } : null;
+
+    if (!address || !address.addressLine1 || !address.city || !address.postalCode)
+      return res.status(400).json({ error: 'A delivery address is required to place an order.' });
+
+    // Snapshot the customer from the token and their profile, so the order records who
+    // it was for without the admin view having to reach into user-service.
+    let profile = {};
+    try {
+      profile = (await axios.get(`${USER_SERVICE}/api/users/email/${req.user.email}`)).data || {};
+    } catch (_) { /* fall back to the token's claims */ }
+
+    const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
+
+    const payload = {
+      items: mappedItems,
+      notes: notes || null,
+      customerId: String(req.user.id),
+      shippingAddress: address,
+      customerName: address.fullName || fullName || req.user.username || null,
+      customerEmail: profile.email || req.user.email || null,
+      customerPhone: address.phone || profile.phoneNumber || null,
+    };
+
     const response = await axios.post(`${ORDER_SERVICE}/api/v1/orders`, payload);
     res.status(response.status).json(response.data);
-  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to create order' }); }
+  } catch (e) {
+    console.error('Order creation failed:', e.response?.data || e.message);
+    res.status(e.response?.status || 500).json({ error: 'Failed to create order' });
+  }
 });
 app.put('/api/orders/:id/status', authenticateAdmin, async (req, res) => {
   try {

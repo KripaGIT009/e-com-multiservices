@@ -22,4 +22,12 @@ public class OrderDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String notes;
+
+    private ShippingAddressDTO shippingAddress;
+    /** Pre-formatted for lists and admin tables. Null when no address was captured. */
+    private String shippingAddressLine;
+
+    private String customerName;
+    private String customerEmail;
+    private String customerPhone;
 }

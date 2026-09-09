@@ -46,6 +46,28 @@ public class Order {
 
     private String notes;
 
+    /**
+     * Delivery address as given at checkout. Snapshotted, not referenced — an order
+     * must show where it was actually sent even if the customer later edits or
+     * removes that address.
+     */
+    @Embedded
+    private ShippingAddress shippingAddress;
+
+    /**
+     * Who placed it, as they were at the time. Held here so order history and the
+     * admin view do not have to reach into user-service — which owns a different
+     * database — and so a later profile edit cannot rewrite history.
+     */
+    @Column(name = "customer_name", length = 120)
+    private String customerName;
+
+    @Column(name = "customer_email", length = 160)
+    private String customerEmail;
+
+    @Column(name = "customer_phone", length = 20)
+    private String customerPhone;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
