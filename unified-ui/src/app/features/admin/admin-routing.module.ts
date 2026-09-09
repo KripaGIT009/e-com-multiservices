@@ -74,6 +74,18 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'delivery-partners',
+        loadComponent: () =>
+          import('./pages/delivery-partners/delivery-partners.component').then(
+            (m) => m.DeliveryPartnersComponent
+          ),
+      },
+      {
+        path: 'sellers',
+        loadComponent: () =>
+          import('./pages/sellers/sellers.component').then((m) => m.SellersComponent),
+      },
+      {
         path: 'categories',
         loadComponent: () =>
           import('./pages/categories/categories.component').then(

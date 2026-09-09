@@ -1,0 +1,101 @@
+<section class="sellers" aria-labelledby="sellers-heading">
+  <header class="sellers__head">
+    <h1 id="sellers-heading" class="sellers__title">Sellers</h1>
+    <p class="sellers__note">
+      Approve businesses before their listings go live. Rejected and suspended sellers
+      are shown the reason you give when they try to sign in.
+    </p>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Filter sellers">
+    <button type="button" [class.is-on]="filter === 'PENDING_APPROVAL'" (click)="filter = 'PENDING_APPROVAL'">
+      Awaiting approval ({{ countOf('PENDING_APPROVAL') }})
+    </button>
+    <button type="button" [class.is-on]="filter === 'APPROVED'" (click)="filter = 'APPROVED'">
+      Approved ({{ countOf('APPROVED') }})
+    </button>
+    <button type="button" [class.is-on]="filter === 'SUSPENDED'" (click)="filter = 'SUSPENDED'">
+      Suspended ({{ countOf('SUSPENDED') }})
+    </button>
+    <button type="button" [class.is-on]="filter === 'ALL'" (click)="filter = 'ALL'">
+      All ({{ sellers.length }})
+    </button>
+  </div>
+
+  <p class="sellers__state" *ngIf="isLoading">Loading sellers…</p>
+  <p class="sellers__state" *ngIf="!isLoading && visible.length === 0">Nothing here.</p>
+
+  <div class="cards" *ngIf="!isLoading && visible.length > 0">
+    <article class="card" *ngFor="let s of visible">
+      <header class="card__top">
+        <div>
+          <h2 class="card__name">{{ s.businessName }}</h2>
+          <p class="card__contact">{{ s.contactName }} · {{ s.email }} · {{ s.phone }}</p>
+        </div>
+        <span class="status" [ngClass]="statusClass(s.status)">
+          {{ s.status.replace('_', ' ') }}
+        </span>
+      </header>
+
+      <dl class="card__facts">
+        <div><dt>GSTIN</dt><dd>{{ s.gstin || 'Not provided' }}</dd></div>
+        <div><dt>Pickup</dt><dd>{{ s.pickupCity || '—' }} {{ s.pickupPostalCode }}</dd></div>
+        <div><dt>Registered</dt><dd>{{ s.createdAt | date:'d MMM y' }}</dd></div>
+      </dl>
+
+      <p class="card__reason" *ngIf="s.statusReason">
+        <span class="material-icons" aria-hidden="true">info</span> {{ s.statusReason }}
+      </p>
+
+      <!-- GSTIN is the business identity check, so flag its absence before approval. -->
+      <p class="card__warn" *ngIf="s.status === 'PENDING_APPROVAL' && !s.gstin">
+        <span class="material-icons" aria-hidden="true">warning</span>
+        No GSTIN on file. Approving without one skips the business identity check.
+      </p>
+
+      <div class="card__actions" *ngIf="reasonFor !== s.id">
+        <button
+          type="button"
+          class="btn btn--primary"
+          *ngIf="s.status !== 'APPROVED'"
+          (click)="approve(s)"
+          [disabled]="savingId === s.id">
+          {{ savingId === s.id ? 'Saving…' : 'Approve' }}
+        </button>
+        <button
+          type="button"
+          class="btn btn--ghost"
+          *ngIf="s.status === 'PENDING_APPROVAL'"
+          (click)="askReason(s, 'REJECTED')"
+          [disabled]="savingId === s.id">
+          Reject
+        </button>
+        <button
+          type="button"
+          class="btn btn--danger"
+          *ngIf="s.status === 'APPROVED'"
+          (click)="askReason(s, 'SUSPENDED')"
+          [disabled]="savingId === s.id">
+          Suspend
+        </button>
+      </div>
+
+      <div class="reason" *ngIf="reasonFor === s.id">
+        <label [attr.for]="'reason-' + s.id" class="reason__label">
+          Reason ({{ pendingAction === 'REJECTED' ? 'rejection' : 'suspension' }}) — shown to the seller
+        </label>
+        <textarea
+          [id]="'reason-' + s.id"
+          [(ngModel)]="reason"
+          rows="2"
+          placeholder="e.g. GSTIN could not be verified"></textarea>
+        <div class="reason__actions">
+          <button type="button" class="btn btn--ghost" (click)="cancelReason()">Cancel</button>
+          <button type="button" class="btn btn--danger" (click)="confirmReason(s)" [disabled]="savingId === s.id">
+            Confirm {{ pendingAction === 'REJECTED' ? 'rejection' : 'suspension' }}
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

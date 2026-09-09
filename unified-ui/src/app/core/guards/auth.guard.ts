@@ -19,9 +19,12 @@ export class AuthGuard implements CanActivate {
         if (isAuthenticated) {
           return true;
         }
-        // Straight to /auth/login: routing '/login' here would redirect, and
+        // Send them to the sign-in for the realm they were trying to reach; a
+        // seller's credentials do not work on the customer login.
+        // Straight to the real route: routing via '/login' would redirect, and
         // redirectTo drops query params, losing the returnUrl.
-        this.router.navigate(['/auth/login'], { queryParams: { returnUrl: state.url } });
+        const loginRoute = state.url.startsWith('/seller') ? '/seller/login' : '/auth/login';
+        this.router.navigate([loginRoute], { queryParams: { returnUrl: state.url } });
         return false;
       })
     );

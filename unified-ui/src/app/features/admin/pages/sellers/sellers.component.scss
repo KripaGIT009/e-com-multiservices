@@ -1,0 +1,170 @@
+@import '../../../../shared/styles/variables';
+
+:host { display: block; }
+
+.sellers {
+  &__head { margin-bottom: 18px; }
+  &__title { margin: 0 0 4px; font-size: var(--mis-text-xl); font-weight: 600; }
+  &__note { margin: 0; font-size: var(--mis-text-md); color: var(--mis-ink-muted); max-width: 640px; }
+
+  &__state {
+    padding: 40px;
+    border: 1px dashed var(--mis-line-strong);
+    border-radius: var(--mis-radius-md);
+    background: var(--mis-surface);
+    text-align: center;
+    color: var(--mis-ink-muted);
+  }
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+
+  button {
+    padding: 8px 16px;
+    border: 1px solid var(--mis-line-strong);
+    border-radius: var(--mis-radius-pill);
+    background: var(--mis-surface);
+    font-family: inherit;
+    font-size: var(--mis-text-sm);
+    color: var(--mis-ink-muted);
+    cursor: pointer;
+
+    &:hover { border-color: var(--mis-primary); color: var(--mis-primary-dark); }
+
+    &.is-on {
+      background: var(--mis-primary);
+      border-color: var(--mis-primary);
+      color: var(--mis-on-primary);
+      font-weight: 600;
+    }
+  }
+}
+
+.cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+
+.card {
+  padding: 18px 20px;
+  border: 1px solid var(--mis-line);
+  border-radius: var(--mis-radius-md);
+  background: var(--mis-surface);
+
+  &__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  &__name { margin: 0 0 3px; font-size: var(--mis-text-lg); font-weight: 600; }
+  &__contact { margin: 0; font-size: var(--mis-text-xs); color: var(--mis-ink-muted); }
+
+  &__facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--mis-line);
+    border-bottom: 1px solid var(--mis-line);
+
+    dt { margin: 0 0 2px; font-size: var(--mis-text-xs); color: var(--mis-ink-muted); }
+    dd { margin: 0; font-size: var(--mis-text-sm); color: var(--mis-ink); }
+  }
+
+  &__reason,
+  &__warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0 0 12px;
+    font-size: var(--mis-text-sm);
+    color: var(--mis-ink-muted);
+
+    .material-icons { font-size: 17px; flex-shrink: 0; }
+  }
+
+  &__warn { color: var(--mis-warning); }
+
+  &__actions { display: flex; gap: 10px; }
+}
+
+.status {
+  flex-shrink: 0;
+  padding: 4px 12px;
+  border-radius: var(--mis-radius-pill);
+  font-size: var(--mis-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.is-approved { background: #E6F4EA; color: #1B5E20; }
+  &.is-pending  { background: #FEF3C7; color: #92700E; }
+  &.is-blocked  { background: #FDE7EF; color: #9F1239; }
+}
+
+.reason {
+  padding-top: 12px;
+  border-top: 1px solid var(--mis-line);
+
+  &__label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: var(--mis-text-xs);
+    font-weight: 600;
+    color: var(--mis-ink-muted);
+  }
+
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--mis-line-strong);
+    border-radius: var(--mis-radius-sm);
+    font-family: inherit;
+    font-size: var(--mis-text-sm);
+    color: var(--mis-ink);
+    resize: vertical;
+  }
+
+  &__actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+}
+
+.btn {
+  padding: 9px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--mis-radius-pill);
+  font-family: inherit;
+  font-size: var(--mis-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  &--primary {
+    background: var(--mis-primary);
+    color: var(--mis-on-primary);
+    &:hover:not(:disabled) { background: var(--mis-primary-hover); }
+  }
+
+  &--ghost {
+    background: transparent;
+    border-color: var(--mis-line-strong);
+    color: var(--mis-ink);
+    &:hover { background: var(--mis-chrome-tint); }
+  }
+
+  &--danger {
+    background: transparent;
+    border-color: var(--mis-error);
+    color: var(--mis-error);
+    &:hover:not(:disabled) { background: rgba(198, 40, 40, 0.08); }
+  }
+
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+@media (max-width: 1000px) {
+  .cards { grid-template-columns: 1fr; }
+  .card__facts { grid-template-columns: 1fr 1fr; }
+}
