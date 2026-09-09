@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.dto.CreateOrderRequest;
 import com.example.dto.OrderDTO;
+import com.example.dto.UpdateDeliveryRequest;
 import com.example.entity.OrderStatus;
 import com.example.service.IOrderService;
 import lombok.RequiredArgsConstructor;
@@ -101,6 +102,17 @@ public class OrderController {
         log.info("PATCH /api/v1/orders/{}/status?status={} - Updating order status", id, status);
         OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok(updatedOrder);
+    }
+
+    /**
+     * Record the courier the order is actually shipping with.
+     */
+    @PatchMapping("/{id}/delivery")
+    public ResponseEntity<OrderDTO> updateDeliveryPartner(
+            @PathVariable("id") Long id,
+            @RequestBody UpdateDeliveryRequest request) {
+        log.info("PATCH /api/v1/orders/{}/delivery - Assigning courier {}", id, request.getDeliveryPartnerCode());
+        return ResponseEntity.ok(orderService.updateDeliveryPartner(id, request));
     }
 
     /**

@@ -22,6 +22,14 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        # Shipment events are a side effect of shipping, not part of it. Without a
+        # bound here the producer blocks the HTTP thread for the 60s default while
+        # it looks for topic metadata, so handing a parcel to a courier hung and
+        # then failed whenever Kafka was unreachable.
+        max.block.ms: 5000
+        delivery.timeout.ms: 10000
+        request.timeout.ms: 5000
 
 server:
   port: 8088

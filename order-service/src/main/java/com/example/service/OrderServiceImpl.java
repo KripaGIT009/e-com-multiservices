@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.common.SagaEvent;
 import com.example.dto.CreateOrderRequest;
 import com.example.dto.OrderDTO;
+import com.example.dto.UpdateDeliveryRequest;
 import com.example.entity.Order;
 import com.example.entity.OrderItem;
 import com.example.entity.OrderStatus;
@@ -137,6 +138,32 @@ public class OrderServiceImpl implements IOrderService {
         publishOrderStatusChangedEvent(updatedOrder, oldStatus, newStatus);
 
         return mapToDTO(updatedOrder);
+    }
+
+    /**
+     * Records the courier an order is actually shipping with.
+     *
+     * Checkout picks a partner provisionally; the seller may choose another when
+     * they hand the parcel over. Without this the order would keep advertising the
+     * courier nobody used. Only the fields supplied are changed.
+     */
+    @Transactional
+    public OrderDTO updateDeliveryPartner(Long id, UpdateDeliveryRequest request) {
+        log.info("Updating order {} delivery partner to: {}", id, request.getDeliveryPartnerCode());
+        Order order = orderRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+
+        if (request.getDeliveryPartnerCode() != null) {
+            order.setDeliveryPartnerCode(request.getDeliveryPartnerCode());
+        }
+        if (request.getDeliveryPartnerName() != null) {
+            order.setDeliveryPartnerName(request.getDeliveryPartnerName());
+        }
+        if (request.getExpectedDelivery() != null) {
+            order.setExpectedDelivery(request.getExpectedDelivery());
+        }
+
+        return mapToDTO(orderRepository.save(order));
     }
 
     public void deleteOrder(Long id) {
