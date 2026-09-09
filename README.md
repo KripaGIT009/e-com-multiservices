@@ -1,6 +1,20 @@
 # MyIndianStore E-Commerce Platform
 
-A full-stack e-commerce platform built with a microservices architecture. The system features a unified Angular frontend with an Express BFF (Backend For Frontend) serving both customer and admin experiences on a single port.
+A full-stack e-commerce and marketplace platform for India. A unified Angular frontend
+with an Express BFF (Backend For Frontend) serves both customer and admin experiences
+on a single port, backed by Java 21 / Spring Boot microservices.
+
+## Documentation
+
+| | |
+|---|---|
+| [docs/](docs/) | Architecture, API and event contracts, flows, ADRs |
+| [CLAUDE.md](CLAUDE.md) | Conventions and architectural rules — read before changing code |
+| [CODE_REVIEW.md](CODE_REVIEW.md) | Security and correctness audit; **Appendix A lists what is still open** |
+
+**Eleven of twenty-six planned services exist.** The
+[service catalog](docs/service-catalog.md) marks each one `built`, `partial` or
+`planned` — check it before assuming a capability is present.
 
 ## Architecture
 
@@ -55,8 +69,23 @@ A full-stack e-commerce platform built with a microservices architecture. The sy
 
 - Node.js 20+
 - Java 21+
+- Maven 3.9+
 - Docker & Docker Compose
 - npm 9+
+
+### Configuration
+
+```bash
+cp .env.example .env
+```
+
+Generate the two secrets it asks for. The BFF deliberately refuses to start without
+them — there is no fallback default.
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"  # JWT_SECRET
+node -e "console.log(require('crypto').randomBytes(64).toString('base64url'))"  # ADMIN_JWT_SECRET
+```
 
 ### Development (Frontend Only)
 
@@ -70,11 +99,17 @@ The Angular dev server starts at http://localhost:4200 with proxy to backend ser
 
 ### Full Stack (Docker)
 
+Java services are containerised from a prebuilt jar (`COPY target/*.jar`, no Maven
+stage), so package them first — otherwise the image ships whatever was last built:
+
 ```bash
+for s in */; do [ -f "$s/pom.xml" ] && (cd "$s" && mvn -DskipTests package); done
 docker compose up --build
 ```
 
 This starts all microservices, databases, Kafka, and the unified-ui on port 4200.
+First boot takes several minutes. Seeded accounts and per-service ports are in
+[docs/local-development.md](docs/local-development.md).
 
 ### Build for Production
 
@@ -118,11 +153,12 @@ myindiansstore/
 ## Tech Stack
 
 ### Frontend
-- Angular 18 (standalone-ready, lazy-loaded modules)
-- SCSS with CSS custom properties
-- Poppins font family
-- Responsive design (mobile-first)
-- Accessible (WCAG 2.1 compliant patterns)
+- Angular 18 (lazy-loaded feature modules)
+- SCSS with CSS custom properties (design tokens in `shared/styles/_variables.scss`)
+- Poppins / Noto Sans
+- Responsive — single-column below 768px; no horizontal overflow at 390px
+- Accessibility: ARIA landmarks and live regions are in place; **not yet audited
+  against WCAG 2.1**
 
 ### Backend
 - Java 21 + Spring Boot 3
