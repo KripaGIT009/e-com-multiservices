@@ -850,3 +850,105 @@ Verified across all four surfaces:
 | `/seller/login` | absent | absent (full-page auth) |
 | `/admin/dashboard` | absent | absent (admin chrome) |
 | `/home` | present | absent |
+
+---
+
+# Appendix I — Where you assign a delivery partner, and three bugs behind it
+
+The question "how do I assign a delivery partner?" had an answer already, but a
+poor one: the control existed and the assignment did not survive contact with
+the rest of the system.
+
+## Where the assignment lives
+
+Two places, for two different jobs:
+
+| Who | Where | What they decide |
+|---|---|---|
+| Seller | Seller Central → **Orders** → expand an order → **Hand to courier** | Which courier collects *this* parcel |
+| Admin | Admin → **Delivery Partners** | Which couriers exist, their rates, transit times and pincode coverage |
+
+The admin page also carries a coverage probe — type a pincode, see which
+couriers could serve it and which would be picked — so the question "can we
+deliver here?" can be answered without placing a test order.
+
+Both were reachable only by typing the URL until this pass; they now have
+sidebar entries.
+
+## 1. The seller's choice was discarded
+
+Checkout provisionally assigns the fastest serviceable courier. The seller can
+pick a different one when they actually hand the parcel over — and that choice
+was written to the *shipment* but never back to the *order*.
+
+Shipping order 34 with Delhivery produced:
+
+| | Courier | Expected |
+|---|---|---|
+| Shipment created | Delhivery | 12 Sep |
+| Order still said | Blue Dart | 11 Sep |
+
+The order is what the customer's tracking reads from, so the customer would
+have been told to expect a courier that never collected the parcel.
+
+There was no endpoint to correct it. Added `PATCH /api/v1/orders/{id}/delivery`
+(`UpdateDeliveryRequest`, patch semantics — only supplied fields change), and
+the BFF now calls it after creating the shipment.
+
+## 2. Shipping did not mark the order shipped
+
+The seller pressed **Mark shipped**, the row moved, and on the next reload it
+was back under *To fulfil* — the ship route created a shipment but never
+advanced the order's status. It now patches the order to `SHIPPED`.
+
+## 3. A Kafka outage destroyed the shipment
+
+`POST /api/shipments` hung for exactly 30s and returned
+`{"error":"Could not create the shipment"}`. The logistics log gave it away:
+
+```
+Exception thrown when sending a message ... to topic shipment-events:
+org.apache.kafka.common.errors.TimeoutException:
+  Topic shipment-events not present in metadata after 60000 ms.
+... Request processing failed: org.springframework.kafka.KafkaException: Send failed
+```
+
+`KafkaTemplate.send` is only asynchronous once the producer knows the topic.
+For an unknown topic it blocks the calling HTTP thread for `max.block.ms`
+(default 60s) and then throws — inside the request, so the hand-off failed
+entirely even though the shipment row had already been written.
+
+Announcing a shipment is a side effect of shipping, not part of it. Two changes:
+
+- `max.block.ms: 5000` (with matching request/delivery timeouts) so the producer
+  fails fast instead of holding a request thread for a minute.
+- The `send` is wrapped and non-fatal, logging which event could not be
+  published rather than losing the shipment.
+
+Earlier shipments succeeded only because the producer still had cached metadata
+from before the broker went unreachable — the failure was latent, not new.
+
+## Verified
+
+- `PATCH /api/v1/orders/34/delivery` → `code=DELHIVERY name=Delhivery expected=2026-09-12T09:39:24`
+- Seller Central: chose Delhivery (not the default first option), pressed
+  Mark shipped → `201`, shipment carrier Delhivery, and the order card then read
+  **Assigned courier Delhivery / Expected 12 Sep 2026**
+- Read back through `/api/seller/orders`: `id=34 courier=Delhivery expected=2026-09-12T09:49:13`
+- Admin → Delivery Partners: 6 rows, "6 of 6 active", coverage probe for 560025
+  reports *Blue Dart would be assigned (2 days). Also available: 5 others.*
+- Admin → Sellers: 5 sellers across Awaiting approval (1) / Approved (3) / Suspended (1)
+- Both sidebar entries navigate to their pages
+
+## Still open
+
+- **The logistics fix is built but not deployed.** `mvn package` succeeds; the
+  container rebuild fails because Docker Desktop's engine is currently returning
+  500/502 on image operations and cannot reach the registry. It needs
+  `docker compose up -d --build logistics-service` once Docker is healthy.
+- **The `shipment-events` topic does not exist** and the broker is unreachable
+  from the logistics producer. With the change above this degrades to a logged
+  warning instead of a failed shipment, but no consumer is receiving shipment
+  events in the meantime.
+- Tracking numbers are still generated locally — no carrier API is integrated,
+  so a tracking link will not resolve on the courier's own site.
