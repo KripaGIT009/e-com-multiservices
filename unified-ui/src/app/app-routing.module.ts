@@ -31,6 +31,10 @@ const routes: Routes = [
     data: { roles: ['CUSTOMER', 'ADMIN'] },
   },
   {
+    path: 'seller',
+    loadChildren: () => import('./features/seller/seller.module').then(m => m.SellerModule),
+  },
+  {
     path: 'admin',
     loadChildren: () => import('./features/admin/admin.module').then(m => m.AdminModule),
     canActivate: [AuthGuard, RoleGuard],

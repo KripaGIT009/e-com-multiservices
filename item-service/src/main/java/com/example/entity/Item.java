@@ -30,6 +30,17 @@ public class Item {
     @Column(nullable = true)
     private String itemType;
 
+    /**
+     * Owning seller. Null means first-party stock sold by MyIndianStore itself —
+     * the platform supports both, per the business model in the spec.
+     */
+    @Column(name = "seller_id")
+    private Long sellerId;
+
+    /** Snapshot of the seller's trade name, so listings render without a join. */
+    @Column(name = "seller_name", length = 160)
+    private String sellerName;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -91,4 +102,9 @@ public class Item {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
 }

@@ -39,6 +39,12 @@ public class ItemServiceImpl implements IItemService {
             item.setPrice(itemDetails.getPrice());
             item.setQuantity(itemDetails.getQuantity());
             item.setItemType(itemDetails.getItemType());
+            // Only reassign ownership when the caller actually supplied it, so an
+            // edit that omits the seller cannot orphan someone's listing.
+            if (itemDetails.getSellerId() != null) {
+                item.setSellerId(itemDetails.getSellerId());
+                item.setSellerName(itemDetails.getSellerName());
+            }
             item.setUpdatedAt(LocalDateTime.now());
             return itemRepository.save(item);
         }).orElse(null);

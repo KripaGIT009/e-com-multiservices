@@ -1,0 +1,181 @@
+<section class="seller" aria-labelledby="seller-heading">
+
+  <header class="seller__header">
+    <div>
+      <h1 id="seller-heading" class="seller__title">{{ seller?.businessName || 'Seller dashboard' }}</h1>
+      <p class="seller__meta" *ngIf="seller">{{ seller.contactName }} · {{ seller.email }}</p>
+    </div>
+    <button type="button" class="seller__signout" (click)="signOut()">Sign out</button>
+  </header>
+
+  <!-- Account standing. Unapproved sellers can look around but not publish. -->
+  <div
+    class="status"
+    *ngIf="seller"
+    [class.status--ok]="seller.status === 'APPROVED'"
+    [class.status--wait]="seller.status === 'PENDING_APPROVAL'"
+    [class.status--stop]="seller.status === 'REJECTED' || seller.status === 'SUSPENDED'"
+    role="status">
+    <span class="material-icons" aria-hidden="true">
+      {{ seller.status === 'APPROVED' ? 'verified' :
+         seller.status === 'PENDING_APPROVAL' ? 'hourglass_top' : 'block' }}
+    </span>
+    <div>
+      <p class="status__title">{{ statusLabel }}</p>
+      <p class="status__note" *ngIf="seller.status === 'PENDING_APPROVAL'">
+        An admin is reviewing your details. You can add listings once approved.
+      </p>
+      <p class="status__note" *ngIf="seller.statusReason">{{ seller.statusReason }}</p>
+    </div>
+  </div>
+
+  <!-- Catalogue summary -->
+  <div class="stats" *ngIf="!isLoading">
+    <div class="stat">
+      <p class="stat__value">{{ products.length }}</p>
+      <p class="stat__label">Listings</p>
+    </div>
+    <div class="stat">
+      <p class="stat__value">{{ totalStock }}</p>
+      <p class="stat__label">Units in stock</p>
+    </div>
+    <div class="stat">
+      <p class="stat__value">₹{{ stockValue | number:'1.0-0' }}</p>
+      <p class="stat__label">Stock value</p>
+    </div>
+    <div class="stat" *ngIf="seller?.pickupCity">
+      <p class="stat__value">{{ seller?.pickupCity }}</p>
+      <p class="stat__label">Pickup location</p>
+    </div>
+  </div>
+
+  <div class="seller__bar">
+    <h2 class="seller__subtitle">Your products</h2>
+    <button
+      type="button"
+      class="seller__add"
+      (click)="openForm()"
+      [disabled]="!canPublish"
+      [attr.title]="canPublish ? null : 'You can list products once your account is approved'">
+      <span class="material-icons" aria-hidden="true">add</span> Add product
+    </button>
+  </div>
+
+  <p class="seller__state" *ngIf="isLoading">Loading your catalogue…</p>
+
+  <div class="seller__state" *ngIf="!isLoading && products.length === 0">
+    <span class="material-icons seller__state-icon" aria-hidden="true">inventory_2</span>
+    <p class="seller__state-title">No listings yet</p>
+    <p class="seller__state-note">
+      {{ canPublish
+        ? 'Add your first product and it will appear in the storefront right away.'
+        : 'Once an admin approves your account you can start listing.' }}
+    </p>
+  </div>
+
+  <table class="table" *ngIf="!isLoading && products.length > 0">
+    <thead>
+      <tr>
+        <th scope="col">Product</th>
+        <th scope="col">SKU</th>
+        <th scope="col">Category</th>
+        <th scope="col" class="table__num">Price</th>
+        <th scope="col" class="table__num">Stock</th>
+        <th scope="col"><span class="sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let p of products">
+        <td>
+          <div class="cell-product">
+            <img [src]="imageFor(p)" [alt]="p.name" class="cell-product__img" />
+            <span>{{ p.name }}</span>
+          </div>
+        </td>
+        <td class="table__mono">{{ p.sku }}</td>
+        <td>{{ p.itemType || '—' }}</td>
+        <td class="table__num">₹{{ p.price | number:'1.0-0' }}</td>
+        <td class="table__num" [class.table__low]="p.quantity < 10">{{ p.quantity }}</td>
+        <td class="table__actions">
+          <button type="button" (click)="openForm(p)" [disabled]="!canPublish">Edit</button>
+          <button type="button" class="is-danger" (click)="remove(p)" [disabled]="!canPublish">Remove</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Add / edit -->
+  <div class="modal" *ngIf="showForm" role="dialog" aria-modal="true" aria-labelledby="form-heading">
+    <div class="modal__backdrop" (click)="closeForm()"></div>
+    <div class="modal__panel">
+      <h3 id="form-heading" class="modal__title">{{ editingId ? 'Edit product' : 'Add a product' }}</h3>
+
+      <div class="auth-alert" role="alert" *ngIf="formError">
+        <span class="material-icons" aria-hidden="true">error_outline</span>
+        <span>{{ formError }}</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="modal__form">
+        <div class="field">
+          <label for="sku" class="field__label">SKU</label>
+          <div class="field__control" [class.field__control--invalid]="isBad('sku')">
+            <input id="sku" formControlName="sku" placeholder="VSH-SAREE-001" />
+          </div>
+          <p class="field__hint" *ngIf="editingId">SKU cannot change once a product is listed.</p>
+          <p class="field__error" *ngIf="isBad('sku')">3–40 characters: letters, numbers and hyphens.</p>
+        </div>
+
+        <div class="field">
+          <label for="name" class="field__label">Product name</label>
+          <div class="field__control" [class.field__control--invalid]="isBad('name')">
+            <input id="name" formControlName="name" placeholder="Banarasi Katan Silk Saree" />
+          </div>
+          <p class="field__error" *ngIf="isBad('name')">Enter at least 3 characters.</p>
+        </div>
+
+        <div class="field">
+          <label for="description" class="field__label">Description</label>
+          <div class="field__control">
+            <textarea id="description" formControlName="description" rows="3"
+                      placeholder="Materials, dimensions, what is included…"></textarea>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="price" class="field__label">Price (₹)</label>
+            <div class="field__control" [class.field__control--invalid]="isBad('price')">
+              <input id="price" type="number" formControlName="price" min="1" placeholder="8750" />
+            </div>
+            <p class="field__error" *ngIf="isBad('price')">Price must be at least ₹1.</p>
+          </div>
+          <div class="field">
+            <label for="quantity" class="field__label">Stock</label>
+            <div class="field__control" [class.field__control--invalid]="isBad('quantity')">
+              <input id="quantity" type="number" formControlName="quantity" min="0" placeholder="24" />
+            </div>
+            <p class="field__error" *ngIf="isBad('quantity')">Cannot be negative.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="itemType" class="field__label">Category</label>
+          <div class="field__control field__control--select" [class.field__control--invalid]="isBad('itemType')">
+            <select id="itemType" formControlName="itemType">
+              <option value="" disabled>Select a category</option>
+              <option *ngFor="let c of categories" [value]="c">{{ c.replace('_', ' ') | titlecase }}</option>
+            </select>
+          </div>
+          <p class="field__error" *ngIf="isBad('itemType')">Please choose a category.</p>
+        </div>
+
+        <div class="modal__actions">
+          <button type="button" class="btn btn--ghost" (click)="closeForm()">Cancel</button>
+          <button type="submit" class="btn btn--primary" [disabled]="isSaving">
+            {{ isSaving ? 'Saving…' : (editingId ? 'Save changes' : 'List product') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

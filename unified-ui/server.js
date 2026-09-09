@@ -55,6 +55,8 @@ const INVENTORY_SERVICE = process.env.INVENTORY_SERVICE_URL  || 'http://localhos
 const RETURN_SERVICE    = process.env.RETURN_SERVICE_URL     || 'http://localhost:8008';
 const ADMIN_SERVICE     = process.env.ADMIN_SERVICE_URL      || 'http://localhost:8011';
 const WISHLIST_SERVICE  = process.env.WISHLIST_SERVICE_URL   || 'http://localhost:8016';
+const SELLER_SERVICE    = process.env.SELLER_SERVICE_URL     || 'http://localhost:8021';
+const LOGISTICS_SERVICE = process.env.LOGISTICS_SERVICE_URL  || 'http://localhost:8009';
 
 app.use(cors());
 
@@ -648,6 +650,202 @@ app.delete('/api/cart/:userId/clear', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SELLERS — marketplace
+// ═══════════════════════════════════════════════════════════════════════════════
+// Sellers authenticate against seller-service but carry a token this BFF signs, so
+// the browser deals with one token format regardless of realm (see ADR-0004).
+const sellerToken = (seller) => jwt.sign(
+  {
+    id: seller.id,
+    sellerId: seller.id,
+    username: seller.businessName,
+    email: seller.email,
+    role: 'SELLER',
+    sellerStatus: seller.status,
+  },
+  JWT_SECRET,
+  { expiresIn: '24h' }
+);
+
+const authenticateSeller = (req, res, next) => {
+  if (!(req.headers['authorization'] || '').split(' ')[1])
+    return res.status(401).json({ error: 'Access token required' });
+  const user = resolveUser(req);
+  if (!user) return res.status(403).json({ error: 'Invalid token' });
+  if (user.role !== 'SELLER' || !user.sellerId)
+    return res.status(403).json({ error: 'Seller account required' });
+  req.seller = user;
+  next();
+};
+
+/** Publishing is gated on approval; signing in and preparing a catalogue is not. */
+const requireApprovedSeller = (req, res, next) => {
+  if (req.seller?.sellerStatus !== 'APPROVED') {
+    return res.status(403).json({
+      error: 'Your seller account is awaiting approval. You can prepare listings once approved.',
+    });
+  }
+  next();
+};
+
+app.post('/api/seller/register', async (req, res) => {
+  try {
+    const seller = (await axios.post(`${SELLER_SERVICE}/api/sellers/register`, req.body)).data;
+    res.status(201).json({ token: sellerToken(seller), seller });
+  } catch (e) {
+    const status = e.response?.status || 500;
+    res.status(status).json({
+      error: e.response?.data?.message || e.response?.data?.error || 'Could not create the seller account.',
+    });
+  }
+});
+
+app.post('/api/seller/login', async (req, res) => {
+  try {
+    const seller = (await axios.post(`${SELLER_SERVICE}/api/sellers/login`, req.body)).data;
+    res.json({ token: sellerToken(seller), seller });
+  } catch (e) {
+    const status = e.response?.status === 403 ? 403 : 401;
+    res.status(status).json({
+      error: e.response?.data?.message || 'Invalid email or password.',
+    });
+  }
+});
+
+app.get('/api/seller/me', authenticateSeller, async (req, res) => {
+  try { res.json((await axios.get(`${SELLER_SERVICE}/api/sellers/${req.seller.sellerId}`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to load seller profile' }); }
+});
+
+app.put('/api/seller/me', authenticateSeller, async (req, res) => {
+  try { res.json((await axios.put(`${SELLER_SERVICE}/api/sellers/${req.seller.sellerId}`, req.body)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update seller profile' }); }
+});
+
+/** The seller's own catalogue. */
+app.get('/api/seller/products', authenticateSeller, async (req, res) => {
+  try { res.json((await axios.get(`${ITEM_SERVICE}/items/seller/${req.seller.sellerId}`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to load your products' }); }
+});
+
+app.post('/api/seller/products', authenticateSeller, requireApprovedSeller, async (req, res) => {
+  try {
+    const { sku, name, description, price, quantity, itemType } = req.body;
+    if (!sku || !name || price == null)
+      return res.status(400).json({ error: 'SKU, name and price are required.' });
+    if (Number(price) <= 0)
+      return res.status(400).json({ error: 'Price must be greater than zero.' });
+
+    // Ownership is taken from the token, never from the body — otherwise a seller
+    // could list a product under someone else's name.
+    const created = (await axios.post(`${ITEM_SERVICE}/items`, {
+      sku, name, description,
+      price: Number(price),
+      quantity: Number(quantity) || 0,
+      itemType,
+      sellerId: req.seller.sellerId,
+      sellerName: req.seller.username,
+    })).data;
+    res.status(201).json(created);
+  } catch (e) {
+    const dup = e.response?.status === 500 && /sku/i.test(JSON.stringify(e.response?.data || ''));
+    res.status(dup ? 409 : (e.response?.status || 500))
+       .json({ error: dup ? 'That SKU is already in use.' : 'Failed to create the product.' });
+  }
+});
+
+app.put('/api/seller/products/:id', authenticateSeller, requireApprovedSeller, async (req, res) => {
+  try {
+    // Confirm the listing belongs to this seller before touching it.
+    const existing = (await axios.get(`${ITEM_SERVICE}/items/${req.params.id}`)).data;
+    if (String(existing.sellerId) !== String(req.seller.sellerId))
+      return res.status(404).json({ error: 'Product not found' });
+
+    const updated = (await axios.put(`${ITEM_SERVICE}/items/${req.params.id}`, {
+      ...req.body,
+      sellerId: req.seller.sellerId,
+      sellerName: req.seller.username,
+    })).data;
+    res.json(updated);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update the product' }); }
+});
+
+app.delete('/api/seller/products/:id', authenticateSeller, requireApprovedSeller, async (req, res) => {
+  try {
+    const existing = (await axios.get(`${ITEM_SERVICE}/items/${req.params.id}`)).data;
+    if (String(existing.sellerId) !== String(req.seller.sellerId))
+      return res.status(404).json({ error: 'Product not found' });
+    await axios.delete(`${ITEM_SERVICE}/items/${req.params.id}`);
+    res.status(204).send();
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to delete the product' }); }
+});
+
+/**
+ * Orders containing this seller's products.
+ *
+ * order-service has no per-seller query, so the BFF filters. That is acceptable at
+ * this volume and is the natural thing to replace with a seller-scoped endpoint, or
+ * an order projection fed by events, once it matters.
+ */
+app.get('/api/seller/orders', authenticateSeller, async (req, res) => {
+  try {
+    const all = (await axios.get(`${ORDER_SERVICE}/api/v1/orders`)).data || [];
+    const mine = all
+      .map((order) => {
+        const lines = (order.items || [])
+          .filter((i) => String(i.sellerId) === String(req.seller.sellerId));
+        if (!lines.length) return null;
+        // Only this seller's lines, and only their share of the total.
+        return {
+          ...order,
+          items: lines,
+          sellerSubtotal: lines.reduce((s, i) => s + (i.unitPrice || 0) * (i.quantity || 0), 0),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+    res.json(mine);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to load your orders' }); }
+});
+
+// ── Admin: the seller approval queue ────────────────────────────────────────
+app.get('/api/sellers', authenticateAdmin, async (req, res) => {
+  try {
+    const params = req.query.status ? { status: req.query.status } : {};
+    res.json((await axios.get(`${SELLER_SERVICE}/api/sellers`, { params })).data);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch sellers' }); }
+});
+
+app.put('/api/sellers/:id/status', authenticateAdmin, async (req, res) => {
+  try {
+    res.json((await axios.put(`${SELLER_SERVICE}/api/sellers/${req.params.id}/status`, req.body)).data);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update seller status' }); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DELIVERY PARTNERS
+// ═══════════════════════════════════════════════════════════════════════════════
+app.get('/api/delivery-partners', async (req, res) => {
+  try { res.json((await axios.get(`${LOGISTICS_SERVICE}/api/delivery-partners`)).data); }
+  catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch delivery partners' }); }
+});
+
+/** Which couriers actually deliver to a pincode — used at checkout. */
+app.get('/api/delivery-partners/serviceable/:pincode', async (req, res) => {
+  try {
+    res.json((await axios.get(
+      `${LOGISTICS_SERVICE}/api/delivery-partners/serviceable/${req.params.pincode}`)).data);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to check serviceability' }); }
+});
+
+app.put('/api/delivery-partners/:id', authenticateAdmin, async (req, res) => {
+  try {
+    res.json((await axios.put(
+      `${LOGISTICS_SERVICE}/api/delivery-partners/${req.params.id}`, req.body)).data);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update delivery partner' }); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // WISHLIST — customer, always scoped to the caller
 // ═══════════════════════════════════════════════════════════════════════════════
 // A wishlist belongs to a signed-in customer; there is no guest equivalent, so
@@ -802,12 +1000,22 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
     if (!items || !items.length)
       return res.status(400).json({ error: 'An order needs at least one item.' });
 
-    const mappedItems = items.map(item => ({
-      productId: String(item.itemId || item.productId || ''),
-      productName: item.name || item.productName || '',
-      quantity: item.quantity || 1,
-      unitPrice: item.price || item.unitPrice || 0,
-      description: item.sku || item.description || null
+    // Resolve each line against the catalogue so price, name and seller come from
+    // the server. A client-supplied price or seller is never trusted.
+    const mappedItems = await Promise.all(items.map(async (item) => {
+      const id = item.itemId || item.productId;
+      let product = null;
+      try { product = (await axios.get(`${ITEM_SERVICE}/items/${id}`)).data; }
+      catch (_) { /* fall back to what the client sent */ }
+      return {
+        productId: String(id || ''),
+        productName: product?.name || item.name || item.productName || '',
+        quantity: item.quantity || 1,
+        unitPrice: product?.price ?? item.price ?? item.unitPrice ?? 0,
+        description: product?.sku || item.sku || item.description || null,
+        sellerId: product?.sellerId ?? null,
+        sellerName: product?.sellerName ?? null,
+      };
     }));
 
     const address = shippingAddress ? {
@@ -833,6 +1041,17 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
     const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
 
+    // Pick the courier that serves this pincode with the shortest transit time.
+    // Chosen here rather than by the client so the promise is one we can keep.
+    let courier = null;
+    try {
+      const partners = (await axios.get(
+        `${LOGISTICS_SERVICE}/api/delivery-partners/serviceable/${address.postalCode}`)).data || [];
+      courier = partners[0] || null;
+    } catch (e) {
+      console.warn('Delivery partner lookup failed:', e.message);
+    }
+
     const payload = {
       items: mappedItems,
       notes: notes || null,
@@ -841,6 +1060,9 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
       customerName: address.fullName || fullName || req.user.username || null,
       customerEmail: profile.email || req.user.email || null,
       customerPhone: address.phone || profile.phoneNumber || null,
+      deliveryPartnerCode: courier?.code || null,
+      deliveryPartnerName: courier?.name || null,
+      deliveryEstimatedDays: courier?.estimatedDays || null,
     };
 
     const response = await axios.post(`${ORDER_SERVICE}/api/v1/orders`, payload);

@@ -30,4 +30,8 @@ public class OrderDTO {
     private String customerName;
     private String customerEmail;
     private String customerPhone;
+
+    private String deliveryPartnerCode;
+    private String deliveryPartnerName;
+    private LocalDateTime expectedDelivery;
 }

@@ -65,6 +65,16 @@ export class AuthService {
       .pipe(tap((response) => this.handleAuthResponse(response)));
   }
 
+  /**
+   * Adopts a session minted outside the customer login flow — currently the seller
+   * portal, which authenticates against seller-service but receives a token this
+   * app signs. Keeps one storage path, so the interceptor and guards need no
+   * special case.
+   */
+  adoptSession(token: string, user: AuthUser): void {
+    this.handleAuthResponse({ token, user });
+  }
+
   restoreSession(): void {
     const token = localStorage.getItem(TOKEN_KEY);
     const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);

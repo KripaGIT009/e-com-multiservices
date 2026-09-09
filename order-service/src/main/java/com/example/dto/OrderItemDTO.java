@@ -16,4 +16,6 @@ public class OrderItemDTO {
     private Integer quantity;
     private BigDecimal unitPrice;
     private String description;
+    private Long sellerId;
+    private String sellerName;
 }

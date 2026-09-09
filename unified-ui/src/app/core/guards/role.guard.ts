@@ -29,6 +29,8 @@ export class RoleGuard implements CanActivate {
     switch (role) {
       case 'ADMIN':
         return '/admin';
+      case 'SELLER':
+        return '/seller';
       case 'CUSTOMER':
         return '/account';
       case 'GUEST':

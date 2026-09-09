@@ -25,8 +25,19 @@ public class ItemController {
     public ResponseEntity<ItemResponse> createItem(@RequestBody ItemRequest request) {
         Item item = new Item(request.getSku(), request.getName(), request.getDescription(),
                            request.getPrice(), request.getQuantity(), request.getItemType());
+        item.setSellerId(request.getSellerId());
+        item.setSellerName(request.getSellerName());
         Item created = itemService.createItem(item);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToResponse(created));
+    }
+
+    /** Everything a given seller has listed — the seller dashboard's catalogue. */
+    @GetMapping("/seller/{sellerId}")
+    public ResponseEntity<List<ItemResponse>> getBySeller(@PathVariable Long sellerId) {
+        List<Item> items = itemService.getAllItems().stream()
+            .filter(i -> sellerId.equals(i.getSellerId()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(items.stream().map(this::convertToResponse).collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}")
@@ -51,6 +62,8 @@ public class ItemController {
     public ResponseEntity<ItemResponse> updateItem(@PathVariable Long id, @RequestBody ItemRequest request) {
         Item itemDetails = new Item(request.getSku(), request.getName(), request.getDescription(),
                                    request.getPrice(), request.getQuantity(), request.getItemType());
+        itemDetails.setSellerId(request.getSellerId());
+        itemDetails.setSellerName(request.getSellerName());
         Item updated = itemService.updateItem(id, itemDetails);
         return updated != null ? ResponseEntity.ok(convertToResponse(updated)) : ResponseEntity.notFound().build();
     }
@@ -75,6 +88,8 @@ public class ItemController {
             item.getPrice(),
             item.getQuantity(),
             item.getItemType(),
+            item.getSellerId(),
+            item.getSellerName(),
             item.getCreatedAt(),
             item.getUpdatedAt()
         );

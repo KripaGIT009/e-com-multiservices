@@ -11,12 +11,16 @@ public class ItemResponse {
     private BigDecimal price;
     private Integer quantity;
     private String itemType;
+    private Long sellerId;
+    private String sellerName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public ItemResponse() {}
 
-    public ItemResponse(Long id, String sku, String name, String description, BigDecimal price, Integer quantity, String itemType, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ItemResponse(Long id, String sku, String name, String description, BigDecimal price, Integer quantity, String itemType, Long sellerId, String sellerName, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.sellerId = sellerId;
+        this.sellerName = sellerName;
         this.id = id;
         this.sku = sku;
         this.name = name;
@@ -54,4 +58,9 @@ public class ItemResponse {
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
 }

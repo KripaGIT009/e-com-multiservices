@@ -619,3 +619,97 @@ Orders created before this change correctly show `(none)` rather than inventing 
 `loadMockOrder()` and never touches the API, returning a hardcoded "Rajesh Kumar" and
 turmeric order. Nothing links to it, so it is only reachable by typing the URL, but it
 is the same fabricated-data problem and should either be wired to the API or removed.
+
+---
+
+# Appendix E — Seed data, marketplace and delivery partners
+
+## Seed data
+
+`seed-data.js` replaces the mock fallbacks with real records, created **through the
+APIs** rather than SQL — so if the seed runs, the API works. Idempotent; re-running
+skips what exists.
+
+- **4 sellers** — Varanasi Silk House, Malabar Spice Traders, Jaipur Craft Bazaar
+  (approved) and Nashik Organics (left pending, so the admin approval queue has
+  something in it). GSTINs follow the real 15-character format so they pass
+  validation; they are not registered numbers.
+- **25 products** with real categories and plausible Indian retail prices, spread
+  across three sellers plus first-party stock.
+- **3 customers** with real Indian addresses, and an order each.
+
+```
+Customer  ananya.iyer@example.com     / Passw0rd@123
+Seller    seller.varanasi@example.com / Passw0rd@123  (approved)
+Seller    seller.nashik@example.com   / Passw0rd@123  (awaiting approval)
+Admin     admin@example.com           / password123
+```
+
+## seller-service (8021)
+
+Registration, login, GSTIN, pickup address, and a `PENDING_APPROVAL → APPROVED /
+REJECTED / SUSPENDED` lifecycle. Sellers authenticate against seller-service but hold
+a token this BFF signs, so the browser keeps one token format — the same bridge as
+[ADR-0004](docs/adr/0004-two-identity-realms.md).
+
+Enforced and verified:
+
+| Rule | Result |
+|---|---|
+| New sellers start unapproved | `PENDING_APPROVAL` |
+| Unapproved sellers cannot publish | 403 |
+| Sellers see only their own catalogue | scoped |
+| Editing another seller's product | 404 |
+| A customer token on the seller API | 403 |
+| A customer reaching the approval queue | 403 |
+| Suspended seller signing in | 403 **with the admin's reason** |
+
+Ownership comes from the token, never the request body — otherwise a seller could
+list a product under someone else's name.
+
+## Delivery partners
+
+Six real Indian carriers seeded in logistics-service with their real public tracking
+URLs: Blue Dart (2 days), Delhivery (3), DTDC, Ecom Express, XpressBees (4), India
+Post (7). Rates and transit times are indicative defaults for an admin to replace with
+contracted figures — starting values, not quoted prices.
+
+Serviceability is by pincode prefix, so a carrier can be limited to the regions it
+actually covers. At checkout the BFF picks the fastest carrier that serves the
+delivery pincode and records it **on the order**, with an expected date, so the
+promise made to the customer is the one stored.
+
+## Gaps found by testing, and closed
+
+Running every flow end to end surfaced three:
+
+1. **Orders recorded no delivery partner** — the partners existed but nothing assigned
+   one. Now chosen at order time from those serving the pincode.
+2. **Order lines did not record the seller** — a marketplace order could not be routed
+   to whoever had to pack it. `OrderItem` now carries `sellerId` and `sellerName`.
+3. **Sellers could not see their orders.** `/api/seller/orders` did not exist; the
+   request was being answered by the SPA catch-all, which returns 200 and HTML — so it
+   looked like it worked. Added, returning only that seller's lines and their share of
+   the total. Verified a second seller does not see another's order.
+
+### A price-integrity bug found on the way
+
+Order lines took `price` from the request body. A crafted request could set any price:
+
+```
+client sent  ₹1
+order stored ₹649   ← now resolved from the catalogue
+```
+
+Every line is now resolved server-side against item-service — price, name and seller.
+This is architectural rule 8 ("never trust a frontend-calculated price") which the
+code was violating.
+
+## Still open
+
+- Shipments are not handed to a carrier API. Tracking numbers are generated locally,
+  so a tracking link only resolves for a consignment that really exists.
+- No inventory reservation at checkout, so stock can still be oversold
+  ([checkout-flow](docs/flows/checkout-flow.md)).
+- Seller settlement and payouts are not modelled.
+- `/admin/orders/:id` is still entirely mock.

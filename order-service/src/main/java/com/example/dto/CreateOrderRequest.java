@@ -22,4 +22,9 @@ public class CreateOrderRequest {
     private String customerName;
     private String customerEmail;
     private String customerPhone;
+
+    /** Courier chosen at checkout, by code (e.g. DELHIVERY). */
+    private String deliveryPartnerCode;
+    private String deliveryPartnerName;
+    private Integer deliveryEstimatedDays;
 }
