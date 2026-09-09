@@ -1,65 +1,18 @@
-<section class="seller" aria-labelledby="seller-heading">
-
-  <header class="seller__header">
+<section aria-labelledby="products-heading">
+  <header class="page-head">
     <div>
-      <h1 id="seller-heading" class="seller__title">{{ seller?.businessName || 'Seller dashboard' }}</h1>
-      <p class="seller__meta" *ngIf="seller">{{ seller.contactName }} · {{ seller.email }}</p>
+      <h1 id="products-heading" class="page-title">Products</h1>
+      <p class="page-note">Everything you have listed on MyIndianStore.</p>
     </div>
-    <button type="button" class="seller__signout" (click)="signOut()">Sign out</button>
-  </header>
-
-  <!-- Account standing. Unapproved sellers can look around but not publish. -->
-  <div
-    class="status"
-    *ngIf="seller"
-    [class.status--ok]="seller.status === 'APPROVED'"
-    [class.status--wait]="seller.status === 'PENDING_APPROVAL'"
-    [class.status--stop]="seller.status === 'REJECTED' || seller.status === 'SUSPENDED'"
-    role="status">
-    <span class="material-icons" aria-hidden="true">
-      {{ seller.status === 'APPROVED' ? 'verified' :
-         seller.status === 'PENDING_APPROVAL' ? 'hourglass_top' : 'block' }}
-    </span>
-    <div>
-      <p class="status__title">{{ statusLabel }}</p>
-      <p class="status__note" *ngIf="seller.status === 'PENDING_APPROVAL'">
-        An admin is reviewing your details. You can add listings once approved.
-      </p>
-      <p class="status__note" *ngIf="seller.statusReason">{{ seller.statusReason }}</p>
-    </div>
-  </div>
-
-  <!-- Catalogue summary -->
-  <div class="stats" *ngIf="!isLoading">
-    <div class="stat">
-      <p class="stat__value">{{ products.length }}</p>
-      <p class="stat__label">Listings</p>
-    </div>
-    <div class="stat">
-      <p class="stat__value">{{ totalStock }}</p>
-      <p class="stat__label">Units in stock</p>
-    </div>
-    <div class="stat">
-      <p class="stat__value">₹{{ stockValue | number:'1.0-0' }}</p>
-      <p class="stat__label">Stock value</p>
-    </div>
-    <div class="stat" *ngIf="seller?.pickupCity">
-      <p class="stat__value">{{ seller?.pickupCity }}</p>
-      <p class="stat__label">Pickup location</p>
-    </div>
-  </div>
-
-  <div class="seller__bar">
-    <h2 class="seller__subtitle">Your products</h2>
     <button
       type="button"
-      class="seller__add"
+      class="btn btn--primary"
       (click)="openForm()"
       [disabled]="!canPublish"
       [attr.title]="canPublish ? null : 'You can list products once your account is approved'">
       <span class="material-icons" aria-hidden="true">add</span> Add product
     </button>
-  </div>
+  </header>
 
   <p class="seller__state" *ngIf="isLoading">Loading your catalogue…</p>
 

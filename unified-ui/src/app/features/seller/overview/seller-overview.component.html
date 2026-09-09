@@ -1,0 +1,125 @@
+<section aria-labelledby="overview-heading">
+  <header class="page-head">
+    <div>
+      <h1 id="overview-heading" class="page-title">Dashboard</h1>
+      <p class="page-note">Your sales, stock and open orders.</p>
+    </div>
+  </header>
+
+  <p class="state" *ngIf="isLoading">Loading your numbers…</p>
+
+  <ng-container *ngIf="!isLoading && stats">
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <article class="kpi">
+        <span class="kpi__icon material-icons" aria-hidden="true">payments</span>
+        <div>
+          <p class="kpi__value">₹{{ stats.revenue | number:'1.0-0' }}</p>
+          <p class="kpi__label">Revenue from your items</p>
+        </div>
+      </article>
+      <article class="kpi">
+        <span class="kpi__icon material-icons" aria-hidden="true">receipt_long</span>
+        <div>
+          <p class="kpi__value">{{ stats.orderCount }}</p>
+          <p class="kpi__label">Orders · {{ stats.openOrderCount }} still open</p>
+        </div>
+      </article>
+      <article class="kpi">
+        <span class="kpi__icon material-icons" aria-hidden="true">local_mall</span>
+        <div>
+          <p class="kpi__value">{{ stats.unitsSold }}</p>
+          <p class="kpi__label">Units sold</p>
+        </div>
+      </article>
+      <article class="kpi">
+        <span class="kpi__icon material-icons" aria-hidden="true">inventory_2</span>
+        <div>
+          <p class="kpi__value">{{ stats.productCount }}</p>
+          <p class="kpi__label">Listings · ₹{{ stats.stockValue | number:'1.0-0' }} in stock</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="grid">
+      <!-- Sales -->
+      <section class="card card--wide" aria-labelledby="sales-heading">
+        <header class="card__head">
+          <h2 id="sales-heading" class="card__title">Sales, last 14 days</h2>
+        </header>
+
+        <div class="chart" *ngIf="hasSales">
+          <div class="chart__bars">
+            <div class="chart__col" *ngFor="let p of stats.revenueSeries; let i = index">
+              <div
+                class="chart__bar"
+                [style.height.%]="barHeight(p.value)"
+                [attr.title]="p.date + ' — ₹' + (p.value | number:'1.0-0')"
+                [attr.aria-label]="p.date + ': ₹' + (p.value | number:'1.0-0')"></div>
+              <span class="chart__tick">{{ axisLabel(i, p.date) }}</span>
+            </div>
+          </div>
+          <p class="chart__peak">Peak day ₹{{ chartMax | number:'1.0-0' }}</p>
+        </div>
+
+        <!-- No invented numbers when there is nothing to show. -->
+        <p class="card__empty" *ngIf="!hasSales">
+          No sales in the last 14 days yet. Orders containing your products will appear here.
+        </p>
+      </section>
+
+      <!-- Stock needing attention -->
+      <section class="card" aria-labelledby="stock-heading">
+        <header class="card__head">
+          <h2 id="stock-heading" class="card__title">Restock soon</h2>
+          <button type="button" class="card__link" (click)="go('/seller/products')">Manage</button>
+        </header>
+
+        <p class="card__empty" *ngIf="stats.lowStock.length === 0">
+          Nothing running low. Every listing has 10 or more units.
+        </p>
+
+        <ul class="stock" *ngIf="stats.lowStock.length > 0">
+          <li class="stock__row" *ngFor="let p of stats.lowStock">
+            <div class="stock__info">
+              <p class="stock__name">{{ p.name }}</p>
+              <p class="stock__sku">{{ p.sku }}</p>
+            </div>
+            <span class="stock__qty" [class.stock__qty--out]="p.quantity === 0">
+              {{ p.quantity === 0 ? 'Out of stock' : p.quantity + ' left' }}
+            </span>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Best sellers -->
+      <section class="card card--wide" aria-labelledby="top-heading">
+        <header class="card__head">
+          <h2 id="top-heading" class="card__title">Your best sellers</h2>
+        </header>
+
+        <p class="card__empty" *ngIf="stats.topProducts.length === 0">
+          Nothing sold yet.
+        </p>
+
+        <table class="mini" *ngIf="stats.topProducts.length > 0">
+          <thead>
+            <tr>
+              <th scope="col">Product</th>
+              <th scope="col" class="num">Units</th>
+              <th scope="col" class="num">Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of stats.topProducts">
+              <td>{{ p.name }}</td>
+              <td class="num">{{ p.units }}</td>
+              <td class="num">₹{{ p.revenue | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </ng-container>
+</section>

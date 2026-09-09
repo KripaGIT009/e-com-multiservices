@@ -1,0 +1,211 @@
+@import '../../../shared/styles/variables';
+
+:host { display: block; }
+
+.shell {
+  min-height: 100vh;
+  background: var(--mis-page-bg);
+}
+
+// ── Top bar ──────────────────────────────────────────────────────────────────
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 62px;
+  padding: 0 20px;
+  background: var(--mis-chrome);
+  color: #fff;
+
+  &__menu {
+    display: none;
+    padding: 6px;
+    border: 0;
+    border-radius: var(--mis-radius-sm);
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  &__logo {
+    height: 30px;
+    // The mark is dark-on-light; invert it against the chrome.
+    filter: brightness(0) invert(1);
+  }
+
+  &__tag {
+    padding-left: 10px;
+    border-left: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: var(--mis-text-sm);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  &__spacer { flex: 1; }
+
+  &__seller {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__name {
+    font-size: var(--mis-text-sm);
+    font-weight: 600;
+  }
+
+  &__signout {
+    padding: 7px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: var(--mis-radius-pill);
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+    font-size: var(--mis-text-sm);
+    cursor: pointer;
+
+    &:hover { background: rgba(255, 255, 255, 0.14); }
+  }
+}
+
+.chip {
+  padding: 3px 10px;
+  border-radius: var(--mis-radius-pill);
+  font-size: var(--mis-text-xs);
+  font-weight: 600;
+
+  &.is-ok   { background: #E6F4EA; color: #1B5E20; }
+  &.is-wait { background: #FEF3C7; color: #92700E; }
+  &.is-stop { background: #FDE7EF; color: #9F1239; }
+}
+
+// ── Layout ───────────────────────────────────────────────────────────────────
+.body {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  align-items: start;
+}
+
+.sidenav {
+  position: sticky;
+  top: 62px;
+  height: calc(100vh - 62px);
+  padding: 16px 12px;
+  background: var(--mis-surface);
+  border-right: 1px solid var(--mis-line);
+  display: flex;
+  flex-direction: column;
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: var(--mis-radius-sm);
+    color: var(--mis-ink-muted);
+    font-size: var(--mis-text-md);
+    text-decoration: none;
+
+    .material-icons { font-size: 20px; }
+
+    &:hover {
+      background: var(--mis-chrome-tint);
+      color: var(--mis-primary-dark);
+      text-decoration: none;
+    }
+
+    &.is-active {
+      background: var(--mis-primary);
+      color: var(--mis-on-primary);
+      font-weight: 600;
+    }
+
+    // Available to open, but the view itself explains what is gated.
+    &--gated { opacity: 0.65; }
+  }
+
+  &__footer {
+    margin-top: auto;
+    padding: 14px;
+    border-radius: var(--mis-radius-sm);
+    background: var(--mis-chrome-tint);
+  }
+
+  &__footer-label {
+    margin: 0;
+    font-size: var(--mis-text-xs);
+    color: var(--mis-ink-muted);
+  }
+
+  &__footer-value {
+    margin: 2px 0 0;
+    font-size: var(--mis-text-sm);
+    font-weight: 600;
+    color: var(--mis-ink);
+  }
+}
+
+.content {
+  padding: 24px 28px 56px;
+  min-width: 0;
+}
+
+// ── Standing banner ──────────────────────────────────────────────────────────
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 16px 18px;
+  border: 1px solid var(--mis-line);
+  border-left: 4px solid var(--mis-warning);
+  border-radius: var(--mis-radius-md);
+  background: var(--mis-surface);
+
+  .material-icons { font-size: 22px; color: var(--mis-warning); flex-shrink: 0; }
+
+  &__title { margin: 0; font-size: var(--mis-text-md); font-weight: 600; color: var(--mis-ink); }
+  &__note { margin: 3px 0 0; font-size: var(--mis-text-sm); color: var(--mis-ink-muted); }
+}
+
+// ── Responsive ───────────────────────────────────────────────────────────────
+@media (max-width: 900px) {
+  .topbar__menu { display: flex; }
+  .topbar__name { display: none; }
+
+  .body { grid-template-columns: 1fr; }
+
+  .sidenav {
+    display: none;
+    position: fixed;
+    top: 62px;
+    left: 0;
+    width: 232px;
+    z-index: 55;
+    box-shadow: var(--mis-shadow-lg);
+
+    &--open { display: flex; }
+  }
+
+  .content { padding: 20px 16px 48px; }
+}

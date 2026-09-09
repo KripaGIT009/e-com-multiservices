@@ -1,0 +1,99 @@
+<section aria-labelledby="orders-heading">
+  <header class="page-head">
+    <div>
+      <h1 id="orders-heading" class="page-title">Orders</h1>
+      <p class="page-note">Orders containing your products. Only your lines are shown.</p>
+    </div>
+    <div class="filters" role="group" aria-label="Filter orders">
+      <button type="button" [class.is-on]="filter === 'all'" (click)="filter = 'all'">
+        All ({{ orders.length }})
+      </button>
+      <button type="button" [class.is-on]="filter === 'open'" (click)="filter = 'open'">
+        To fulfil ({{ openCount }})
+      </button>
+      <button type="button" [class.is-on]="filter === 'shipped'" (click)="filter = 'shipped'">
+        Closed ({{ orders.length - openCount }})
+      </button>
+    </div>
+  </header>
+
+  <p class="state" *ngIf="isLoading">Loading your orders…</p>
+
+  <p class="state" *ngIf="!isLoading && visible.length === 0">
+    No orders here yet. When a customer buys one of your products it will appear in this list.
+  </p>
+
+  <div class="orders" *ngIf="!isLoading && visible.length > 0">
+    <article class="order" *ngFor="let o of visible">
+      <button type="button" class="order__head" (click)="toggle(o)" [attr.aria-expanded]="expanded === o.id">
+        <div class="order__id">
+          <p class="order__number">{{ o.orderNumber }}</p>
+          <p class="order__date">{{ o.createdAt | date:'d MMM y' }}</p>
+        </div>
+        <div class="order__cust">
+          <p class="order__name">{{ o.customerName || 'Customer' }}</p>
+          <p class="order__addr">{{ o.shippingAddressLine || 'No address recorded' }}</p>
+        </div>
+        <div class="order__figures">
+          <p class="order__units">{{ unitsFor(o) }} unit{{ unitsFor(o) === 1 ? '' : 's' }}</p>
+          <p class="order__value">&#8377;{{ o.sellerSubtotal | number:'1.0-0' }}</p>
+        </div>
+        <span class="pill" [ngClass]="statusClass(o.status)">{{ o.status }}</span>
+        <span class="material-icons order__chev" aria-hidden="true">
+          {{ expanded === o.id ? 'expand_less' : 'expand_more' }}
+        </span>
+      </button>
+
+      <div class="order__body" *ngIf="expanded === o.id">
+        <div class="order__cols">
+          <div>
+            <h3 class="order__sub">Your items</h3>
+            <table class="mini">
+              <tbody>
+                <tr *ngFor="let i of o.items">
+                  <td>{{ i.productName }}</td>
+                  <td class="num">x{{ i.quantity }}</td>
+                  <td class="num">&#8377;{{ i.unitPrice * i.quantity | number:'1.0-0' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3 class="order__sub">Delivery</h3>
+            <dl class="facts">
+              <dt>Ship to</dt>
+              <dd>{{ o.shippingAddressLine || '—' }}</dd>
+              <dt>Phone</dt>
+              <dd>{{ o.customerPhone || '—' }}</dd>
+              <dt>Assigned courier</dt>
+              <dd>{{ o.deliveryPartnerName || 'Not assigned' }}</dd>
+              <dt>Expected</dt>
+              <dd>{{ o.expectedDelivery ? (o.expectedDelivery | date:'d MMM y') : '—' }}</dd>
+            </dl>
+
+            <div class="ship" *ngIf="isOpen(o)">
+              <label [attr.for]="'courier-' + o.id" class="field__label">Hand to courier</label>
+              <div class="ship__row">
+                <div class="field__control">
+                  <select [id]="'courier-' + o.id" [(ngModel)]="chosenPartner[o.id]" name="courier">
+                    <option *ngFor="let p of partners" [value]="p.code">
+                      {{ p.name }} — {{ p.estimatedDays }} days
+                    </option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn--primary" (click)="ship(o)" [disabled]="shipping === o.id">
+                  {{ shipping === o.id ? 'Creating…' : 'Mark shipped' }}
+                </button>
+              </div>
+              <p class="field__hint">
+                Creates a shipment and a tracking number in MyIndianStore. Carrier APIs
+                are not connected yet, so the number is ours, not the courier's.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>

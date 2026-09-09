@@ -1,0 +1,73 @@
+<section aria-labelledby="delivery-heading">
+  <header class="page-head">
+    <div>
+      <h1 id="delivery-heading" class="page-title">Delivery partners</h1>
+      <p class="page-note">
+        Couriers MyIndianStore ships with. The fastest one covering a customer's
+        pincode is assigned automatically when they order.
+      </p>
+    </div>
+  </header>
+
+  <p class="state" *ngIf="isLoading">Loading couriers…</p>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="summary" *ngIf="defaultPartner as d">
+      <span class="material-icons" aria-hidden="true">bolt</span>
+      <div>
+        <p class="summary__title">
+          Default for your pickup location: <strong>{{ d.name }}</strong>
+        </p>
+        <p class="summary__note">
+          Collecting from {{ pickupPostalCode || 'your pickup address' }} ·
+          {{ d.estimatedDays }} day transit · ₹{{ d.baseRate }} base rate.
+          {{ available.length }} of {{ partners.length }} couriers collect from you.
+        </p>
+      </div>
+    </div>
+
+    <div class="summary summary--warn" *ngIf="!defaultPartner">
+      <span class="material-icons" aria-hidden="true">error_outline</span>
+      <div>
+        <p class="summary__title">No courier collects from your pickup pincode</p>
+        <p class="summary__note">
+          Add or correct your pickup address under Account so orders can be assigned a carrier.
+        </p>
+      </div>
+    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Courier</th>
+          <th scope="col">Coverage</th>
+          <th scope="col" class="num">Transit</th>
+          <th scope="col" class="num">Base rate</th>
+          <th scope="col">Collects from you</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of partners" [class.is-off]="!p.active">
+          <td>
+            <p class="courier__name">{{ p.name }}</p>
+            <p class="courier__code">{{ p.code }}</p>
+          </td>
+          <td>{{ coverage(p) }}</td>
+          <td class="num">{{ p.estimatedDays }} days</td>
+          <td class="num">₹{{ p.baseRate }}</td>
+          <td>
+            <span class="pill" [ngClass]="p.active && p.collectsFromYou ? 'is-delivered' : 'is-muted'">
+              {{ !p.active ? 'Disabled' : (p.collectsFromYou ? 'Yes' : 'No') }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="footnote">
+      Rates and transit times are the platform's defaults. Shipments are recorded in
+      MyIndianStore but are not yet lodged with the couriers' own systems, so tracking
+      numbers are ours rather than theirs.
+    </p>
+  </ng-container>
+</section>

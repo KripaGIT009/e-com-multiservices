@@ -818,6 +818,140 @@ app.get('/api/seller/orders', authenticateSeller, async (req, res) => {
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to load your orders' }); }
 });
 
+/**
+ * Headline numbers for the seller dashboard, derived from their real orders and
+ * listings. Nothing here is estimated or padded — an empty catalogue reports zeros.
+ */
+app.get('/api/seller/stats', authenticateSeller, async (req, res) => {
+  try {
+    const sellerId = String(req.seller.sellerId);
+    const [products, allOrders] = await Promise.all([
+      axios.get(`${ITEM_SERVICE}/items/seller/${sellerId}`).then(r => r.data || []).catch(() => []),
+      axios.get(`${ORDER_SERVICE}/api/v1/orders`).then(r => r.data || []).catch(() => []),
+    ]);
+
+    // Only this seller's lines count towards their revenue.
+    const myLines = [];
+    for (const order of allOrders) {
+      for (const line of order.items || []) {
+        if (String(line.sellerId) === sellerId) {
+          myLines.push({ ...line, order });
+        }
+      }
+    }
+
+    const revenue = myLines.reduce((s, l) => s + (l.unitPrice || 0) * (l.quantity || 0), 0);
+    const unitsSold = myLines.reduce((s, l) => s + (l.quantity || 0), 0);
+    const orderNumbers = new Set(myLines.map(l => l.order.orderNumber));
+
+    const OPEN = ['PENDING', 'CONFIRMED', 'PROCESSING', 'PACKED'];
+    const openOrders = new Set(
+      myLines.filter(l => OPEN.includes(String(l.order.status || '').toUpperCase()))
+             .map(l => l.order.orderNumber)
+    );
+
+    // Daily revenue for the last 14 days, so the chart shows real movement.
+    const byDay = new Map();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      byDay.set(d.toISOString().split('T')[0], 0);
+    }
+    for (const l of myLines) {
+      const day = String(l.order.createdAt || '').split('T')[0];
+      if (byDay.has(day)) byDay.set(day, byDay.get(day) + (l.unitPrice || 0) * (l.quantity || 0));
+    }
+
+    const LOW_STOCK = 10;
+    res.json({
+      revenue,
+      unitsSold,
+      orderCount: orderNumbers.size,
+      openOrderCount: openOrders.size,
+      productCount: products.length,
+      unitsInStock: products.reduce((s, p) => s + (p.quantity || 0), 0),
+      stockValue: products.reduce((s, p) => s + (p.price || 0) * (p.quantity || 0), 0),
+      lowStock: products.filter(p => (p.quantity || 0) < LOW_STOCK)
+                        .sort((a, b) => (a.quantity || 0) - (b.quantity || 0))
+                        .slice(0, 5),
+      outOfStockCount: products.filter(p => (p.quantity || 0) === 0).length,
+      revenueSeries: [...byDay.entries()].map(([date, value]) => ({ date, value })),
+      topProducts: Object.values(myLines.reduce((acc, l) => {
+        const k = l.productId;
+        acc[k] = acc[k] || { productId: k, name: l.productName, units: 0, revenue: 0 };
+        acc[k].units += l.quantity || 0;
+        acc[k].revenue += (l.unitPrice || 0) * (l.quantity || 0);
+        return acc;
+      }, {})).sort((a, b) => b.revenue - a.revenue).slice(0, 5),
+    });
+  } catch (e) {
+    console.error('Seller stats failed:', e.message);
+    res.status(500).json({ error: 'Failed to load your dashboard' });
+  }
+});
+
+/** Carriers, flagged by whether they collect from this seller's pickup pincode. */
+app.get('/api/seller/delivery-partners', authenticateSeller, async (req, res) => {
+  try {
+    const [seller, partners] = await Promise.all([
+      axios.get(`${SELLER_SERVICE}/api/sellers/${req.seller.sellerId}`).then(r => r.data),
+      axios.get(`${LOGISTICS_SERVICE}/api/delivery-partners`).then(r => r.data || []),
+    ]);
+    const pincode = seller.pickupPostalCode;
+    let serviceable = [];
+    if (pincode) {
+      serviceable = (await axios.get(
+        `${LOGISTICS_SERVICE}/api/delivery-partners/serviceable/${pincode}`
+      ).then(r => r.data || []).catch(() => []));
+    }
+    const codes = new Set(serviceable.map(p => p.code));
+    res.json({
+      pickupPostalCode: pincode || null,
+      partners: partners.map(p => ({ ...p, collectsFromYou: codes.has(p.code) })),
+    });
+  } catch (e) { res.status(500).json({ error: 'Failed to load delivery partners' }); }
+});
+
+/**
+ * Hands an order to a courier.
+ *
+ * The tracking number is generated here, not obtained from the carrier — there is no
+ * carrier API integration yet, so the number identifies the shipment in our own
+ * system and the tracking link will not resolve on the courier's site until that
+ * integration exists. The UI says so rather than implying a real consignment.
+ */
+app.post('/api/seller/orders/:orderId/ship', authenticateSeller, requireApprovedSeller, async (req, res) => {
+  try {
+    const order = (await axios.get(`${ORDER_SERVICE}/api/v1/orders/${req.params.orderId}`)).data;
+
+    const ownsALine = (order.items || []).some(
+      i => String(i.sellerId) === String(req.seller.sellerId)
+    );
+    if (!ownsALine) return res.status(404).json({ error: 'Order not found' });
+
+    const partners = (await axios.get(`${LOGISTICS_SERVICE}/api/delivery-partners`)).data || [];
+    const chosen = partners.find(p => p.code === req.body.partnerCode)
+                || partners.find(p => p.code === order.deliveryPartnerCode)
+                || partners[0];
+    if (!chosen) return res.status(422).json({ error: 'No delivery partner is available.' });
+
+    const trackingNumber = `${chosen.code.slice(0, 3)}${Date.now().toString().slice(-9)}`;
+    const shipment = (await axios.post(`${LOGISTICS_SERVICE}/api/shipments`, {
+      orderId: String(order.id),
+      customerId: String(order.customerId),
+      carrier: chosen.name,
+      trackingNumber,
+      deliveryAddress: order.shippingAddressLine || null,
+      carrierTrackingUrl: (chosen.trackingUrlTemplate || '').replace('{trackingNumber}', trackingNumber),
+      estimatedDelivery: new Date(Date.now() + (chosen.estimatedDays || 5) * 86400000).toISOString(),
+    })).data;
+
+    res.status(201).json({ ...shipment, generatedTrackingNumber: true });
+  } catch (e) {
+    console.error('Ship failed:', e.response?.data || e.message);
+    res.status(e.response?.status || 500).json({ error: 'Could not create the shipment' });
+  }
+});
+
 // ── Admin: the seller approval queue ────────────────────────────────────────
 app.get('/api/sellers', authenticateAdmin, async (req, res) => {
   try {

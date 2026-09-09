@@ -1,0 +1,231 @@
+// =============================================================================
+// Shared chrome for the seller portal views — page heads, cards, tables, forms.
+// Imported by each view so they stay visually identical.
+// =============================================================================
+
+@import '../../../shared/styles/variables';
+
+.page-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  margin: 0 0 4px;
+  font-size: var(--mis-text-xl);
+  font-weight: 600;
+}
+
+.page-note {
+  margin: 0;
+  font-size: var(--mis-text-md);
+  color: var(--mis-ink-muted);
+}
+
+.state {
+  padding: 40px 20px;
+  border: 1px dashed var(--mis-line-strong);
+  border-radius: var(--mis-radius-md);
+  background: var(--mis-surface);
+  text-align: center;
+  color: var(--mis-ink-muted);
+}
+
+// ── Cards ────────────────────────────────────────────────────────────────────
+.card {
+  padding: 18px 20px;
+  border: 1px solid var(--mis-line);
+  border-radius: var(--mis-radius-md);
+  background: var(--mis-surface);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: var(--mis-text-md);
+    font-weight: 600;
+    color: var(--mis-ink);
+  }
+
+  &__link {
+    padding: 5px 12px;
+    border: 1px solid var(--mis-line-strong);
+    border-radius: var(--mis-radius-pill);
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--mis-text-xs);
+    color: var(--mis-ink-muted);
+    cursor: pointer;
+
+    &:hover { border-color: var(--mis-primary); color: var(--mis-primary-dark); }
+  }
+
+  &__empty {
+    margin: 0;
+    padding: 22px 4px;
+    font-size: var(--mis-text-sm);
+    color: var(--mis-ink-muted);
+    text-align: center;
+  }
+}
+
+// ── Tables ───────────────────────────────────────────────────────────────────
+.table,
+.mini {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--mis-text-sm);
+
+  th, td {
+    padding: 11px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--mis-line);
+  }
+
+  th {
+    font-size: var(--mis-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--mis-ink-muted);
+  }
+
+  tbody tr:last-child td { border-bottom: 0; }
+
+  .num { text-align: right; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--mis-ink-muted); }
+}
+
+.table {
+  border: 1px solid var(--mis-line);
+  border-radius: var(--mis-radius-md);
+  overflow: hidden;
+  background: var(--mis-surface);
+
+  th { background: #FDF7F3; }
+  tbody tr:hover { background: var(--mis-chrome-tint); }
+}
+
+// ── Status pills ─────────────────────────────────────────────────────────────
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--mis-radius-pill);
+  font-size: var(--mis-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.is-pending   { background: #FEF3C7; color: #92700E; }
+  &.is-confirmed { background: #FFECE2; color: #C2410C; }
+  &.is-shipped   { background: #EDE9FE; color: #5B21B6; }
+  &.is-delivered { background: #E6F4EA; color: #1B5E20; }
+  &.is-cancelled { background: #FDE7EF; color: #9F1239; }
+  &.is-muted     { background: var(--mis-line); color: var(--mis-ink-muted); }
+}
+
+// ── Buttons ──────────────────────────────────────────────────────────────────
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--mis-radius-pill);
+  font-family: inherit;
+  font-size: var(--mis-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+
+  .material-icons { font-size: 18px; }
+  &:focus-visible { outline: 2px solid var(--mis-primary); outline-offset: 2px; }
+
+  &--primary {
+    background: var(--mis-primary);
+    color: var(--mis-on-primary);
+    &:hover:not(:disabled) { background: var(--mis-primary-hover); }
+    &:disabled { background: #E4DAD3; color: var(--mis-ink-faint); cursor: not-allowed; }
+  }
+
+  &--ghost {
+    background: transparent;
+    border-color: var(--mis-line-strong);
+    color: var(--mis-ink);
+    &:hover:not(:disabled) { background: var(--mis-chrome-tint); border-color: var(--mis-primary); }
+    &:disabled { opacity: 0.5; cursor: not-allowed; }
+  }
+
+  &--sm { padding: 6px 14px; font-size: var(--mis-text-xs); }
+}
+
+// ── Forms ────────────────────────────────────────────────────────────────────
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.field__label { font-size: var(--mis-text-sm); font-weight: 500; color: var(--mis-ink); }
+
+.field__control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid var(--mis-line-strong);
+  border-radius: var(--mis-radius);
+  background: var(--mis-surface);
+
+  &:focus-within {
+    border-color: var(--mis-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.18);
+  }
+
+  &--invalid { border-color: var(--mis-error); }
+
+  input, select, textarea {
+    flex: 1;
+    min-width: 0;
+    padding: 11px 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--mis-text-md);
+    color: var(--mis-ink);
+    resize: vertical;
+
+    &::placeholder { color: var(--mis-ink-faint); }
+  }
+
+  select { cursor: pointer; }
+}
+
+.field__hint { margin: 0; font-size: var(--mis-text-xs); color: var(--mis-ink-muted); }
+.field__error { margin: 0; font-size: var(--mis-text-xs); color: var(--mis-error); }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(198, 40, 40, 0.28);
+  border-left: 3px solid var(--mis-error);
+  border-radius: var(--mis-radius);
+  background: rgba(198, 40, 40, 0.06);
+  color: var(--mis-error);
+  font-size: var(--mis-text-sm);
+
+  .material-icons { font-size: 20px; flex-shrink: 0; }
+}
+
+@media (max-width: 560px) {
+  .field-row { grid-template-columns: 1fr; }
+}
