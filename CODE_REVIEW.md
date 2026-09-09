@@ -811,3 +811,42 @@ Unchanged and still enforced server-side: `/api/seller/orders/:id/ship` verifies
 order actually contains one of that seller's lines before creating anything, and
 publishing still requires an approved account. The sidebar dims gated entries, but
 that is a hint, not the boundary.
+
+---
+
+# Appendix H — Shopper chrome leaking into the seller portal
+
+Sellers were seeing a search box, the full shopper category nav (Bestsellers, Mobiles,
+Fashion, Today's Deals…), a cart badge and the storefront footer stacked above Seller
+Central's own top bar and sidebar. None of it applies to a seller.
+
+`app.component.ts` suppressed the storefront shell for exactly one prefix:
+
+```ts
+this.showStorefrontShell = !event.urlAfterRedirects.startsWith('/admin');
+```
+
+`/seller` was added after that line was written and never included, so the portal
+inherited the shopper header and footer on top of its own chrome.
+
+Replaced with a list of sections that bring their own chrome, matched on a path
+boundary so a future `/sellers-report` route cannot be swallowed by a `/seller`
+prefix match:
+
+```ts
+private static readonly OWN_SHELL = ['/admin', '/seller'];
+...
+this.showStorefrontShell = !AppComponent.OWN_SHELL.some(
+  (prefix) => url === prefix || url.startsWith(prefix + '/')
+);
+```
+
+Verified across all four surfaces:
+
+| Route | Shopper header / nav / cart / footer | Seller chrome |
+|---|---|---|
+| `/seller/dashboard` | absent | present |
+| `/seller/orders` | absent | present |
+| `/seller/login` | absent | absent (full-page auth) |
+| `/admin/dashboard` | absent | absent (admin chrome) |
+| `/home` | present | absent |

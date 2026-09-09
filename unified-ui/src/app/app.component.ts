@@ -14,6 +14,12 @@ export class AppComponent implements OnInit, OnDestroy {
   currentUser$: Observable<AuthUser | null>;
   showStorefrontShell = true;
 
+  /**
+   * Sections that bring their own chrome. The shopper header, category nav, cart and
+   * footer are suppressed inside them.
+   */
+  private static readonly OWN_SHELL = ['/admin', '/seller'];
+
   private routerSubscription!: Subscription;
 
   constructor(
@@ -27,7 +33,10 @@ export class AppComponent implements OnInit, OnDestroy {
     this.routerSubscription = this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
       .subscribe((event: NavigationEnd) => {
-        this.showStorefrontShell = !event.urlAfterRedirects.startsWith('/admin');
+        const url = event.urlAfterRedirects;
+        this.showStorefrontShell = !AppComponent.OWN_SHELL.some(
+          (prefix) => url === prefix || url.startsWith(prefix + '/')
+        );
       });
   }
 
