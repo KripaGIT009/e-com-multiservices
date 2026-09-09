@@ -496,3 +496,180 @@
   .nav-cat-link,
   .header-action .action-link { transition: none; }
 }
+
+// ── Account menu ─────────────────────────────────────────────────────────────
+.account-action {
+  position: relative;
+}
+
+.account-trigger {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.account-caret {
+  font-size: 16px;
+  vertical-align: middle;
+  color: var(--mis-ink-muted);
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 120;
+  width: 520px;
+  max-width: calc(100vw - 32px);
+  padding: 18px 20px;
+  border: 1px solid var(--mis-line);
+  border-radius: var(--mis-radius-md);
+  background: var(--mis-surface);
+  box-shadow: var(--mis-shadow-lg);
+
+  // Pointer up to the trigger.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -7px;
+    right: 34px;
+    width: 12px;
+    height: 12px;
+    transform: rotate(45deg);
+    border-left: 1px solid var(--mis-line);
+    border-top: 1px solid var(--mis-line);
+    background: var(--mis-surface);
+  }
+
+  &__auth {
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--mis-line);
+    text-align: center;
+  }
+
+  &__signin {
+    display: block;
+    width: 220px;
+    margin: 0 auto 10px;
+    padding: 11px 18px;
+    border-radius: var(--mis-radius-pill);
+    background: var(--mis-primary);
+    color: var(--mis-on-primary);
+    font-size: var(--mis-text-md);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover { background: var(--mis-primary-hover); text-decoration: none; }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: var(--mis-text-xs);
+    color: var(--mis-ink-muted);
+  }
+
+  &__columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  &__section {
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0 0 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--mis-line);
+    font-size: var(--mis-text-md);
+    font-weight: 600;
+    color: var(--mis-ink);
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    padding: 7px 8px;
+    border: 0;
+    border-radius: var(--mis-radius-sm);
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--mis-text-sm);
+    color: var(--mis-ink-muted);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--mis-chrome-tint);
+      color: var(--mis-primary-dark);
+    }
+
+    // Entries whose backing service does not exist yet. Visibly inert rather than
+    // a link that looks live and goes nowhere.
+    &--pending {
+      color: var(--mis-ink-faint);
+      cursor: not-allowed;
+    }
+  }
+
+  &__flag {
+    flex-shrink: 0;
+    padding: 2px 7px;
+    border-radius: var(--mis-radius-pill);
+    background: var(--mis-line);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--mis-ink-muted);
+  }
+
+  &__footer {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--mis-line);
+    text-align: center;
+  }
+
+  &__signout {
+    padding: 8px 20px;
+    border: 1px solid var(--mis-line-strong);
+    border-radius: var(--mis-radius-pill);
+    background: transparent;
+    font-family: inherit;
+    font-size: var(--mis-text-sm);
+    font-weight: 600;
+    color: var(--mis-ink);
+    cursor: pointer;
+
+    &:hover { background: var(--mis-chrome-tint); border-color: var(--mis-primary); }
+  }
+}
+
+@media (max-width: 640px) {
+  .account-menu {
+    position: fixed;
+    top: auto;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-height: 70vh;
+    overflow-y: auto;
+
+    &::before { display: none; }
+
+    &__columns { grid-template-columns: 1fr; gap: 16px; }
+  }
+}

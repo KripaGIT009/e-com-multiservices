@@ -62,28 +62,84 @@
         <!-- Language -->
         <!-- Account -->
         <div class="header-action account-action">
-          <ng-container *ngIf="isAuthenticated; else guestAccount">
-            <a [routerLink]="isAdmin ? '/admin' : '/account'" class="action-link" aria-label="Your account">
+          <!-- Admins get a direct link; none of the shopper entries apply to them. -->
+          <a *ngIf="isAdmin" routerLink="/admin" class="action-link" aria-label="Admin dashboard">
+            <span class="action-avatar" aria-hidden="true">
+              <span class="material-icons">person_outline</span>
+            </span>
+            <span class="action-copy">
+              <span class="action-label">Hello, {{ displayName }}</span>
+              <span class="action-text">Admin Dashboard</span>
+            </span>
+          </a>
+
+          <ng-container *ngIf="!isAdmin">
+            <button
+              type="button"
+              class="action-link account-trigger"
+              (click)="toggleAccountMenu($event)"
+              [attr.aria-expanded]="accountMenuOpen"
+              aria-haspopup="true"
+              aria-controls="account-menu"
+              [attr.aria-label]="isAuthenticated ? 'Your account menu' : 'Sign in or open the account menu'">
               <span class="action-avatar" aria-hidden="true">
                 <span class="material-icons">person_outline</span>
               </span>
               <span class="action-copy">
-                <span class="action-label">Hello, {{ displayName }}</span>
-                <span class="action-text">{{ isAdmin ? 'Admin Dashboard' : 'My account' }}</span>
+                <span class="action-label">{{ isAuthenticated ? 'Hello, ' + displayName : 'Account' }}</span>
+                <span class="action-text">
+                  {{ isAuthenticated ? 'My account' : 'Sign in / Sign up' }}
+                  <span class="material-icons account-caret" aria-hidden="true">expand_more</span>
+                </span>
               </span>
-            </a>
+            </button>
+
+            <div
+              id="account-menu"
+              class="account-menu"
+              *ngIf="accountMenuOpen"
+              role="menu"
+              (click)="$event.stopPropagation()">
+
+              <!-- Signed out: sign-in is the first thing in the menu, as on Amazon. -->
+              <div class="account-menu__auth" *ngIf="!isAuthenticated">
+                <a routerLink="/auth/login" class="account-menu__signin" (click)="closeAccountMenu()">
+                  Sign in
+                </a>
+                <p class="account-menu__hint">
+                  New customer?
+                  <a routerLink="/auth/register" (click)="closeAccountMenu()">Start here</a>
+                </p>
+              </div>
+
+              <div class="account-menu__columns">
+                <div class="account-menu__section" *ngFor="let section of accountMenuSections">
+                  <h3 class="account-menu__title">{{ section.title }}</h3>
+                  <ul class="account-menu__list">
+                    <li *ngFor="let item of section.items">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        class="account-menu__item"
+                        [class.account-menu__item--pending]="item.pending"
+                        [disabled]="!!item.pending"
+                        [attr.title]="item.pending ? 'Not built yet — needs ' + item.pending : null"
+                        (click)="onAccountMenuItem(item)">
+                        {{ item.label }}
+                        <span class="account-menu__flag" *ngIf="item.pending">Soon</span>
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="account-menu__footer" *ngIf="isAuthenticated">
+                <button type="button" class="account-menu__signout" (click)="closeAccountMenu(); logout()">
+                  Sign out
+                </button>
+              </div>
+            </div>
           </ng-container>
-          <ng-template #guestAccount>
-            <a routerLink="/login" class="action-link" aria-label="Sign in to your account">
-              <span class="action-avatar" aria-hidden="true">
-                <span class="material-icons">person_outline</span>
-              </span>
-              <span class="action-copy">
-                <span class="action-label">Account</span>
-                <span class="action-text">Sign in / Sign up</span>
-              </span>
-            </a>
-          </ng-template>
         </div>
 
         <!-- Logout (admin only) -->

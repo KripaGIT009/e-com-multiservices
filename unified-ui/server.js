@@ -54,6 +54,7 @@ const PAYMENT_SERVICE   = process.env.PAYMENT_SERVICE_URL    || 'http://localhos
 const INVENTORY_SERVICE = process.env.INVENTORY_SERVICE_URL  || 'http://localhost:8003';
 const RETURN_SERVICE    = process.env.RETURN_SERVICE_URL     || 'http://localhost:8008';
 const ADMIN_SERVICE     = process.env.ADMIN_SERVICE_URL      || 'http://localhost:8011';
+const WISHLIST_SERVICE  = process.env.WISHLIST_SERVICE_URL   || 'http://localhost:8016';
 
 app.use(cors());
 
@@ -588,6 +589,73 @@ app.delete('/api/cart/:userId/clear', async (req, res) => {
     await axios.delete(`${CART_SERVICE}/carts/${cart.id}/clear`);
     res.status(204).send();
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to clear cart' }); }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// WISHLIST — customer, always scoped to the caller
+// ═══════════════════════════════════════════════════════════════════════════════
+// A wishlist belongs to a signed-in customer; there is no guest equivalent, so
+// these all require a token rather than falling back to a shared list.
+app.get('/api/wishlist', authenticateToken, async (req, res) => {
+  try {
+    const saved = (await axios.get(`${WISHLIST_SERVICE}/api/wishlist/user/${req.user.id}`)).data || [];
+    // Join to the live catalogue so the page shows the current price and can flag a
+    // drop against the price captured when the item was saved.
+    const enriched = await Promise.all(saved.map(async (entry) => {
+      try {
+        const item = (await axios.get(`${ITEM_SERVICE}/items/${entry.itemId}`)).data;
+        const priceDropped = entry.priceAtSave != null && item.price < entry.priceAtSave;
+        return { ...entry, item, currentPrice: item.price, priceDropped, available: true };
+      } catch (e) {
+        // Product withdrawn since it was saved — the snapshot still renders.
+        return { ...entry, item: null, currentPrice: null, priceDropped: false, available: false };
+      }
+    }));
+    res.json(enriched);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch wishlist' }); }
+});
+
+app.get('/api/wishlist/count', authenticateToken, async (req, res) => {
+  try { res.json((await axios.get(`${WISHLIST_SERVICE}/api/wishlist/user/${req.user.id}/count`)).data); }
+  catch (e) { res.json({ count: 0 }); }
+});
+
+app.post('/api/wishlist/items', authenticateToken, async (req, res) => {
+  try {
+    const item = (await axios.get(`${ITEM_SERVICE}/items/${req.body.itemId}`)).data;
+    const r = await axios.post(`${WISHLIST_SERVICE}/api/wishlist/user/${req.user.id}/items`, {
+      itemId: item.id, itemName: item.name, price: item.price,
+    });
+    res.status(201).json(r.data);
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to save item' }); }
+});
+
+app.delete('/api/wishlist/items/:itemId', authenticateToken, async (req, res) => {
+  try {
+    await axios.delete(`${WISHLIST_SERVICE}/api/wishlist/user/${req.user.id}/items/${req.params.itemId}`);
+    res.status(204).send();
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to remove item' }); }
+});
+
+// Moves a saved item into the cart, then drops it from the list.
+app.post('/api/wishlist/items/:itemId/move-to-cart', authenticateToken, async (req, res) => {
+  try {
+    const cart = await getOrCreateCart(parseInt(req.user.id, 10));
+    const item = (await axios.get(`${ITEM_SERVICE}/items/${req.params.itemId}`)).data;
+    const existing = await findCartItem(cart.id, item.id);
+    if (existing) {
+      await axios.put(`${CART_SERVICE}/carts/${cart.id}/items/${existing.id}`, {
+        quantity: existing.quantity + 1,
+      });
+    } else {
+      await axios.post(`${CART_SERVICE}/carts/${cart.id}/items`, {
+        itemId: item.id, itemName: item.name, quantity: 1, price: item.price,
+      });
+    }
+    await axios.delete(`${WISHLIST_SERVICE}/api/wishlist/user/${req.user.id}/items/${req.params.itemId}`)
+      .catch(() => { /* already gone; the cart write is what matters */ });
+    res.json({ moved: true });
+  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to move item to cart' }); }
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

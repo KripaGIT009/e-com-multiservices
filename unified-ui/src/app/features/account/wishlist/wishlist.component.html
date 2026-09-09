@@ -1,0 +1,72 @@
+<section class="wishlist" aria-labelledby="wishlist-heading">
+  <header class="wishlist__header">
+    <h1 id="wishlist-heading" class="wishlist__title">Your Wish List</h1>
+    <p class="wishlist__count" *ngIf="!isLoading">
+      {{ entries.length }} {{ entries.length === 1 ? 'item' : 'items' }} saved
+    </p>
+  </header>
+
+  <div class="wishlist__state" *ngIf="isLoading" role="status" aria-live="polite">
+    Loading your wish list…
+  </div>
+
+  <div class="wishlist__state" *ngIf="!isLoading && entries.length === 0">
+    <span class="material-icons wishlist__state-icon" aria-hidden="true">favorite_border</span>
+    <p class="wishlist__state-title">Nothing saved yet</p>
+    <p class="wishlist__state-note">
+      Tap the heart on any product to keep it here for later.
+    </p>
+    <button type="button" class="wishlist__browse" (click)="browse()">Browse products</button>
+  </div>
+
+  <ul class="wishlist__list" *ngIf="!isLoading && entries.length > 0">
+    <li
+      *ngFor="let entry of entries"
+      class="wishlist__row"
+      [class.wishlist__row--gone]="!entry.available"
+      (click)="viewProduct(entry)">
+
+      <img class="wishlist__thumb" [src]="imageFor(entry)" [alt]="entry.itemName" />
+
+      <div class="wishlist__body">
+        <p class="wishlist__name">{{ entry.itemName }}</p>
+
+        <p class="wishlist__price" *ngIf="entry.available">
+          ₹{{ entry.currentPrice | number:'1.0-0' }}
+          <span class="wishlist__was" *ngIf="savingOn(entry) as saving">
+            was ₹{{ entry.priceAtSave | number:'1.0-0' }}
+          </span>
+        </p>
+
+        <!-- The reason the price snapshot is stored at all. -->
+        <p class="wishlist__drop" *ngIf="savingOn(entry) as saving">
+          <span class="material-icons" aria-hidden="true">trending_down</span>
+          Price dropped ₹{{ saving | number:'1.0-0' }} since you saved it
+        </p>
+
+        <p class="wishlist__gone" *ngIf="!entry.available">
+          No longer available in the catalogue
+        </p>
+      </div>
+
+      <div class="wishlist__actions">
+        <button
+          type="button"
+          class="wishlist__cta"
+          *ngIf="entry.available"
+          [disabled]="busy.has(entry.itemId)"
+          (click)="moveToCart(entry, $event)">
+          Move to cart
+        </button>
+        <button
+          type="button"
+          class="wishlist__remove"
+          [disabled]="busy.has(entry.itemId)"
+          (click)="remove(entry, $event)"
+          [attr.aria-label]="'Remove ' + entry.itemName + ' from your wish list'">
+          Remove
+        </button>
+      </div>
+    </li>
+  </ul>
+</section>

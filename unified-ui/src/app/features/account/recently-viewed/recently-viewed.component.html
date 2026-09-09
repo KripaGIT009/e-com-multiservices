@@ -1,0 +1,40 @@
+<section class="recent" aria-labelledby="recent-heading">
+  <header class="recent__header">
+    <div>
+      <h1 id="recent-heading" class="recent__title">Keep shopping for</h1>
+      <p class="recent__note">Products you looked at recently, on this device.</p>
+    </div>
+    <button type="button" class="recent__clear" *ngIf="products.length" (click)="clearAll()">
+      Clear history
+    </button>
+  </header>
+
+  <div class="recent__state" *ngIf="products.length === 0">
+    <span class="material-icons recent__state-icon" aria-hidden="true">history</span>
+    <p class="recent__state-title">Nothing here yet</p>
+    <p class="recent__state-text">Products you view will show up here so you can pick up where you left off.</p>
+    <button type="button" class="recent__browse" (click)="browse()">Browse products</button>
+  </div>
+
+  <div class="recent__grid" *ngIf="products.length > 0">
+    <article
+      *ngFor="let p of products"
+      class="recent__card"
+      tabindex="0"
+      role="button"
+      [attr.aria-label]="'View ' + p.name"
+      (click)="view(p)"
+      (keydown.enter)="view(p)">
+      <button
+        type="button"
+        class="recent__dismiss"
+        (click)="remove(p, $event)"
+        [attr.aria-label]="'Remove ' + p.name + ' from your history'">
+        <span class="material-icons" aria-hidden="true">close</span>
+      </button>
+      <img class="recent__image" [src]="imageFor(p)" [alt]="p.name" />
+      <p class="recent__name">{{ p.name }}</p>
+      <p class="recent__price">₹{{ p.price | number:'1.0-0' }}</p>
+    </article>
+  </div>
+</section>

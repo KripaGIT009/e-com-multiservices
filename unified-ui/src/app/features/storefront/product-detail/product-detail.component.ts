@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { RecentlyViewedService } from '../../../core/services/recently-viewed.service';
 
 interface Product {
   id: number;
@@ -29,7 +30,8 @@ export class ProductDetailComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private recentlyViewed: RecentlyViewedService
   ) {}
 
   ngOnInit(): void {
@@ -44,6 +46,7 @@ export class ProductDetailComponent implements OnInit {
       next: (product) => {
         this.product = product;
         this.isLoading = false;
+        this.recentlyViewed.record(product);
       },
       error: () => {
         this.isLoading = false;
