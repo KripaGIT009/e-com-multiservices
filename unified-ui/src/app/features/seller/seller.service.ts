@@ -59,6 +59,10 @@ export class SellerPortalService {
     return this.http.get<Seller>('/api/seller/me');
   }
 
+  updateProfile(payload: Record<string, unknown>): Observable<Seller> {
+    return this.http.put<Seller>('/api/seller/me', payload);
+  }
+
   products(): Observable<SellerProduct[]> {
     return this.http.get<SellerProduct[]>('/api/seller/products');
   }

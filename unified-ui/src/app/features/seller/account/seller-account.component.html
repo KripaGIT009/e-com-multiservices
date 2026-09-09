@@ -1,0 +1,100 @@
+<section aria-labelledby="account-heading">
+  <header class="page-head">
+    <div>
+      <h1 id="account-heading" class="page-title">Account</h1>
+      <p class="page-note">Your business details and where couriers collect from.</p>
+    </div>
+  </header>
+
+  <p class="state" *ngIf="isLoading">Loading your account…</p>
+
+  <div class="cols" *ngIf="!isLoading">
+    <section class="card" aria-labelledby="details-heading">
+      <header class="card__head">
+        <h2 id="details-heading" class="card__title">Business details</h2>
+      </header>
+
+      <div class="alert" role="alert" *ngIf="saveError">
+        <span class="material-icons" aria-hidden="true">error_outline</span>
+        <span>{{ saveError }}</span>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="form">
+        <div class="field">
+          <label for="businessName" class="field__label">Business name</label>
+          <div class="field__control" [class.field__control--invalid]="isBad('businessName')">
+            <input id="businessName" formControlName="businessName" />
+          </div>
+          <p class="field__error" *ngIf="isBad('businessName')">Required.</p>
+        </div>
+
+        <div class="field">
+          <label for="contactName" class="field__label">Contact person</label>
+          <div class="field__control" [class.field__control--invalid]="isBad('contactName')">
+            <input id="contactName" formControlName="contactName" />
+          </div>
+          <p class="field__error" *ngIf="isBad('contactName')">Required.</p>
+        </div>
+
+        <div class="field">
+          <label for="phone" class="field__label">Mobile number</label>
+          <div class="field__control" [class.field__control--invalid]="isBad('phone')">
+            <span class="field__prefix" aria-hidden="true">+91</span>
+            <input id="phone" formControlName="phone" />
+          </div>
+          <p class="field__error" *ngIf="isBad('phone')">Enter a 10-digit Indian mobile number.</p>
+        </div>
+
+        <div class="field">
+          <label for="pickupAddress" class="field__label">Pickup address</label>
+          <div class="field__control" [class.field__control--invalid]="isBad('pickupAddress')">
+            <input id="pickupAddress" formControlName="pickupAddress" />
+          </div>
+          <p class="field__hint">Couriers collect from here, and it decides which of them can.</p>
+          <p class="field__error" *ngIf="isBad('pickupAddress')">Required.</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="pickupCity" class="field__label">City</label>
+            <div class="field__control" [class.field__control--invalid]="isBad('pickupCity')">
+              <input id="pickupCity" formControlName="pickupCity" />
+            </div>
+            <p class="field__error" *ngIf="isBad('pickupCity')">Required.</p>
+          </div>
+          <div class="field">
+            <label for="pickupPostalCode" class="field__label">Pincode</label>
+            <div class="field__control" [class.field__control--invalid]="isBad('pickupPostalCode')">
+              <input id="pickupPostalCode" formControlName="pickupPostalCode" maxlength="6" />
+            </div>
+            <p class="field__error" *ngIf="isBad('pickupPostalCode')">6 digits.</p>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn--primary" [disabled]="isSaving">
+          {{ isSaving ? 'Saving…' : 'Save changes' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="reg-heading">
+      <header class="card__head">
+        <h2 id="reg-heading" class="card__title">Registration</h2>
+      </header>
+      <dl class="facts">
+        <dt>Email</dt>
+        <dd>{{ seller?.email }}</dd>
+        <dt>GSTIN</dt>
+        <dd>{{ seller?.gstin || 'Not provided' }}</dd>
+        <dt>Status</dt>
+        <dd>{{ seller?.status }}</dd>
+        <dt>Registered</dt>
+        <dd>{{ seller?.createdAt | date:'d MMM y' }}</dd>
+      </dl>
+      <p class="field__hint">
+        Email and GSTIN identify your business, so they are changed by support rather
+        than here.
+      </p>
+    </section>
+  </div>
+</section>

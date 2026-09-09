@@ -1,0 +1,76 @@
+<div class="shell">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <button
+      type="button"
+      class="topbar__menu"
+      (click)="navOpen = !navOpen"
+      [attr.aria-expanded]="navOpen"
+      aria-label="Toggle navigation">
+      <span class="material-icons" aria-hidden="true">menu</span>
+    </button>
+
+    <a routerLink="/home" class="topbar__brand" aria-label="MyIndianStore home">
+      <img src="assets/images/logo.svg" alt="" class="topbar__logo" />
+      <span class="topbar__tag">Seller Central</span>
+    </a>
+
+    <div class="topbar__spacer"></div>
+
+    <div class="topbar__seller" *ngIf="seller">
+      <span class="topbar__name">{{ seller.businessName }}</span>
+      <span class="chip" [ngClass]="statusTone">{{ statusLabel }}</span>
+    </div>
+
+    <button type="button" class="topbar__signout" (click)="signOut()">Sign out</button>
+  </header>
+
+  <div class="body">
+    <!-- Sidebar -->
+    <nav class="sidenav" [class.sidenav--open]="navOpen" aria-label="Seller navigation">
+      <ul class="sidenav__list">
+        <li *ngFor="let item of nav">
+          <a
+            [routerLink]="item.route"
+            routerLinkActive="is-active"
+            class="sidenav__link"
+            [class.sidenav__link--gated]="item.gated && !isApproved"
+            (click)="navOpen = false">
+            <span class="material-icons" aria-hidden="true">{{ item.icon }}</span>
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidenav__footer" *ngIf="seller?.pickupCity">
+        <p class="sidenav__footer-label">Pickup location</p>
+        <p class="sidenav__footer-value">
+          {{ seller?.pickupCity }} {{ seller?.pickupPostalCode }}
+        </p>
+      </div>
+    </nav>
+
+    <main class="content">
+      <!-- Standing banner, shown on every view so it cannot be missed -->
+      <div class="banner" *ngIf="seller && seller.status !== 'APPROVED'" role="status">
+        <span class="material-icons" aria-hidden="true">
+          {{ seller.status === 'PENDING_APPROVAL' ? 'hourglass_top' : 'block' }}
+        </span>
+        <div>
+          <p class="banner__title">
+            {{ seller.status === 'PENDING_APPROVAL'
+               ? 'Your account is awaiting approval'
+               : 'Your seller account is not active' }}
+          </p>
+          <p class="banner__note">
+            {{ seller.statusReason
+               || 'You can look around, but listings and orders open up once an admin approves your account.' }}
+          </p>
+        </div>
+      </div>
+
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

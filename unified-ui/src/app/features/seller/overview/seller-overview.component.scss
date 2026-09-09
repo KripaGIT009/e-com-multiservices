@@ -1,0 +1,172 @@
+@import '../shared/seller-shared';
+
+:host { display: block; }
+
+// ── KPI row ──────────────────────────────────────────────────────────────────
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.kpi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--mis-line);
+  border-radius: var(--mis-radius-md);
+  background: var(--mis-surface);
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--mis-radius-sm);
+    background: var(--mis-chrome-tint);
+    color: var(--mis-primary);
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  &__value {
+    margin: 0;
+    font-size: var(--mis-text-xl);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--mis-ink);
+  }
+
+  &__label {
+    margin: 3px 0 0;
+    font-size: var(--mis-text-xs);
+    color: var(--mis-ink-muted);
+  }
+}
+
+// ── Panels ───────────────────────────────────────────────────────────────────
+.grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.card--wide { grid-column: 1 / -1; }
+.grid > .card:nth-child(1) { grid-column: 1 / 2; }
+.grid > .card:nth-child(2) { grid-column: 2 / 3; }
+
+// ── Sales chart ──────────────────────────────────────────────────────────────
+// Plain CSS bars: no charting library, and it degrades to nothing rather than to
+// a fabricated shape when there are no sales.
+.chart {
+  &__bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    height: 180px;
+    padding-top: 8px;
+  }
+
+  &__col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    height: 100%;
+    min-width: 0;
+  }
+
+  &__bar {
+    width: 100%;
+    min-height: 2px;
+    border-radius: 4px 4px 0 0;
+    background: linear-gradient(180deg, var(--mis-primary) 0%, #F0503F 100%);
+    transition: height 0.25s ease;
+  }
+
+  &__tick {
+    margin-top: 6px;
+    font-size: 10px;
+    color: var(--mis-ink-faint);
+    white-space: nowrap;
+  }
+
+  &__peak {
+    margin: 10px 0 0;
+    font-size: var(--mis-text-xs);
+    color: var(--mis-ink-muted);
+    text-align: right;
+  }
+}
+
+// ── Low stock ────────────────────────────────────────────────────────────────
+.stock {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--mis-line);
+
+    &:last-child { border-bottom: 0; }
+  }
+
+  &__info { min-width: 0; }
+
+  &__name {
+    margin: 0;
+    font-size: var(--mis-text-sm);
+    color: var(--mis-ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__sku {
+    margin: 2px 0 0;
+    font-size: var(--mis-text-xs);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--mis-ink-faint);
+  }
+
+  &__qty {
+    flex-shrink: 0;
+    padding: 3px 10px;
+    border-radius: var(--mis-radius-pill);
+    background: #FEF3C7;
+    color: #92700E;
+    font-size: var(--mis-text-xs);
+    font-weight: 600;
+
+    &--out { background: #FDE7EF; color: #9F1239; }
+  }
+}
+
+@media (max-width: 1100px) {
+  .kpis { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 860px) {
+  .grid { grid-template-columns: 1fr; }
+  .grid > .card:nth-child(1),
+  .grid > .card:nth-child(2) { grid-column: 1 / -1; }
+}
+
+@media (max-width: 560px) {
+  .kpis { grid-template-columns: 1fr; }
+  .chart__bars { height: 140px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart__bar { transition: none; }
+}

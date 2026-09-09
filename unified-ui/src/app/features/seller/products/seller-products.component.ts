@@ -9,11 +9,11 @@ import { AuthService } from '../../../core/services/auth.service';
 import { productPlaceholder } from '../../../core/utils/product-image';
 
 @Component({
-  selector: 'app-seller-dashboard',
-  templateUrl: './seller-dashboard.component.html',
-  styleUrls: ['./seller-dashboard.component.scss'],
+  selector: 'app-seller-products',
+  templateUrl: './seller-products.component.html',
+  styleUrls: ['./seller-products.component.scss'],
 })
-export class SellerDashboardComponent implements OnInit {
+export class SellerProductsComponent implements OnInit {
   seller: Seller | null = null;
   products: SellerProduct[] = [];
   isLoading = true;
