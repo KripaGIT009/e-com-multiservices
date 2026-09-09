@@ -9,6 +9,8 @@ public class ItemRequest {
     private BigDecimal price;
     private Integer quantity;
     private String itemType;
+    private Long sellerId;
+    private String sellerName;
 
     public ItemRequest() {}
 
@@ -46,4 +48,9 @@ public class ItemRequest {
 
     public String getItemType() { return itemType; }
     public void setItemType(String itemType) { this.itemType = itemType; }
+
+    public Long getSellerId() { return sellerId; }
+    public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
+    public String getSellerName() { return sellerName; }
+    public void setSellerName(String sellerName) { this.sellerName = sellerName; }
 }

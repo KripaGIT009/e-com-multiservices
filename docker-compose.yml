@@ -356,6 +356,37 @@ services:
       timeout: 5s
       retries: 5
 
+  seller-service:
+    image: event-sourcing-saga-multiservice-seller-service:1.1.0
+    build:
+      context: ./seller-service
+      dockerfile: Dockerfile
+    ports:
+      - "8021:8080"
+    depends_on:
+      seller_postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://seller_postgres:5432/seller_service
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+  seller_postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: seller_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5444:5432"
+    volumes:
+      - seller_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   wishlist-service:
     image: event-sourcing-saga-multiservice-wishlist-service:1.1.0
     build:
@@ -445,6 +476,7 @@ services:
       - item-service
       - cart-service
       - wishlist-service
+      - seller-service
       - checkout-service
       - order-service
       - payment-service
@@ -467,6 +499,7 @@ services:
       INVENTORY_SERVICE_URL: http://inventory-service:8080
       RETURN_SERVICE_URL: http://return-service:8080
       WISHLIST_SERVICE_URL: http://wishlist-service:8080
+      SELLER_SERVICE_URL: http://seller-service:8080
       LOGISTICS_SERVICE_URL: http://logistics-service:8088
       NOTIFICATION_SERVICE_URL: http://notification-service:8080
       ADMIN_SERVICE_URL: http://admin-service:8011
@@ -543,6 +576,8 @@ volumes:
   admin_postgres_data:
     driver: local
   wishlist_postgres_data:
+    driver: local
+  seller_postgres_data:
     driver: local
   redis_data:
     driver: local

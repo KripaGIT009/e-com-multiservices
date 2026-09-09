@@ -68,6 +68,19 @@ public class Order {
     @Column(name = "customer_phone", length = 20)
     private String customerPhone;
 
+    /**
+     * Courier assigned when the order was placed. Held on the order rather than
+     * looked up later so the promise made to the customer is the one recorded.
+     */
+    @Column(name = "delivery_partner_code", length = 20)
+    private String deliveryPartnerCode;
+
+    @Column(name = "delivery_partner_name", length = 80)
+    private String deliveryPartnerName;
+
+    @Column(name = "expected_delivery")
+    private LocalDateTime expectedDelivery;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

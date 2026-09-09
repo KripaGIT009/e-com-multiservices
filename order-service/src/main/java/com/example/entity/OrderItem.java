@@ -37,6 +37,13 @@ public class OrderItem {
     @Column
     private String description;
 
+    /** Fulfilling seller, snapshotted. Null means first-party stock. */
+    @Column(name = "seller_id")
+    private Long sellerId;
+
+    @Column(name = "seller_name", length = 160)
+    private String sellerName;
+
     public BigDecimal getLineTotal() {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }

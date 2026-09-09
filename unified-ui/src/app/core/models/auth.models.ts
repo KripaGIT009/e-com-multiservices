@@ -3,7 +3,7 @@
  * Requirements: 1.6, 1.7, 8.1, 8.2, 8.3, 8.4, 8.5
  */
 
-export type UserRole = 'ADMIN' | 'CUSTOMER' | 'GUEST';
+export type UserRole = 'ADMIN' | 'CUSTOMER' | 'SELLER' | 'GUEST';
 
 export interface AuthUser {
   id: string;

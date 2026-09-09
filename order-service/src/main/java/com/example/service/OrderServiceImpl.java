@@ -46,6 +46,11 @@ public class OrderServiceImpl implements IOrderService {
             .customerName(request.getCustomerName())
             .customerEmail(request.getCustomerEmail())
             .customerPhone(request.getCustomerPhone())
+            .deliveryPartnerCode(request.getDeliveryPartnerCode())
+            .deliveryPartnerName(request.getDeliveryPartnerName())
+            .expectedDelivery(request.getDeliveryEstimatedDays() != null
+                ? java.time.LocalDateTime.now().plusDays(request.getDeliveryEstimatedDays())
+                : null)
             .build();
 
         // Add order items
@@ -58,6 +63,8 @@ public class OrderServiceImpl implements IOrderService {
                     .quantity(itemRequest.getQuantity())
                     .unitPrice(itemRequest.getUnitPrice())
                     .description(itemRequest.getDescription())
+                    .sellerId(itemRequest.getSellerId())
+                    .sellerName(itemRequest.getSellerName())
                     .build())
                 .collect(Collectors.toList());
             order.setItems(items);
@@ -185,6 +192,8 @@ public class OrderServiceImpl implements IOrderService {
                     .quantity(item.getQuantity())
                     .unitPrice(item.getUnitPrice())
                     .description(item.getDescription())
+                    .sellerId(item.getSellerId())
+                    .sellerName(item.getSellerName())
                     .build())
                 .collect(Collectors.toList()))
             .createdAt(order.getCreatedAt())
@@ -196,6 +205,9 @@ public class OrderServiceImpl implements IOrderService {
             .customerName(order.getCustomerName())
             .customerEmail(order.getCustomerEmail())
             .customerPhone(order.getCustomerPhone())
+            .deliveryPartnerCode(order.getDeliveryPartnerCode())
+            .deliveryPartnerName(order.getDeliveryPartnerName())
+            .expectedDelivery(order.getExpectedDelivery())
             .build();
     }
 
