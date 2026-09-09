@@ -17,6 +17,9 @@ export class LoginComponent {
   /** Shown in the form itself, so the reason survives a dismissed toast. */
   submitError: string | null = null;
 
+  /** Set when the credentials belong to a seller, so we can point them next door. */
+  isSellerAccount = false;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -60,6 +63,7 @@ export class LoginComponent {
 
   onSubmit(): void {
     this.submitError = null;
+    this.isSellerAccount = false;
 
     if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
@@ -73,10 +77,13 @@ export class LoginComponent {
         this.isSubmitting = false;
         this.router.navigateByUrl(this.redirectAfterAuth(response.user.role));
       },
-      error: () => {
+      error: (err) => {
         this.isSubmitting = false;
-        this.submitError = 'Invalid email or password. Please try again.';
-        this.notificationService.show(this.submitError, 'error');
+        this.isSellerAccount = !!err?.error?.sellerAccount;
+        this.submitError = this.isSellerAccount
+          ? err.error.error
+          : 'Invalid email or password. Please try again.';
+        this.notificationService.show(this.submitError as string, 'error');
       },
     });
   }

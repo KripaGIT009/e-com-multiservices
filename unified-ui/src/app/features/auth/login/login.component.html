@@ -28,7 +28,12 @@
 
       <div class="auth-alert" role="alert" *ngIf="submitError">
         <span class="material-icons" aria-hidden="true">error_outline</span>
-        <span>{{ submitError }}</span>
+        <span>
+          {{ submitError }}
+          <a *ngIf="isSellerAccount" routerLink="/seller/login" class="auth-alert__action">
+            Go to seller sign in
+          </a>
+        </span>
       </div>
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate class="auth-form">
@@ -105,6 +110,11 @@
         <button type="button" class="btn btn--ghost" (click)="onCancel()">
           Continue browsing
         </button>
+
+        <p class="auth-legal">
+          Selling on MyIndianStore?
+          <a routerLink="/seller/login" class="auth-link">Seller sign in</a>
+        </p>
       </form>
     </div>
   </div>
