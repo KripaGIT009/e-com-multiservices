@@ -1,266 +1,251 @@
-<section class="auth-page" aria-label="Register for MyIndianStore">
-  <div class="auth-card">
-    <!-- Logo -->
-    <div class="auth-card__logo">
-      <img src="assets/logo.png" alt="MyIndianStore Logo" class="auth-card__logo-img" />
-    </div>
+<section class="auth-page" aria-labelledby="register-heading">
+  <div class="auth-shell">
 
-    <!-- Heading -->
-    <h1 class="auth-card__heading">Create Your Account</h1>
+    <!-- Brand panel — decorative on desktop, collapses away on mobile -->
+    <aside class="auth-aside" aria-hidden="true">
+      <img src="assets/images/logo-white.svg" alt="" class="auth-aside__logo" />
+      <h2 class="auth-aside__title">Shop authentic Indian products</h2>
+      <p class="auth-aside__lede">
+        Handcrafted textiles, organic spices, traditional wear and modern electronics —
+        made in India, delivered to your door.
+      </p>
+      <ul class="auth-aside__points">
+        <li><span class="material-icons">local_shipping</span> Free delivery on eligible orders</li>
+        <li><span class="material-icons">verified_user</span> Secure payments</li>
+        <li><span class="material-icons">assignment_return</span> Easy 7-day returns</li>
+      </ul>
+    </aside>
 
-    <!-- Aria-live region for validation announcements -->
-    <div aria-live="polite" aria-atomic="true" class="auth-card__announcements">
-      <span *ngIf="registerForm.invalid && registerForm.touched">
-        Please correct the errors in the form.
-      </span>
-    </div>
+    <!-- Form panel -->
+    <div class="auth-panel">
+      <header class="auth-panel__header">
+        <h1 id="register-heading" class="auth-panel__title">Create your account</h1>
+        <p class="auth-panel__subtitle">
+          Already have one?
+          <a routerLink="/auth/login" class="auth-link">Sign in</a>
+        </p>
+      </header>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate class="auth-card__form">
-
-      <!-- Name Field -->
-      <div class="auth-card__field">
-        <label for="reg-name" class="auth-card__label">Name</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">person</span>
-          <input
-            id="reg-name"
-            type="text"
-            formControlName="name"
-            class="auth-card__input"
-            [class.auth-card__input--invalid]="name?.invalid && name?.touched"
-            placeholder="Enter your full name"
-            aria-describedby="name-error"
-          />
-        </div>
-        <span id="name-error" class="auth-card__error" *ngIf="name?.invalid && name?.touched" role="alert">
-          <span *ngIf="name?.errors?.['required']">Name is required.</span>
-          <span *ngIf="name?.errors?.['minlength']">Name must be at least 2 characters.</span>
-        </span>
+      <!-- Server-side and blocked-submit feedback -->
+      <div
+        class="auth-alert"
+        role="alert"
+        *ngIf="submitError"
+      >
+        <span class="material-icons" aria-hidden="true">error_outline</span>
+        <span>{{ submitError }}</span>
       </div>
 
-      <!-- Email Field with Verify Button -->
-      <div class="auth-card__field">
-        <label for="reg-email" class="auth-card__label">Email Address</label>
-        <div class="auth-card__input-wrapper auth-card__input-wrapper--with-action">
-          <span class="auth-card__field-icon" aria-hidden="true">mail</span>
-          <input
-            id="reg-email"
-            type="email"
-            formControlName="email"
-            class="auth-card__input"
-            [class.auth-card__input--invalid]="email?.invalid && email?.touched"
-            placeholder="you@example.com"
-            aria-describedby="email-error"
-          />
-          <button
-            type="button"
-            class="auth-card__verify-btn"
-            (click)="verifyEmail()"
-            [disabled]="emailOtpSent && emailCountdown > 0"
-            aria-label="Verify email address"
+      <form
+        [formGroup]="registerForm"
+        (ngSubmit)="onSubmit()"
+        novalidate
+        class="auth-form"
+      >
+        <!-- Name -->
+        <div class="field">
+          <label for="reg-name" class="field__label">Full name</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="name?.invalid && name?.touched"
           >
-            Verify
-          </button>
+            <span class="material-icons field__icon" aria-hidden="true">person_outline</span>
+            <input
+              id="reg-name"
+              type="text"
+              formControlName="name"
+              autocomplete="name"
+              placeholder="e.g. Kripa Tiwari"
+              [attr.aria-invalid]="name?.invalid && name?.touched"
+              aria-describedby="reg-name-error"
+            />
+          </div>
+          <p id="reg-name-error" class="field__error" *ngIf="name?.invalid && name?.touched">
+            <ng-container *ngIf="name?.errors?.['required']">Please enter your name.</ng-container>
+            <ng-container *ngIf="name?.errors?.['minlength']">Name must be at least 2 characters.</ng-container>
+            <ng-container *ngIf="name?.errors?.['maxlength']">Name must be 60 characters or fewer.</ng-container>
+          </p>
         </div>
-        <span id="email-error" class="auth-card__error" *ngIf="email?.invalid && email?.touched" role="alert">
-          <span *ngIf="email?.errors?.['required']">Email is required.</span>
-          <span *ngIf="email?.errors?.['email']">Please enter a valid email.</span>
-        </span>
-      </div>
 
-      <!-- Email OTP Field -->
-      <div class="auth-card__field auth-card__field--otp" *ngIf="emailOtpSent">
-        <label for="reg-email-otp" class="auth-card__label">Email OTP</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">pin</span>
-          <input
-            id="reg-email-otp"
-            type="text"
-            formControlName="emailOtp"
-            class="auth-card__input"
-            placeholder="Enter OTP"
-            maxlength="6"
-            aria-describedby="email-otp-timer"
-          />
-        </div>
-        <span id="email-otp-timer" class="auth-card__countdown">
-          <span *ngIf="emailCountdown > 0">Resend in {{ emailCountdown }}s</span>
-          <button
-            type="button"
-            class="auth-card__resend-btn"
-            *ngIf="emailCountdown <= 0"
-            (click)="resendEmailOtp()"
+        <!-- Email -->
+        <div class="field">
+          <label for="reg-email" class="field__label">Email address</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="email?.invalid && email?.touched"
           >
-            Resend OTP
-          </button>
-        </span>
-      </div>
-
-      <!-- Phone Field with Verify Button -->
-      <div class="auth-card__field">
-        <label for="reg-phone" class="auth-card__label">Phone Number</label>
-        <div class="auth-card__input-wrapper auth-card__input-wrapper--with-action">
-          <span class="auth-card__field-icon" aria-hidden="true">phone</span>
-          <input
-            id="reg-phone"
-            type="tel"
-            formControlName="phone"
-            class="auth-card__input"
-            [class.auth-card__input--invalid]="phone?.invalid && phone?.touched"
-            placeholder="10-digit phone number"
-            aria-describedby="phone-error"
-          />
-          <button
-            type="button"
-            class="auth-card__verify-btn"
-            (click)="verifyPhone()"
-            [disabled]="phoneOtpSent && phoneCountdown > 0"
-            aria-label="Verify phone number"
-          >
-            Verify
-          </button>
+            <span class="material-icons field__icon" aria-hidden="true">mail_outline</span>
+            <input
+              id="reg-email"
+              type="email"
+              formControlName="email"
+              autocomplete="email"
+              inputmode="email"
+              placeholder="you@example.com"
+              [attr.aria-invalid]="email?.invalid && email?.touched"
+              aria-describedby="reg-email-error"
+            />
+          </div>
+          <p id="reg-email-error" class="field__error" *ngIf="email?.invalid && email?.touched">
+            <ng-container *ngIf="email?.errors?.['required']">Please enter your email address.</ng-container>
+            <ng-container *ngIf="email?.errors?.['email']">That does not look like a valid email address.</ng-container>
+          </p>
         </div>
-        <span id="phone-error" class="auth-card__error" *ngIf="phone?.invalid && phone?.touched" role="alert">
-          <span *ngIf="phone?.errors?.['required']">Phone number is required.</span>
-          <span *ngIf="phone?.errors?.['pattern']">Please enter a valid 10-digit phone number.</span>
-        </span>
-      </div>
 
-      <!-- Phone OTP Field -->
-      <div class="auth-card__field auth-card__field--otp" *ngIf="phoneOtpSent">
-        <label for="reg-phone-otp" class="auth-card__label">Phone OTP</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">pin</span>
-          <input
-            id="reg-phone-otp"
-            type="text"
-            formControlName="phoneOtp"
-            class="auth-card__input"
-            placeholder="Enter OTP"
-            maxlength="6"
-            aria-describedby="phone-otp-timer"
-          />
-        </div>
-        <span id="phone-otp-timer" class="auth-card__countdown">
-          <span *ngIf="phoneCountdown > 0">Resend in {{ phoneCountdown }}s</span>
-          <button
-            type="button"
-            class="auth-card__resend-btn"
-            *ngIf="phoneCountdown <= 0"
-            (click)="resendPhoneOtp()"
+        <!-- Phone -->
+        <div class="field">
+          <label for="reg-phone" class="field__label">Mobile number</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="phone?.invalid && phone?.touched"
           >
-            Resend OTP
-          </button>
-        </span>
-      </div>
-
-      <!-- Gender Dropdown -->
-      <div class="auth-card__field">
-        <label for="reg-gender" class="auth-card__label">Gender</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">wc</span>
-          <select
-            id="reg-gender"
-            formControlName="gender"
-            class="auth-card__input auth-card__input--select"
-            [class.auth-card__input--invalid]="gender?.invalid && gender?.touched"
-            aria-describedby="gender-error"
+            <span class="field__prefix" aria-hidden="true">+91</span>
+            <input
+              id="reg-phone"
+              type="tel"
+              formControlName="phone"
+              autocomplete="tel"
+              inputmode="tel"
+              placeholder="98765 43210"
+              [attr.aria-invalid]="phone?.invalid && phone?.touched"
+              aria-describedby="reg-phone-error reg-phone-hint"
+            />
+          </div>
+          <p
+            id="reg-phone-hint"
+            class="field__hint"
+            *ngIf="normalisedPhonePreview && phone?.valid"
           >
-            <option value="" disabled>Select gender</option>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-            <option value="prefer-not-to-say">Prefer not to say</option>
-          </select>
+            We'll save this as {{ normalisedPhonePreview }}
+          </p>
+          <p id="reg-phone-error" class="field__error" *ngIf="phone?.invalid && phone?.touched">
+            <ng-container *ngIf="phone?.errors?.['required']">Please enter your mobile number.</ng-container>
+            <ng-container *ngIf="phone?.errors?.['invalidMobile']">
+              Enter a 10-digit Indian mobile number. A leading 0 or +91 is fine.
+            </ng-container>
+          </p>
         </div>
-        <span id="gender-error" class="auth-card__error" *ngIf="gender?.invalid && gender?.touched" role="alert">
-          <span *ngIf="gender?.errors?.['required']">Please select a gender.</span>
-        </span>
-      </div>
 
-      <!-- Password Field with Eye Toggle -->
-      <div class="auth-card__field">
-        <label for="reg-password" class="auth-card__label">Password</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">lock</span>
-          <input
-            id="reg-password"
-            [type]="showPassword ? 'text' : 'password'"
-            formControlName="password"
-            class="auth-card__input"
-            [class.auth-card__input--invalid]="password?.invalid && password?.touched"
-            placeholder="Min. 8 characters"
-            aria-describedby="password-error"
-          />
-          <button
-            type="button"
-            class="auth-card__toggle-btn"
-            (click)="togglePasswordVisibility()"
-            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+        <!-- Gender -->
+        <div class="field">
+          <label for="reg-gender" class="field__label">Gender</label>
+          <div
+            class="field__control field__control--select"
+            [class.field__control--invalid]="gender?.invalid && gender?.touched"
           >
-            <span class="auth-card__toggle-icon" aria-hidden="true">
-              {{ showPassword ? 'visibility_off' : 'visibility' }}
-            </span>
-          </button>
+            <span class="material-icons field__icon" aria-hidden="true">wc</span>
+            <select
+              id="reg-gender"
+              formControlName="gender"
+              [attr.aria-invalid]="gender?.invalid && gender?.touched"
+              aria-describedby="reg-gender-error"
+            >
+              <option value="" disabled>Select an option</option>
+              <option *ngFor="let g of genders" [value]="g.value">{{ g.label }}</option>
+            </select>
+            <span class="material-icons field__chevron" aria-hidden="true">expand_more</span>
+          </div>
+          <p id="reg-gender-error" class="field__error" *ngIf="gender?.invalid && gender?.touched">
+            Please select an option.
+          </p>
         </div>
-        <span id="password-error" class="auth-card__error" *ngIf="password?.invalid && password?.touched" role="alert">
-          <span *ngIf="password?.errors?.['required']">Password is required.</span>
-          <span *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters.</span>
-        </span>
-      </div>
 
-      <!-- Re-enter Password Field -->
-      <div class="auth-card__field">
-        <label for="reg-confirm-password" class="auth-card__label">Re-enter Password</label>
-        <div class="auth-card__input-wrapper">
-          <span class="auth-card__field-icon" aria-hidden="true">lock</span>
-          <input
-            id="reg-confirm-password"
-            [type]="showConfirmPassword ? 'text' : 'password'"
-            formControlName="confirmPassword"
-            class="auth-card__input"
-            [class.auth-card__input--invalid]="confirmPassword?.invalid && confirmPassword?.touched"
-            placeholder="Repeat your password"
-            aria-describedby="confirm-password-error"
-          />
-          <button
-            type="button"
-            class="auth-card__toggle-btn"
-            (click)="toggleConfirmPasswordVisibility()"
-            [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+        <!-- Password -->
+        <div class="field">
+          <label for="reg-password" class="field__label">Password</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="password?.invalid && password?.touched"
           >
-            <span class="auth-card__toggle-icon" aria-hidden="true">
-              {{ showConfirmPassword ? 'visibility_off' : 'visibility' }}
-            </span>
-          </button>
-        </div>
-        <span id="confirm-password-error" class="auth-card__error" *ngIf="confirmPassword?.errors?.['mismatch'] && confirmPassword?.touched" role="alert">
-          Passwords do not match.
-        </span>
-      </div>
+            <span class="material-icons field__icon" aria-hidden="true">lock_outline</span>
+            <input
+              id="reg-password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="new-password"
+              placeholder="At least 8 characters"
+              [attr.aria-invalid]="password?.invalid && password?.touched"
+              aria-describedby="reg-password-error reg-password-strength"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            >
+              <span class="material-icons" aria-hidden="true">
+                {{ showPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
 
-      <!-- Action Buttons -->
-      <div class="auth-card__actions">
-        <button
-          type="submit"
-          class="auth-card__btn auth-card__btn--primary"
-          [disabled]="isSubmitting"
-        >
-          {{ isSubmitting ? 'Creating account...' : 'Sign-up' }}
+          <div
+            id="reg-password-strength"
+            class="strength"
+            *ngIf="password?.value"
+            aria-live="polite"
+          >
+            <div class="strength__bar" [ngClass]="passwordStrength.className">
+              <span [style.width.%]="passwordStrength.score * 25"></span>
+            </div>
+            <span class="strength__label">{{ passwordStrength.label }}</span>
+          </div>
+
+          <p id="reg-password-error" class="field__error" *ngIf="password?.invalid && password?.touched">
+            <ng-container *ngIf="password?.errors?.['required']">Please choose a password.</ng-container>
+            <ng-container *ngIf="password?.errors?.['minlength']">Password must be at least 8 characters.</ng-container>
+          </p>
+        </div>
+
+        <!-- Confirm password -->
+        <div class="field">
+          <label for="reg-confirm" class="field__label">Confirm password</label>
+          <div
+            class="field__control"
+            [class.field__control--invalid]="confirmInvalid"
+          >
+            <span class="material-icons field__icon" aria-hidden="true">lock_outline</span>
+            <input
+              id="reg-confirm"
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+              placeholder="Re-enter your password"
+              [attr.aria-invalid]="confirmInvalid"
+              aria-describedby="reg-confirm-error"
+            />
+            <button
+              type="button"
+              class="field__toggle"
+              (click)="toggleConfirmPasswordVisibility()"
+              [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+            >
+              <span class="material-icons" aria-hidden="true">
+                {{ showConfirmPassword ? 'visibility_off' : 'visibility' }}
+              </span>
+            </button>
+          </div>
+          <p id="reg-confirm-error" class="field__error" *ngIf="confirmInvalid">
+            <ng-container *ngIf="confirmPassword?.errors?.['required']">Please re-enter your password.</ng-container>
+            <ng-container *ngIf="passwordsMismatch">Passwords do not match.</ng-container>
+          </p>
+        </div>
+
+        <button type="submit" class="btn btn--primary" [disabled]="isSubmitting">
+          <span *ngIf="!isSubmitting">Create account</span>
+          <span *ngIf="isSubmitting" class="btn__loading">
+            <span class="spinner" aria-hidden="true"></span> Creating your account…
+          </span>
         </button>
-        <button
-          type="button"
-          class="auth-card__btn auth-card__btn--outlined"
-          (click)="onCancel()"
-        >
+
+        <button type="button" class="btn btn--ghost" (click)="onCancel()">
           Cancel
         </button>
-      </div>
-    </form>
 
-    <!-- Footer Link -->
-    <p class="auth-card__footer">
-      Already have an account? <a routerLink="/login" class="auth-card__link">Login</a>
-    </p>
+        <p class="auth-legal">
+          By creating an account you agree to our Terms of Service and Privacy Policy.
+        </p>
+      </form>
+    </div>
   </div>
 </section>

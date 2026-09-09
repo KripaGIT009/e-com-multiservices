@@ -52,6 +52,7 @@ public class UserServiceImpl implements IUserService {
         user.setLastName(request.getLastName());
         user.setRole(request.getRole() != null ? request.getRole() : Role.CUSTOMER);
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setGender(request.getGender());
         user.setProfilePictureUrl(request.getProfilePictureUrl());
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
@@ -162,6 +163,7 @@ public class UserServiceImpl implements IUserService {
                 user.getLastName(),
                 user.getRole(),
                 user.getPhoneNumber(),
+                user.getGender(),
                 user.getProfilePictureUrl(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()

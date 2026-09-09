@@ -183,14 +183,86 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (err) { res.status(401).json({ error: 'Invalid credentials' }); }
 });
 
+/**
+ * Normalises an Indian mobile number to its bare 10 digits.
+ * Accepts "+91 92504 44838", "09250444838", "9250-444-838" and similar, because
+ * browsers autofill in all of these shapes. Returns null if it is not a valid
+ * Indian mobile number.
+ */
+const normaliseIndianMobile = (raw) => {
+  if (!raw) return null;
+  let digits = String(raw).replace(/[^\d]/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  else if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  return /^[6-9]\d{9}$/.test(digits) ? digits : null;
+};
+
+/** Derives a unique-ish, URL-safe username from a display name or email. */
+const deriveUsername = (name, email) => {
+  const base = String(name || email.split('@')[0])
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '.')
+    .replace(/^\.+|\.+$/g, '')
+    .slice(0, 24);
+  return base || email.split('@')[0];
+};
+
+const VALID_GENDERS = ['MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY'];
+
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { username, email, password, firstName, lastName } = req.body;
-    if (!username || !email || !password)
-      return res.status(400).json({ error: 'Username, email and password are required' });
-    const r = await axios.post(`${USER_SERVICE}/api/users`, {
-      username, email, password, firstName: firstName || username, lastName: lastName || username, role: 'CUSTOMER'
+    const { username, email, password, firstName, lastName, name, phone, gender } = req.body;
+    if (!email || !password)
+      return res.status(400).json({ error: 'Email and password are required' });
+    if (String(password).length < 8)
+      return res.status(400).json({ error: 'Password must be at least 8 characters' });
+
+    // The form sends a single display name; user-service wants first and last.
+    const displayName = String(name || username || '').trim();
+    const parts = displayName.split(/\s+/).filter(Boolean);
+    const resolvedFirst = firstName || parts[0] || email.split('@')[0];
+    const resolvedLast = lastName || (parts.length > 1 ? parts.slice(1).join(' ') : resolvedFirst);
+
+    let phoneNumber;
+    if (phone) {
+      phoneNumber = normaliseIndianMobile(phone);
+      if (!phoneNumber)
+        return res.status(400).json({ error: 'Please enter a valid 10-digit Indian mobile number.' });
+    }
+
+    const normalisedGender = gender ? String(gender).toUpperCase() : undefined;
+    if (normalisedGender && !VALID_GENDERS.includes(normalisedGender))
+      return res.status(400).json({ error: 'Please select a valid gender.' });
+
+    const explicitUsername = username && !name ? username : null;
+    const baseUsername = explicitUsername || deriveUsername(displayName, email);
+
+    const createUser = (candidate) => axios.post(`${USER_SERVICE}/api/users`, {
+      username: candidate,
+      email,
+      password,
+      firstName: resolvedFirst,
+      lastName: resolvedLast,
+      role: 'CUSTOMER',
+      ...(phoneNumber ? { phoneNumber } : {}),
+      ...(normalisedGender ? { gender: normalisedGender } : {}),
     });
+
+    // A derived username is ours to vary; an explicitly supplied one is not.
+    let r;
+    for (let attempt = 0; ; attempt++) {
+      const candidate = attempt === 0
+        ? baseUsername
+        : `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
+      try {
+        r = await createUser(candidate);
+        break;
+      } catch (e) {
+        const isUsernameClash = e.response?.status === 409 &&
+          /username/i.test(String(e.response?.data?.message || ''));
+        if (!isUsernameClash || explicitUsername || attempt >= 5) throw e;
+      }
+    }
     const user  = r.data;
     const token = jwt.sign(
       { id: user.id, username: user.username, email: user.email, role: 'CUSTOMER' },
@@ -198,7 +270,24 @@ app.post('/api/auth/register', async (req, res) => {
     );
     const authUser = { id: user.id, username: user.username, email: user.email, role: 'CUSTOMER' };
     res.status(201).json({ token, refreshToken: issueRefreshToken(authUser), user: authUser });
-  } catch (err) { res.status(err.response?.status || 500).json({ error: 'Registration failed', details: err.message }); }
+  } catch (err) {
+    const status = err.response?.status;
+    if (status === 409) {
+      const detail = String(err.response?.data?.message || '');
+      return res.status(409).json({
+        error: /username/i.test(detail)
+          ? 'That username is already taken. Try a different name.'
+          : 'An account with this email already exists. Try logging in instead.',
+      });
+    }
+    if (status === 400) {
+      return res.status(400).json({
+        error: err.response?.data?.message || 'Some of the details you entered are not valid.',
+      });
+    }
+    console.error('Registration failed:', err.message);
+    res.status(500).json({ error: 'Registration failed. Please try again.' });
+  }
 });
 
 app.post('/api/auth/logout', (_, res) => res.json({ message: 'Logged out successfully' }));

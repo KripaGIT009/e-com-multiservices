@@ -18,6 +18,7 @@ public class UserResponse {
     private String lastName;
     private Role role;
     private String phoneNumber;
+    private String gender;
     private String profilePictureUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
