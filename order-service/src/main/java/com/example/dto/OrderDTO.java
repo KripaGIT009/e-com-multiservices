@@ -34,4 +34,6 @@ public class OrderDTO {
     private String deliveryPartnerCode;
     private String deliveryPartnerName;
     private LocalDateTime expectedDelivery;
+    /** MANUAL / RULE / DEFAULT / STRATEGY / NONE; null for orders created before M1. */
+    private String deliveryAssignmentReason;
 }

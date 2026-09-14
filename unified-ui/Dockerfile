@@ -12,6 +12,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev --legacy-peer-deps --ignore-scripts
 COPY server.js ./
+COPY bff ./bff
 COPY --from=builder /app/dist ./dist
 EXPOSE 4200
 CMD ["node", "server.js"]

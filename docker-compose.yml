@@ -225,6 +225,16 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://logistics_postgres:5432/logistics_service
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      # Carrier API credentials. Blank means the adapter reports "not configured" and
+      # shipments with that carrier are booked manually — see docs/commerce-architecture.md §7.
+      DELHIVERY_API_TOKEN: ${DELHIVERY_API_TOKEN:-}
+      DELHIVERY_BASE_URL: ${DELHIVERY_BASE_URL:-https://staging-express.delhivery.com}
+      DELHIVERY_PICKUP_LOCATION: ${DELHIVERY_PICKUP_LOCATION:-}
+      SHIPROCKET_EMAIL: ${SHIPROCKET_EMAIL:-}
+      SHIPROCKET_PASSWORD: ${SHIPROCKET_PASSWORD:-}
+      SHIPROCKET_BASE_URL: ${SHIPROCKET_BASE_URL:-https://apiv2.shiprocket.in/v1/external}
+      SHIPROCKET_PICKUP_LOCATION: ${SHIPROCKET_PICKUP_LOCATION:-}
+      DEFAULT_PARCEL_WEIGHT_GRAMS: ${DEFAULT_PARCEL_WEIGHT_GRAMS:-500}
 
   notification-service:
     image: event-sourcing-saga-multiservice-notification-service:1.1.0
@@ -387,6 +397,42 @@ services:
       timeout: 5s
       retries: 5
 
+  supplier-service:
+    image: event-sourcing-saga-multiservice-supplier-service:1.0.0
+    build:
+      context: ./supplier-service
+      dockerfile: Dockerfile
+    ports:
+      - "8027:8080"
+    depends_on:
+      kafka:
+        condition: service_started
+      supplier_postgres:
+        condition: service_healthy
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://supplier_postgres:5432/supplier_service
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Reads orders to decide what to place with suppliers; it never trusts the caller.
+      ORDER_SERVICE_URL: http://order-service:8080
+
+  supplier_postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: supplier_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5445:5432"
+    volumes:
+      - supplier_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   wishlist-service:
     image: event-sourcing-saga-multiservice-wishlist-service:1.1.0
     build:
@@ -477,6 +523,7 @@ services:
       - cart-service
       - wishlist-service
       - seller-service
+      - supplier-service
       - checkout-service
       - order-service
       - payment-service
@@ -501,6 +548,12 @@ services:
       WISHLIST_SERVICE_URL: http://wishlist-service:8080
       SELLER_SERVICE_URL: http://seller-service:8080
       LOGISTICS_SERVICE_URL: http://logistics-service:8088
+      SUPPLIER_SERVICE_URL: http://supplier-service:8080
+      # Pincode own-stock parcels are collected from. Optional; used for carrier quotes.
+      WAREHOUSE_PINCODE: ${WAREHOUSE_PINCODE:-}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET:-}
       NOTIFICATION_SERVICE_URL: http://notification-service:8080
       ADMIN_SERVICE_URL: http://admin-service:8011
 
@@ -578,6 +631,8 @@ volumes:
   wishlist_postgres_data:
     driver: local
   seller_postgres_data:
+    driver: local
+  supplier_postgres_data:
     driver: local
   redis_data:
     driver: local

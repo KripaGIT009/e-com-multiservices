@@ -10,6 +10,11 @@ BFF on a single port, backed by Java 21 / Spring Boot 3 microservices, PostgreSQ
 
 The **target** architecture is specified in [`docs/architecture.md`](docs/architecture.md)
 and the full service list in [`docs/service-catalog.md`](docs/service-catalog.md).
+Own retail, marketplace sellers and dropshipping run on **one** commerce core — one
+catalogue, cart, order and payment, with a *fulfilment model* per line and pluggable
+courier / supplier adapters. That design, its contracts and the roadmap are in
+[`docs/commerce-architecture.md`](docs/commerce-architecture.md); the prompt for the
+next phases is [`docs/claude-code-master-prompt.md`](docs/claude-code-master-prompt.md).
 Eleven of the twenty-six planned services exist today. **Do not assume a service
 exists because the spec lists it** — check the catalogue, which marks each one
 `built` / `partial` / `planned`.
@@ -81,6 +86,17 @@ These are not stylistic preferences. Breaking one is a defect.
 7. **Payment, order creation, refunds and inventory reservation must be idempotent.**
 8. **Secrets come from the environment.** No fallback default in code — the BFF
    deliberately refuses to boot without `JWT_SECRET` and `ADMIN_JWT_SECRET`.
+9. **One order, shipped in groups.** Never add a second order/cart/checkout for sellers
+   or dropship. A line's `fulfilmentModel` is snapshotted; groups are derived from lines;
+   the order is `SHIPPED` only when every group is (`unified-ui/bff/fulfilment.js`).
+10. **Partners are rows plus adapters.** A courier or supplier without an API is data
+    (`integrationType = MANUAL`); one with an API is one `@Component` adapter reading
+    credentials from the environment. Never invent a tracking number or supplier
+    reference for an API partner, and never write a partner client without its docs and
+    sandbox credentials.
+11. **No new values in `@Enumerated` columns** until Flyway lands (ADR-0003) — Hibernate's
+    CHECK constraint cannot be widened by `ddl-auto: update`. New enum-valued columns are
+    `varchar`, converted in code.
 
 ## Authentication — read this before touching auth
 

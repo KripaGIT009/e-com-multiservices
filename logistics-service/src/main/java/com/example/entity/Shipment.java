@@ -5,8 +5,15 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
+/*
+ * (orderId, fulfilmentKey) is unique so two concurrent bookings of the same group cannot
+ * both land (CLAUDE.md rule 7). Shipments recorded before M1 have a NULL key; PostgreSQL
+ * treats NULLs as distinct, so adding the constraint to an existing table is safe.
+ */
 @Entity
-@Table(name = "shipments")
+@Table(name = "shipments",
+       uniqueConstraints = @UniqueConstraint(name = "uk_shipment_order_fulfilment",
+                                             columnNames = {"orderId", "fulfilmentKey"}))
 public class Shipment {
 
     @Id
@@ -44,6 +51,33 @@ public class Shipment {
     /** Human-readable last update note shown to customer */
     @Column(length = 512)
     private String lastStatusNote;
+
+    /*
+     * M1 booking columns, all nullable: shipments from before M1 have none of them, and a
+     * NULL fulfilmentKey means the shipment covers the whole order (§4.1).
+     * bookingMode is a varchar (MANUAL / API), not @Enumerated — Hibernate 6's CHECK
+     * constraint on enum columns is never widened by ddl-auto update.
+     */
+
+    /** Which group of the order this parcel is: FIRST_PARTY, SELLER:3, … */
+    @Column(length = 60)
+    private String fulfilmentKey;
+
+    @Column(length = 20)
+    private String partnerCode;
+
+    @Column(length = 20)
+    private String bookingMode;
+
+    @Column(length = 512)
+    private String labelUrl;
+
+    /** True when MyIndianStore made the tracking number up; it will not resolve on the carrier's site. */
+    private Boolean trackingGenerated;
+
+    /** Why the booking went the way it did, e.g. an API carrier that is not configured yet. */
+    @Column(length = 512)
+    private String bookingNote;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -99,4 +133,16 @@ public class Shipment {
     public void setLastStatusNote(String lastStatusNote) { this.lastStatusNote = lastStatusNote; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public String getFulfilmentKey() { return fulfilmentKey; }
+    public void setFulfilmentKey(String fulfilmentKey) { this.fulfilmentKey = fulfilmentKey; }
+    public String getPartnerCode() { return partnerCode; }
+    public void setPartnerCode(String partnerCode) { this.partnerCode = partnerCode; }
+    public String getBookingMode() { return bookingMode; }
+    public void setBookingMode(String bookingMode) { this.bookingMode = bookingMode; }
+    public String getLabelUrl() { return labelUrl; }
+    public void setLabelUrl(String labelUrl) { this.labelUrl = labelUrl; }
+    public Boolean getTrackingGenerated() { return trackingGenerated; }
+    public void setTrackingGenerated(Boolean trackingGenerated) { this.trackingGenerated = trackingGenerated; }
+    public String getBookingNote() { return bookingNote; }
+    public void setBookingNote(String bookingNote) { this.bookingNote = bookingNote; }
 }

@@ -81,6 +81,44 @@ const routes: Routes = [
           ),
       },
       {
+        path: 'courier-allocation',
+        loadComponent: () =>
+          import('./pages/courier-allocation/courier-allocation.component').then(
+            (m) => m.CourierAllocationComponent
+          ),
+      },
+      {
+        path: 'fulfilment',
+        loadComponent: () =>
+          import('./pages/fulfilment/fulfilment.component').then((m) => m.FulfilmentComponent),
+      },
+      {
+        path: 'dropship',
+        redirectTo: 'dropship/orders',
+        pathMatch: 'full',
+      },
+      {
+        path: 'dropship/partners',
+        loadComponent: () =>
+          import('./pages/dropship/partners/dropship-partners.component').then(
+            (m) => m.DropshipPartnersComponent
+          ),
+      },
+      {
+        path: 'dropship/catalogue',
+        loadComponent: () =>
+          import('./pages/dropship/catalogue/dropship-catalogue.component').then(
+            (m) => m.DropshipCatalogueComponent
+          ),
+      },
+      {
+        path: 'dropship/orders',
+        loadComponent: () =>
+          import('./pages/dropship/orders/supplier-orders.component').then(
+            (m) => m.SupplierOrdersComponent
+          ),
+      },
+      {
         path: 'sellers',
         loadComponent: () =>
           import('./pages/sellers/sellers.component').then((m) => m.SellersComponent),

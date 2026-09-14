@@ -29,8 +29,14 @@ declare var Razorpay: any;
 export class RazorpayService {
   constructor(private http: HttpClient) {}
 
-  createOrder(amount: number, receipt: string): Observable<RazorpayOrder> {
-    return this.http.post<RazorpayOrder>('/api/payments/razorpay/create-order', { amount, receipt });
+  /**
+   * Opens a Razorpay order for one of our orders. Only the order id is sent: the BFF
+   * reads the amount from order-service, so the browser cannot choose what it pays
+   * (commerce-architecture §11.1, rule 2). The response `amount` is in paise.
+   * 404 — not the caller's order; 409 — the order is no longer PENDING (already paid).
+   */
+  createOrder(orderId: string): Observable<RazorpayOrder> {
+    return this.http.post<RazorpayOrder>('/api/payments/razorpay/create-order', { orderId });
   }
 
   verifyPayment(paymentResult: RazorpayPaymentResult, orderId: string): Observable<PaymentVerificationResponse> {

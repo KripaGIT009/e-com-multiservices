@@ -38,7 +38,7 @@
           <p class="order__units">{{ unitsFor(o) }} unit{{ unitsFor(o) === 1 ? '' : 's' }}</p>
           <p class="order__value">&#8377;{{ o.sellerSubtotal | number:'1.0-0' }}</p>
         </div>
-        <span class="pill" [ngClass]="statusClass(o.status)">{{ o.status }}</span>
+        <span class="pill" [ngClass]="statusClass(o.status)">{{ statusLabel(o.status) }}</span>
         <span class="material-icons order__chev" aria-hidden="true">
           {{ expanded === o.id ? 'expand_less' : 'expand_more' }}
         </span>
@@ -66,29 +66,139 @@
               <dd>{{ o.shippingAddressLine || '—' }}</dd>
               <dt>Phone</dt>
               <dd>{{ o.customerPhone || '—' }}</dd>
-              <dt>Assigned courier</dt>
-              <dd>{{ o.deliveryPartnerName || 'Not assigned' }}</dd>
-              <dt>Expected</dt>
-              <dd>{{ o.expectedDelivery ? (o.expectedDelivery | date:'d MMM y') : '—' }}</dd>
+              <ng-container *ngIf="o.shipment as s; else notShipped">
+                <dt>Shipped with</dt>
+                <dd>{{ s.carrier || s.partnerCode || '—' }}</dd>
+                <dt>Tracking</dt>
+                <dd>
+                  <span class="mono">{{ s.trackingNumber || '—' }}</span>
+                  <a
+                    *ngIf="s.carrierTrackingUrl"
+                    class="ship__link"
+                    [href]="s.carrierTrackingUrl"
+                    target="_blank"
+                    rel="noopener noreferrer">
+                    Track <span class="sr-only">(opens in a new tab)</span>
+                  </a>
+                </dd>
+                <ng-container *ngIf="s.bookingMode">
+                  <dt>Booking</dt>
+                  <dd>{{ humanise(s.bookingMode) }}</dd>
+                </ng-container>
+              </ng-container>
+              <ng-template #notShipped>
+                <dt>Checkout courier</dt>
+                <dd>{{ o.deliveryPartnerName || 'Not assigned' }}</dd>
+                <dt>Expected</dt>
+                <dd>{{ o.expectedDelivery ? (o.expectedDelivery | date:'d MMM y') : '—' }}</dd>
+              </ng-template>
             </dl>
 
-            <div class="ship" *ngIf="isOpen(o)">
-              <label [attr.for]="'courier-' + o.id" class="field__label">Hand to courier</label>
-              <div class="ship__row">
-                <div class="field__control">
-                  <select [id]="'courier-' + o.id" [(ngModel)]="chosenPartner[o.id]" name="courier">
-                    <option *ngFor="let p of partners" [value]="p.code">
-                      {{ p.name }} — {{ p.estimatedDays }} days
+            <!-- Confirmation of a booking made on this page -->
+            <div class="ship ship--done" *ngIf="justShipped[o.id] as s" role="status">
+              <p class="ship__done">
+                <span class="material-icons" aria-hidden="true">check_circle</span>
+                Shipped with {{ s.carrier || s.partnerCode }}<ng-container *ngIf="s.trackingNumber">, tracking
+                <span class="mono">{{ s.trackingNumber }}</span></ng-container>.
+              </p>
+              <p class="field__hint" *ngIf="s.alreadyBooked">This group had already been booked; showing the existing shipment.</p>
+              <p class="field__hint" *ngIf="s.trackingGenerated">
+                This tracking number was issued by MyIndianStore, not by the courier, so it may not
+                work on the courier's website. Write it on the parcel so we can match it up.
+              </p>
+              <p class="field__hint" *ngIf="s.bookingNote">{{ s.bookingNote }}</p>
+              <a *ngIf="s.labelUrl" class="btn btn--ghost btn--sm" [href]="s.labelUrl" target="_blank" rel="noopener noreferrer">
+                <span class="material-icons" aria-hidden="true">print</span> Shipping label
+                <span class="sr-only">(opens in a new tab)</span>
+              </a>
+            </div>
+
+            <p class="field__hint" *ngIf="isOpen(o) && awaitingPayment(o)" role="status">
+              Awaiting the customer's payment. You can hand it to a courier once it is paid.
+            </p>
+
+            <div class="ship" *ngIf="isOpen(o) && !awaitingPayment(o)">
+              <h3 class="order__sub" [id]="'ship-heading-' + o.id">Hand to courier</h3>
+
+              <p class="field__hint" *ngIf="suggestion[o.id]?.state === 'loading'" role="status">
+                Finding the right courier for this delivery…
+              </p>
+
+              <ng-container *ngIf="suggestion[o.id] as sg">
+                <div class="alert" *ngIf="sg.state === 'error'">
+                  <span class="material-icons" aria-hidden="true">error_outline</span>
+                  <div>
+                    {{ sg.message }}
+                    <button type="button" class="btn btn--ghost btn--sm ship__retry" (click)="loadSuggestion(o)">Try again</button>
+                    <p class="field__hint">You can still mark it shipped and MyIndianStore will pick the courier.</p>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-container *ngIf="suggestedQuote(o) as q">
+                <p class="suggest">
+                  <span class="chip" [class.chip--none]="!q.selected">{{ reasonLabel(q.reason) }}</span>
+                  <span class="suggest__text">{{ suggestionText(q) }}</span>
+                </p>
+                <p class="field__error" *ngIf="!q.selected && q.candidates.length === 0">
+                  No courier serves this customer's pincode, so it cannot be booked yet. Contact support.
+                </p>
+              </ng-container>
+
+              <div class="field" *ngIf="candidatesFor(o).length > 0">
+                <label [attr.for]="'courier-' + o.id" class="field__label">Courier</label>
+                <div class="field__control" [class.field__control--invalid]="overrideRejection(o)">
+                  <select
+                    [id]="'courier-' + o.id"
+                    [name]="'courier-' + o.id"
+                    [ngModel]="chosenPartner[o.id]"
+                    (ngModelChange)="onPartnerChange(o, $event)"
+                    [attr.aria-describedby]="overrideRejection(o) ? 'courier-warn-' + o.id : null">
+                    <option *ngFor="let p of candidatesFor(o)" [value]="p.code">
+                      {{ p.name }}<ng-container *ngIf="p.estimatedDays"> — about {{ p.estimatedDays }} days</ng-container>
                     </option>
                   </select>
                 </div>
-                <button type="button" class="btn btn--primary" (click)="ship(o)" [disabled]="shipping === o.id">
-                  {{ shipping === o.id ? 'Creating…' : 'Mark shipped' }}
+                <p class="field__hint" *ngIf="override[o.id]?.state === 'loading'" role="status">Checking that courier…</p>
+                <p class="field__error" *ngIf="overrideRejection(o) as why" [id]="'courier-warn-' + o.id" role="alert">
+                  {{ why }} Pick another courier to ship.
+                </p>
+                <ng-container *ngIf="override[o.id] as ov">
+                  <p class="field__error" *ngIf="ov.state === 'error'" role="alert">{{ ov.message }}</p>
+                </ng-container>
+              </div>
+
+              <div class="field ship__tracking">
+                <label [attr.for]="'tracking-' + o.id" class="field__label">
+                  Tracking number (if you booked it yourself)
+                </label>
+                <div class="field__control">
+                  <input
+                    [id]="'tracking-' + o.id"
+                    [name]="'tracking-' + o.id"
+                    type="text"
+                    autocomplete="off"
+                    maxlength="60"
+                    [(ngModel)]="trackingInput[o.id]"
+                    [attr.aria-describedby]="'tracking-hint-' + o.id" />
+                </div>
+              </div>
+
+              <p class="field__error" *ngIf="shipError[o.id]" role="alert">{{ shipError[o.id] }}</p>
+
+              <div class="ship__row">
+                <button
+                  type="button"
+                  class="btn btn--primary"
+                  (click)="ship(o)"
+                  [disabled]="!canShip(o)">
+                  {{ shipping === o.id ? 'Booking…' : 'Mark shipped' }}
                 </button>
               </div>
-              <p class="field__hint">
-                Creates a shipment and a tracking number in MyIndianStore. Carrier APIs
-                are not connected yet, so the number is ours, not the courier's.
+              <p class="field__hint" [id]="'tracking-hint-' + o.id">
+                Couriers set up with an API integration are booked directly and return their own
+                tracking number. For other couriers, enter the number you got when you booked
+                them, or leave it blank and MyIndianStore will issue one.
               </p>
             </div>
           </div>

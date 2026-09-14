@@ -1,0 +1,119 @@
+<article class="card" [attr.aria-label]="'Order ' + order.orderNumber">
+  <header class="card__top">
+    <div>
+      <h2 class="card__title">
+        <a [routerLink]="['/admin/orders', order.orderId]">{{ order.orderNumber }}</a>
+      </h2>
+      <p class="muted card__meta">
+        {{ order.createdAt | date:'d MMM y, h:mm a' }} · {{ (order.orderStatus || '').replace('_', ' ') }}
+      </p>
+    </div>
+    <span class="badge badge--info">Own products</span>
+  </header>
+
+  <div class="card__body">
+    <div class="card__col">
+      <h3 class="card__label">Ship to</h3>
+      <p class="strong">{{ order.shippingAddress?.fullName || order.customerName || 'Customer' }}</p>
+      <p class="card__text">{{ address || 'No address on the order' }}</p>
+      <p class="card__text muted" *ngIf="order.customerPhone || order.shippingAddress?.phone">
+        {{ order.shippingAddress?.phone || order.customerPhone }}
+        <span *ngIf="order.customerEmail"> · {{ order.customerEmail }}</span>
+      </p>
+    </div>
+
+    <div class="card__col">
+      <h3 class="card__label">Items to ship from our warehouse</h3>
+      <table class="lines">
+        <tbody>
+          <tr *ngFor="let l of order.lines">
+            <td>{{ l.productName }}</td>
+            <td class="num">× {{ l.quantity }}</td>
+            <td class="num">₹{{ l.unitPrice | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="2">Value of these items</td><td class="num">₹{{ total | number:'1.2-2' }}</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- Shipped tab: what was booked -->
+  <div class="card__ship" *ngIf="shippedView || order.shipment">
+    <ng-container *ngIf="order.shipment as s; else noShipment">
+      <h3 class="card__label">Shipment</h3>
+      <dl class="facts">
+        <div><dt>Courier</dt><dd>{{ s.carrier || s.partnerCode || '—' }}</dd></div>
+        <div>
+          <dt>Tracking</dt>
+          <dd>
+            <a *ngIf="s.carrierTrackingUrl; else plainTracking" [href]="s.carrierTrackingUrl" target="_blank" rel="noopener">{{ s.trackingNumber }}</a>
+            <ng-template #plainTracking>{{ s.trackingNumber || '—' }}</ng-template>
+          </dd>
+        </div>
+        <div><dt>Booking</dt><dd>{{ s.bookingMode === 'API' ? 'With the carrier' : 'Manual' }}</dd></div>
+        <div><dt>Status</dt><dd>{{ s.status || '—' }}</dd></div>
+        <div><dt>Expected</dt><dd>{{ s.estimatedDelivery ? (s.estimatedDelivery | date:'d MMM y') : '—' }}</dd></div>
+      </dl>
+      <p class="notice" *ngIf="s.trackingGenerated">
+        <span class="material-icons" aria-hidden="true">info</span>
+        Tracking number generated here — it was not issued by the courier.
+      </p>
+      <p class="notice" *ngIf="s.bookingNote">
+        <span class="material-icons" aria-hidden="true">notes</span> {{ s.bookingNote }}
+      </p>
+    </ng-container>
+    <ng-template #noShipment><p class="muted">No shipment details returned for this order.</p></ng-template>
+  </div>
+
+  <!-- Open tab: courier choice and booking -->
+  <div class="card__ship" *ngIf="!shippedView && !order.shipment">
+    <div class="suggest" *ngIf="order.suggestion as sug; else noSuggestion">
+      <ng-container *ngIf="sug.selected; else unserved">
+        <p class="card__text">
+          Suggested: <strong>{{ sug.selected.name }}</strong>
+          ({{ sug.selected.estimatedDays }} days, ₹{{ sug.selected.baseRate | number:'1.2-2' }})
+          <app-allocation-reason [reason]="sug.reason" [ruleName]="sug.ruleName"></app-allocation-reason>
+        </p>
+        <p class="muted card__text">{{ sug.explanation }}</p>
+      </ng-container>
+      <ng-template #unserved>
+        <p class="notice notice--warn">
+          <span class="material-icons" aria-hidden="true">warning</span>
+          No courier serves this pincode. Add or enable a partner that covers it, then reload.
+        </p>
+      </ng-template>
+    </div>
+    <ng-template #noSuggestion>
+      <p class="notice notice--warn">
+        <span class="material-icons" aria-hidden="true">warning</span>
+        No courier suggestion came back for this order.
+      </p>
+    </ng-template>
+
+    <div class="form ship" *ngIf="options.length > 0">
+      <div class="field">
+        <label [attr.for]="'courier-' + order.orderId">Courier</label>
+        <select [id]="'courier-' + order.orderId" [(ngModel)]="partnerCode">
+          <option *ngFor="let c of options" [value]="c.code">{{ c.name }} — {{ c.estimatedDays }} days, ₹{{ c.baseRate | number:'1.2-2' }}</option>
+        </select>
+        <p class="field__hint" *ngIf="changedFromSuggestion">Manual pick — overrides the suggestion.</p>
+      </div>
+      <div class="field" *ngIf="needsTrackingInput">
+        <label [attr.for]="'awb-' + order.orderId">Tracking number (optional)</label>
+        <input [id]="'awb-' + order.orderId" [(ngModel)]="trackingNumber" maxlength="60" placeholder="From the courier's receipt" />
+        <p class="field__hint">This courier is booked manually. Leave blank to generate one here.</p>
+      </div>
+      <div class="field ship__action">
+        <button type="button" class="btn btn--primary" (click)="ship()" [disabled]="shipping || !partnerCode">
+          {{ shipping ? 'Booking…' : 'Ship' }}
+        </button>
+      </div>
+    </div>
+
+    <p class="notice notice--error" *ngIf="error" role="alert">
+      <span class="material-icons" aria-hidden="true">error</span> {{ error }}
+    </p>
+  </div>
+</article>

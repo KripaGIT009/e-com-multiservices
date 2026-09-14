@@ -198,6 +198,46 @@
   }
 }
 
+.delivery-loading {
+  color: $mis-text-secondary;
+  font-size: 0.9rem;
+}
+
+.delivery-groups {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.delivery-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+
+  .material-icons {
+    font-size: 1.25rem;
+    color: $mis-text-secondary;
+    margin-top: 0.1rem;
+  }
+
+  &__text p { margin: 0; }
+
+  &__label {
+    font-weight: 600;
+    color: $mis-text-primary;
+  }
+
+  &__detail {
+    font-size: 0.9rem;
+    color: $mis-text-secondary;
+
+    &--warn { color: $mis-warning; }
+  }
+}
+
 .step-actions {
   display: flex;
   justify-content: space-between;

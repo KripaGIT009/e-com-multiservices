@@ -1,0 +1,58 @@
+<section aria-labelledby="ff-heading">
+  <header class="page__head">
+    <div>
+      <h1 id="ff-heading" class="page__title">Own-product shipping</h1>
+      <p class="page__note">
+        Paid orders containing products MyIndianStore sells and ships itself. The courier is
+        pre-selected by <a routerLink="/admin/courier-allocation">courier allocation</a>; you can
+        pick another that serves the pincode. Seller and dropship items on the same order are
+        shipped by the seller or the partner, not from here.
+      </p>
+    </div>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Filter orders">
+    <button type="button" [class.is-on]="tab === 'open'" (click)="setTab('open')">To ship</button>
+    <button type="button" [class.is-on]="tab === 'shipped'" (click)="setTab('shipped')">Shipped</button>
+  </div>
+
+  <div class="ff__booked" *ngFor="let b of booked" role="status">
+    <span class="material-icons" aria-hidden="true">check_circle</span>
+    <div class="ff__booked-body">
+      <p class="strong">
+        Order {{ b.order.orderNumber }} {{ b.shipment.alreadyBooked ? 'was already booked' : 'booked' }}
+        with {{ b.shipment.carrier || b.shipment.partnerCode }}
+      </p>
+      <p class="muted">
+        Tracking <span class="mono-inline">{{ b.shipment.trackingNumber || '—' }}</span>
+        · {{ b.shipment.bookingMode === 'API' ? 'Booked with the carrier' : 'Recorded manually' }}
+        <ng-container *ngIf="b.shipment.trackingGenerated">
+          · this number was generated here, not issued by the courier — hand the parcel over with it or update it
+        </ng-container>
+      </p>
+      <p class="muted" *ngIf="b.shipment.bookingNote">{{ b.shipment.bookingNote }}</p>
+      <p class="muted" *ngIf="b.shipment.labelUrl">
+        <a [href]="b.shipment.labelUrl" target="_blank" rel="noopener">Shipping label</a>
+      </p>
+    </div>
+    <button type="button" class="btn btn--ghost btn--sm" (click)="dismiss(b)" aria-label="Dismiss">Dismiss</button>
+  </div>
+
+  <p class="state" *ngIf="isLoading">Loading orders…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Retry</button>
+  </div>
+  <p class="state" *ngIf="!isLoading && !loadError && orders.length === 0">
+    {{ tab === 'open' ? 'Nothing to ship. Paid orders with own products appear here.' : 'No own-product shipments yet.' }}
+  </p>
+
+  <div class="ff__list" *ngIf="!isLoading && !loadError && orders.length > 0">
+    <app-fulfilment-card
+      *ngFor="let o of orders; trackBy: trackOrder"
+      [order]="o"
+      [partners]="partners"
+      [shippedView]="tab === 'shipped'"
+      (booked)="onBooked($event)">
+    </app-fulfilment-card>
+  </div>
+</section>

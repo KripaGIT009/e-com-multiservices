@@ -18,4 +18,7 @@ public class OrderItemDTO {
     private String description;
     private Long sellerId;
     private String sellerName;
+    /** Never null: lines created before M1 resolve to SELLER when sellerId is set, else FIRST_PARTY. */
+    private String fulfilmentModel;
+    private String fulfilmentPartnerCode;
 }

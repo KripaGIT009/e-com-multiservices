@@ -8,18 +8,11 @@ import com.example.entity.Shipment;
 import com.example.entity.ShipmentEvent;
 import com.example.repository.ShipmentEventRepository;
 import com.example.repository.ShipmentRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,21 +20,16 @@ import java.util.UUID;
 @Transactional
 public class ShipmentServiceImpl implements IShipmentService {
 
-    private static final Logger log = LoggerFactory.getLogger(ShipmentServiceImpl.class);
-
     private final ShipmentRepository shipments;
     private final ShipmentEventRepository shipmentEvents;
-    private final KafkaTemplate<String, SagaEvent> kafkaTemplate;
-    private final ObjectMapper objectMapper;
+    private final ShipmentEventPublisher events;
 
     public ShipmentServiceImpl(ShipmentRepository shipments,
                               ShipmentEventRepository shipmentEvents,
-                              KafkaTemplate<String, SagaEvent> kafkaTemplate,
-                              ObjectMapper objectMapper) {
+                              ShipmentEventPublisher events) {
         this.shipments = shipments;
         this.shipmentEvents = shipmentEvents;
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
+        this.events = events;
     }
 
     public List<Shipment> getAllShipments() {
@@ -84,7 +72,10 @@ public class ShipmentServiceImpl implements IShipmentService {
         if (event == null || event.orderId() == null) {
             throw new IllegalArgumentException("Order event missing order id");
         }
-        Optional<Shipment> existing = shipments.findByOrderId(event.orderId());
+        // Any shipment already on the order — a legacy whole-order one or a per-group
+        // booking — means the order is being fulfilled. Adding a keyless shipment here
+        // would count as covering the whole order (§4.1) and mark unshipped groups shipped.
+        Optional<Shipment> existing = shipments.findFirstByOrderIdOrderByCreatedAtDesc(event.orderId());
         if (existing.isPresent()) {
             return existing.get();
         }
@@ -104,7 +95,12 @@ public class ShipmentServiceImpl implements IShipmentService {
 
     @Transactional(readOnly = true)
     public Optional<Shipment> getShipmentByOrder(String orderId) {
-        return shipments.findByOrderId(orderId);
+        return shipments.findFirstByOrderIdOrderByCreatedAtDesc(orderId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Shipment> getShipmentsByOrder(String orderId) {
+        return shipments.findByOrderIdOrderByCreatedAtDesc(orderId);
     }
 
     @Transactional(readOnly = true)
@@ -207,35 +203,10 @@ public class ShipmentServiceImpl implements IShipmentService {
     }
 
     private void recordEvent(Long shipmentId, String type, String description) {
-        shipmentEvents.save(new ShipmentEvent(shipmentId, type, description, LocalDateTime.now()));
+        events.recordEvent(shipmentId, type, description);
     }
 
     private void publishShipmentEvent(Shipment shipment, String type) {
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("shipmentNumber", shipment.getShipmentNumber());
-        payload.put("trackingNumber", shipment.getTrackingNumber());
-        payload.put("status", shipment.getStatus().name());
-        payload.put("orderId", shipment.getOrderId());
-        payload.put("customerId", shipment.getCustomerId());
-        payload.put("carrier", shipment.getCarrier());
-        payload.put("estimatedDelivery", shipment.getEstimatedDelivery());
-        payload.put("lastStatusNote", shipment.getLastStatusNote());
-        // The shipment is already persisted. Announcing it is a side effect, so a
-        // broker that is down or missing the topic must not fail the hand-off —
-        // it previously blocked the request and threw, losing the shipment entirely.
-        try {
-            kafkaTemplate.send("shipment-events", new SagaEvent(shipment.getOrderId(), type, toJson(payload)));
-        } catch (Exception e) {
-            log.error("Shipment {} saved but the {} event could not be published: {}",
-                    shipment.getShipmentNumber(), type, e.getMessage());
-        }
-    }
-
-    private String toJson(Object payload) {
-        try {
-            return objectMapper.writeValueAsString(payload);
-        } catch (JsonProcessingException e) {
-            return null;
-        }
+        events.publish(shipment, type);
     }
 }

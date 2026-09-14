@@ -67,6 +67,33 @@ public class PaymentServiceImpl implements IPaymentService {
         return mapToDTO(savedPayment);
     }
 
+    /**
+     * Records money a gateway has already captured. Idempotent on the gateway payment
+     * id, so a retried verification or a webhook arriving after the browser callback
+     * does not record the same payment twice (CLAUDE.md rule 7).
+     *
+     * No event is published: the Kafka saga keys on order numbers and would react to
+     * this as a new payment attempt. Order status is set by the caller that verified
+     * the payment.
+     */
+    public PaymentDTO recordCapturedPayment(com.example.dto.RecordCapturedPaymentRequest request) {
+        return paymentRepository.findFirstByTransactionReference(request.getGatewayPaymentId())
+            .map(this::mapToDTO)
+            .orElseGet(() -> {
+                Payment payment = Payment.builder()
+                    .paymentId("PAY-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase())
+                    .orderId(request.getOrderId())
+                    .customerId(request.getCustomerId())
+                    .amount(request.getAmount())
+                    .status(PaymentStatus.COMPLETED)
+                    .transactionReference(request.getGatewayPaymentId())
+                    .notes(request.getNotes())
+                    .build();
+                log.info("Recorded captured payment {} for order {}", request.getGatewayPaymentId(), request.getOrderId());
+                return mapToDTO(paymentRepository.save(payment));
+            });
+    }
+
     private boolean simulatePaymentProcessing() {
         // Simulate 90% success rate
         return Math.random() < 0.9;

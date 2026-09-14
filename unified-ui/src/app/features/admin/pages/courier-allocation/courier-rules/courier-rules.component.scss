@@ -1,0 +1,28 @@
+@import '../../../../../shared/styles/variables';
+@import '../../../styles/admin-kit';
+
+.cr {
+  &__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+
+  &__new {
+    margin-bottom: 14px; padding: 14px; border: 1px solid var(--mis-line);
+    border-radius: var(--mis-radius-md); background: var(--mis-page-bg);
+  }
+
+  &__states {
+    margin: 0; padding: 10px 12px; border: 1px solid var(--mis-line-strong); border-radius: var(--mis-radius-sm);
+    legend { padding: 0 4px; font-size: var(--mis-text-xs); font-weight: 600; color: var(--mis-ink-muted); }
+  }
+
+  &__state-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 12px;
+    max-height: 180px; overflow-y: auto;
+  }
+
+  &__states &__state { display: flex; align-items: center; gap: 6px; font-size: var(--mis-text-sm); font-weight: 400; color: var(--mis-ink); }
+
+  &__states-cell { max-width: 260px; }
+}
+
+.table__actions .muted { font-size: var(--mis-text-xs); margin-right: 4px; }
+.table__actions .btn + .btn { margin-left: 6px; }

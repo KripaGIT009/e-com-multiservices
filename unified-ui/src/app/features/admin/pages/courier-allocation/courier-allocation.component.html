@@ -1,0 +1,26 @@
+<section aria-labelledby="ca-heading">
+  <header class="page__head">
+    <div>
+      <h1 id="ca-heading" class="page__title">Courier allocation</h1>
+      <p class="page__note">
+        How a courier is chosen for an order. The first step that applies wins:
+        <strong>a manual pick</strong> (when the model allows it) → <strong>the first matching
+        location rule</strong> → <strong>the default courier</strong> → <strong>the fallback
+        strategy</strong> over the active partners that cover the pincode. Checkout, Fulfilment,
+        Seller Central and the probe below all use this same decision.
+      </p>
+    </div>
+    <a class="btn btn--ghost" routerLink="/admin/delivery-partners">Manage partners</a>
+  </header>
+
+  <p class="state" *ngIf="isLoading">Loading partners…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="loadPartners()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !loadError">
+    <app-allocation-settings [partners]="partners"></app-allocation-settings>
+    <app-courier-rules [partners]="partners"></app-courier-rules>
+    <app-allocation-probe [partners]="partners"></app-allocation-probe>
+  </ng-container>
+</section>

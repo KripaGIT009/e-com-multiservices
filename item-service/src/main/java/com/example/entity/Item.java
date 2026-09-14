@@ -41,6 +41,19 @@ public class Item {
     @Column(name = "seller_name", length = 160)
     private String sellerName;
 
+    /**
+     * {@link FulfilmentModel} name, stored as varchar rather than {@code @Enumerated}
+     * (a Hibernate 6 enum CHECK constraint cannot be widened by ddl-auto). Nullable:
+     * rows written before M1 have no value and are resolved by
+     * {@link #resolvedFulfilmentModel()}, so no data migration is needed.
+     */
+    @Column(name = "fulfilment_model", length = 20)
+    private String fulfilmentModel;
+
+    /** Dropship partner code (e.g. {@code QIKINK}); set only for DROPSHIP items. */
+    @Column(name = "fulfilment_partner_code", length = 40)
+    private String fulfilmentPartnerCode;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -107,4 +120,21 @@ public class Item {
     public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
     public String getSellerName() { return sellerName; }
     public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    public String getFulfilmentModel() { return fulfilmentModel; }
+    public void setFulfilmentModel(String fulfilmentModel) { this.fulfilmentModel = fulfilmentModel; }
+    public String getFulfilmentPartnerCode() { return fulfilmentPartnerCode; }
+    public void setFulfilmentPartnerCode(String fulfilmentPartnerCode) { this.fulfilmentPartnerCode = fulfilmentPartnerCode; }
+
+    /**
+     * The effective fulfilment model: the stored value when present and valid, otherwise
+     * derived from ownership. Legacy rows (created before the column existed) have a null
+     * model, and before M1 the only two kinds of listing were seller-owned (sellerId set)
+     * and first-party (sellerId null) — so the derivation is exact and the column can be
+     * added by ddl-auto without backfilling existing rows.
+     */
+    public FulfilmentModel resolvedFulfilmentModel() {
+        return FulfilmentModel.parse(fulfilmentModel)
+                .orElse(sellerId != null ? FulfilmentModel.SELLER : FulfilmentModel.FIRST_PARTY);
+    }
 }

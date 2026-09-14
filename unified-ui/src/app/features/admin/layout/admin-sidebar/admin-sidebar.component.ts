@@ -50,7 +50,24 @@ export class AdminSidebarComponent {
         { label: 'Closed Orders', icon: 'archive', route: '/admin/orders/closed' },
       ]
     },
-    { label: 'Delivery Partners', icon: 'local_shipping', route: '/admin/delivery-partners' },
+    {
+      label: 'Fulfilment',
+      icon: 'local_shipping',
+      children: [
+        { label: 'Own-product shipping', icon: 'inventory', route: '/admin/fulfilment' },
+        { label: 'Delivery partners', icon: 'airport_shuttle', route: '/admin/delivery-partners' },
+        { label: 'Courier allocation', icon: 'alt_route', route: '/admin/courier-allocation' },
+      ]
+    },
+    {
+      label: 'Dropshipping',
+      icon: 'hub',
+      children: [
+        { label: 'Partners', icon: 'handshake', route: '/admin/dropship/partners' },
+        { label: 'Catalogue', icon: 'sell', route: '/admin/dropship/catalogue' },
+        { label: 'Supplier orders', icon: 'assignment', route: '/admin/dropship/orders' },
+      ]
+    },
     { label: 'Sellers', icon: 'storefront', route: '/admin/sellers' },
     { label: 'Categories', icon: 'category', route: '/admin/categories' },
     { label: 'Reviews', icon: 'star_rate', route: '/admin/reviews' },

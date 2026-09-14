@@ -10,6 +10,8 @@ Start with [`../CLAUDE.md`](../CLAUDE.md) if you are about to change code.
 | Document | What it covers |
 |---|---|
 | [architecture.md](architecture.md) | System context, request path, current vs target, gaps |
+| [commerce-architecture.md](commerce-architecture.md) | Own retail + marketplace + dropshipping on one core: fulfilment models, courier allocation, partner adapters, contracts, AWS target, roadmap |
+| [claude-code-master-prompt.md](claude-code-master-prompt.md) | The prompt to hand Claude Code for each subsequent phase |
 | [service-catalog.md](service-catalog.md) | All 26 services with verified `built`/`partial`/`planned` status |
 | [database-design.md](database-design.md) | Per-service schemas, conventions, target catalogue model |
 | [api-contracts.md](api-contracts.md) | The BFF's real surface with auth per route; response conventions |
@@ -37,6 +39,8 @@ Start with [`../CLAUDE.md`](../CLAUDE.md) if you are about to change code.
 | [0002](adr/0002-bff-owns-authorization.md) | Authorize at the BFF *and* every service |
 | [0003](adr/0003-schema-migrations.md) | Replace `ddl-auto: update` with Flyway |
 | [0004](adr/0004-two-identity-realms.md) | Bridge the two identity realms in the BFF |
+| [0005](adr/0005-one-commerce-core-with-fulfilment-models.md) | One commerce core; fulfilment model on the offer |
+| [0006](adr/0006-partner-adapters-and-courier-allocation.md) | Partners as rows plus adapters; rule-based courier allocation |
 
 ## Related
 

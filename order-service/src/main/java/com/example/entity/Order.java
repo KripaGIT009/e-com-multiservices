@@ -81,6 +81,15 @@ public class Order {
     @Column(name = "expected_delivery")
     private LocalDateTime expectedDelivery;
 
+    /**
+     * Why {@link #deliveryPartnerCode} was chosen — MANUAL / RULE / DEFAULT / STRATEGY /
+     * NONE — recorded with the courier (rule 5) so the decision stays explainable after
+     * allocation rules change. Varchar rather than an enum: Hibernate 6 would add a CHECK
+     * constraint that ddl-auto can never widen. Null on orders created before M1.
+     */
+    @Column(name = "delivery_assignment_reason", length = 20)
+    private String deliveryAssignmentReason;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

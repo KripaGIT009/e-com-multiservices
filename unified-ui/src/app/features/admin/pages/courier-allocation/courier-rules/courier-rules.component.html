@@ -1,0 +1,129 @@
+<section class="panel" aria-labelledby="cr-heading">
+  <div class="cr__head">
+    <div>
+      <h2 id="cr-heading" class="panel__title">Location rules</h2>
+      <p class="panel__note">
+        Checked in priority order (lowest first). A rule matches when the delivery pincode
+        starts with one of its prefixes <em>or</em> the delivery state is one of its states,
+        and its courier is active and covers that pincode.
+      </p>
+    </div>
+    <button type="button" class="btn btn--primary btn--sm" (click)="openNew()" *ngIf="editing !== 'new'">Add rule</button>
+  </div>
+
+  <ng-template #ruleForm>
+    <div class="form">
+      <div class="field">
+        <label for="cr-name">Name</label>
+        <input id="cr-name" [(ngModel)]="draft.name" placeholder="South metros" />
+      </div>
+      <div class="field">
+        <label for="cr-partner">Courier</label>
+        <select id="cr-partner" [(ngModel)]="draft.partnerCode">
+          <option value="" disabled>Choose a courier</option>
+          <option *ngFor="let p of partners" [value]="p.code">{{ p.name }}{{ p.active ? '' : ' (disabled)' }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cr-model">Applies to</label>
+        <select id="cr-model" [(ngModel)]="draft.fulfilmentModel">
+          <option value="">Any fulfilment model</option>
+          <option *ngFor="let m of models" [value]="m">{{ modelLabels[m] }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="cr-pins">Pincode prefixes</label>
+        <input id="cr-pins" [(ngModel)]="draft.pincodePrefixes" placeholder="56,60,50" />
+        <p class="field__hint">Comma-separated, 1–6 digits each.</p>
+      </div>
+      <div class="field">
+        <label for="cr-prio">Priority</label>
+        <input id="cr-prio" type="number" min="0" [(ngModel)]="draft.priority" />
+      </div>
+      <div class="field field--check">
+        <input id="cr-active" type="checkbox" [(ngModel)]="draft.active" />
+        <label for="cr-active">Active</label>
+      </div>
+      <fieldset class="field field--wide cr__states">
+        <legend>States and union territories ({{ draft.states.length }} selected)</legend>
+        <div class="cr__state-grid">
+          <label *ngFor="let s of states" class="cr__state">
+            <input type="checkbox" [checked]="draft.states.includes(s)"
+                   (change)="toggleState(s, $any($event.target).checked)" /> {{ s }}
+          </label>
+        </div>
+      </fieldset>
+      <p class="notice notice--error field--wide" *ngIf="formError" role="alert">
+        <span class="material-icons" aria-hidden="true">error</span> {{ formError }}
+      </p>
+      <div class="form__actions">
+        <button type="button" class="btn btn--ghost" (click)="close()">Cancel</button>
+        <button type="button" class="btn btn--primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (editing === 'new' ? 'Add rule' : 'Save rule') }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="cr__new" *ngIf="editing === 'new'">
+    <ng-container *ngTemplateOutlet="ruleForm"></ng-container>
+  </div>
+
+  <p class="state" *ngIf="isLoading">Loading rules…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Retry</button>
+  </div>
+  <p class="state" *ngIf="!isLoading && !loadError && rules.length === 0">
+    No location rules. Every order uses the default courier or the fallback strategy.
+  </p>
+
+  <div class="table-wrap" *ngIf="!isLoading && !loadError && rules.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col" class="num">Priority</th>
+          <th scope="col">Rule</th>
+          <th scope="col">Courier</th>
+          <th scope="col">Pincode prefixes</th>
+          <th scope="col">States</th>
+          <th scope="col">Applies to</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let r of rules">
+          <tr [class.is-off]="!r.active">
+            <td class="num">{{ r.priority }}</td>
+            <td><p class="strong">{{ r.name }}</p></td>
+            <td>
+              {{ partnerName(r.partnerCode) }}
+              <span class="badge badge--warn" *ngIf="partnerInactive(r.partnerCode)">Courier disabled</span>
+            </td>
+            <td>{{ list(r.pincodePrefixes).join(', ') || '—' }}</td>
+            <td class="cr__states-cell">{{ list(r.states).join(', ') || '—' }}</td>
+            <td>{{ r.fulfilmentModel ? modelLabels[r.fulfilmentModel] : 'Any' }}</td>
+            <td><span class="badge" [class.badge--on]="r.active">{{ r.active ? 'Active' : 'Off' }}</span></td>
+            <td class="table__actions">
+              <ng-container *ngIf="confirmDeleteId !== r.id">
+                <button type="button" class="btn btn--ghost btn--sm" (click)="openEdit(r)" [disabled]="busyId === r.id">Edit</button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="toggleActive(r)" [disabled]="busyId === r.id">
+                  {{ r.active ? 'Disable' : 'Enable' }}
+                </button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="confirmDeleteId = r.id" [disabled]="busyId === r.id">Delete</button>
+              </ng-container>
+              <ng-container *ngIf="confirmDeleteId === r.id">
+                <span class="muted">Delete this rule?</span>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="confirmDeleteId = null">Keep</button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="remove(r)" [disabled]="busyId === r.id">Delete</button>
+              </ng-container>
+            </td>
+          </tr>
+          <tr class="table__editor" *ngIf="editing === r.id">
+            <td colspan="8"><ng-container *ngTemplateOutlet="ruleForm"></ng-container></td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</section>

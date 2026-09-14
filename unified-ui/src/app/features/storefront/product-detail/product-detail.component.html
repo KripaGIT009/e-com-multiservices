@@ -26,6 +26,10 @@
         <h1 class="product-name">{{ product.name }}</h1>
         <p class="product-category" *ngIf="product.category">{{ product.category }}</p>
         <p class="product-price">₹{{ product.price | number:'1.2-2' }}</p>
+        <p class="product-seller" *ngIf="sellerLabel as label">
+          <span class="material-icons" aria-hidden="true">storefront</span>
+          {{ label }}
+        </p>
         <p class="product-description">{{ product.description }}</p>
 
         <div class="quantity-selector" role="group" aria-label="Quantity">

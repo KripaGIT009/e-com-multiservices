@@ -57,14 +57,16 @@ const ADMIN_SERVICE     = process.env.ADMIN_SERVICE_URL      || 'http://localhos
 const WISHLIST_SERVICE  = process.env.WISHLIST_SERVICE_URL   || 'http://localhost:8016';
 const SELLER_SERVICE    = process.env.SELLER_SERVICE_URL     || 'http://localhost:8021';
 const LOGISTICS_SERVICE = process.env.LOGISTICS_SERVICE_URL  || 'http://localhost:8009';
+const SUPPLIER_SERVICE  = process.env.SUPPLIER_SERVICE_URL   || 'http://localhost:8027';
 
 app.use(cors());
 
-// The Razorpay webhook signature covers the exact request bytes, so this one route
-// must keep its raw body. Parsing it here would make verification impossible.
+// Webhook signatures cover the exact request bytes, so these routes must keep their
+// raw body. Parsing it here would make verification impossible.
 const RAZORPAY_WEBHOOK_PATH = '/api/payments/razorpay/webhook';
+const PARTNER_WEBHOOK_PREFIX = '/api/webhooks/';
 app.use((req, res, next) =>
-  req.path === RAZORPAY_WEBHOOK_PATH
+  req.path === RAZORPAY_WEBHOOK_PATH || req.path.startsWith(PARTNER_WEBHOOK_PREFIX)
     ? express.raw({ type: '*/*' })(req, res, next)
     : bodyParser.json()(req, res, next)
 );
@@ -775,6 +777,9 @@ app.post('/api/seller/products', authenticateSeller, requireApprovedSeller, asyn
       itemType,
       sellerId: req.seller.sellerId,
       sellerName: req.seller.username,
+      // A seller's listing is always seller-fulfilled; the body cannot choose otherwise.
+      fulfilmentModel: 'SELLER',
+      fulfilmentPartnerCode: null,
     })).data;
     res.status(201).json(created);
   } catch (e) {
@@ -795,6 +800,8 @@ app.put('/api/seller/products/:id', authenticateSeller, requireApprovedSeller, a
       ...req.body,
       sellerId: req.seller.sellerId,
       sellerName: req.seller.username,
+      fulfilmentModel: 'SELLER',
+      fulfilmentPartnerCode: null,
     })).data;
     res.json(updated);
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update the product' }); }
@@ -820,6 +827,7 @@ app.delete('/api/seller/products/:id', authenticateSeller, requireApprovedSeller
 app.get('/api/seller/orders', authenticateSeller, async (req, res) => {
   try {
     const all = (await axios.get(`${ORDER_SERVICE}/api/v1/orders`)).data || [];
+    const key = `SELLER:${req.seller.sellerId}`;
     const mine = all
       .map((order) => {
         const lines = (order.items || [])
@@ -829,11 +837,21 @@ app.get('/api/seller/orders', authenticateSeller, async (req, res) => {
         return {
           ...order,
           items: lines,
+          fulfilmentKey: key,
           sellerSubtotal: lines.reduce((s, i) => s + (i.unitPrice || 0) * (i.quantity || 0), 0),
         };
       })
       .filter(Boolean)
       .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+
+    // This seller's own shipment. An order with several sellers is closed for one
+    // seller once they ship, while it stays open for the others.
+    await Promise.all(mine.map(async (order) => {
+      const shipments = await axios.get(`${LOGISTICS_SERVICE}/api/shipments/order/${order.id}/all`)
+        .then((r) => r.data || []).catch(() => []);
+      order.shipment = shipments.find((s) => s.fulfilmentKey === key)
+        || shipments.find((s) => !s.fulfilmentKey) || null;
+    }));
     res.json(mine);
   } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to load your orders' }); }
 });
@@ -864,7 +882,7 @@ app.get('/api/seller/stats', authenticateSeller, async (req, res) => {
     const unitsSold = myLines.reduce((s, l) => s + (l.quantity || 0), 0);
     const orderNumbers = new Set(myLines.map(l => l.order.orderNumber));
 
-    const OPEN = ['PENDING', 'CONFIRMED', 'PROCESSING', 'PACKED'];
+    const OPEN = ['PENDING', 'PAYMENT_COMPLETED', 'CONFIRMED', 'PROCESSING', 'PACKED'];
     const openOrders = new Set(
       myLines.filter(l => OPEN.includes(String(l.order.status || '').toUpperCase()))
              .map(l => l.order.orderNumber)
@@ -931,72 +949,9 @@ app.get('/api/seller/delivery-partners', authenticateSeller, async (req, res) =>
   } catch (e) { res.status(500).json({ error: 'Failed to load delivery partners' }); }
 });
 
-/**
- * Hands an order to a courier.
- *
- * The tracking number is generated here, not obtained from the carrier — there is no
- * carrier API integration yet, so the number identifies the shipment in our own
- * system and the tracking link will not resolve on the courier's site until that
- * integration exists. The UI says so rather than implying a real consignment.
- */
-app.post('/api/seller/orders/:orderId/ship', authenticateSeller, requireApprovedSeller, async (req, res) => {
-  try {
-    const order = (await axios.get(`${ORDER_SERVICE}/api/v1/orders/${req.params.orderId}`)).data;
-
-    const ownsALine = (order.items || []).some(
-      i => String(i.sellerId) === String(req.seller.sellerId)
-    );
-    if (!ownsALine) return res.status(404).json({ error: 'Order not found' });
-
-    const partners = (await axios.get(`${LOGISTICS_SERVICE}/api/delivery-partners`)).data || [];
-    const chosen = partners.find(p => p.code === req.body.partnerCode)
-                || partners.find(p => p.code === order.deliveryPartnerCode)
-                || partners[0];
-    if (!chosen) return res.status(422).json({ error: 'No delivery partner is available.' });
-
-    const trackingNumber = `${chosen.code.slice(0, 3)}${Date.now().toString().slice(-9)}`;
-    const shipment = (await axios.post(`${LOGISTICS_SERVICE}/api/shipments`, {
-      orderId: String(order.id),
-      customerId: String(order.customerId),
-      carrier: chosen.name,
-      trackingNumber,
-      deliveryAddress: order.shippingAddressLine || null,
-      carrierTrackingUrl: (chosen.trackingUrlTemplate || '').replace('{trackingNumber}', trackingNumber),
-      estimatedDelivery: new Date(Date.now() + (chosen.estimatedDays || 5) * 86400000).toISOString(),
-    })).data;
-
-    // The seller may have picked a different courier than checkout provisionally
-    // assigned. Write their choice back, or the order — and the customer's tracking
-    // page — would keep naming a courier that never collected the parcel.
-    try {
-      await axios.patch(`${ORDER_SERVICE}/api/v1/orders/${order.id}/delivery`, {
-        deliveryPartnerCode: chosen.code,
-        deliveryPartnerName: chosen.name,
-        expectedDelivery: new Date(Date.now() + (chosen.estimatedDays || 5) * 86400000)
-          .toISOString().slice(0, 19),
-      });
-    } catch (e) {
-      console.error(`Shipment ${shipment.id} created but the order courier was not updated:`, e.message);
-    }
-
-    // Handing the parcel over is what makes an order shipped. Without this the
-    // seller sees it move, then finds it back in "To fulfil" on the next reload.
-    try {
-      await axios.patch(
-        `${ORDER_SERVICE}/api/v1/orders/${order.id}/status`,
-        null,
-        { params: { status: 'SHIPPED' } }
-      );
-    } catch (e) {
-      console.error(`Shipment ${shipment.id} created but order ${order.id} stayed ${order.status}:`, e.message);
-    }
-
-    res.status(201).json({ ...shipment, generatedTrackingNumber: true });
-  } catch (e) {
-    console.error('Ship failed:', e.response?.data || e.message);
-    res.status(e.response?.status || 500).json({ error: 'Could not create the shipment' });
-  }
-});
+// Handing an order to a courier lives in bff/shipping-routes.js: it runs courier
+// allocation, books per fulfilment group, and only marks the order shipped once
+// every seller and supplier has shipped.
 
 // ── Admin: the seller approval queue ────────────────────────────────────────
 app.get('/api/sellers', authenticateAdmin, async (req, res) => {
@@ -1016,7 +971,11 @@ app.put('/api/sellers/:id/status', authenticateAdmin, async (req, res) => {
 // DELIVERY PARTNERS
 // ═══════════════════════════════════════════════════════════════════════════════
 app.get('/api/delivery-partners', async (req, res) => {
-  try { res.json((await axios.get(`${LOGISTICS_SERVICE}/api/delivery-partners`)).data); }
+  try {
+    // Disabled partners are an admin concern; everyone else sees only those in service.
+    const all = req.query.all === 'true' && resolveUser(req)?.isAdmin === true;
+    res.json((await axios.get(`${LOGISTICS_SERVICE}/api/delivery-partners`, { params: { all } })).data);
+  }
   catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to fetch delivery partners' }); }
 });
 
@@ -1032,8 +991,49 @@ app.put('/api/delivery-partners/:id', authenticateAdmin, async (req, res) => {
   try {
     res.json((await axios.put(
       `${LOGISTICS_SERVICE}/api/delivery-partners/${req.params.id}`, req.body)).data);
-  } catch (e) { res.status(e.response?.status || 500).json({ error: 'Failed to update delivery partner' }); }
+  } catch (e) {
+    res.status(e.response?.status || 500)
+       .json({ error: e.response?.data?.error || 'Failed to update delivery partner' });
+  }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// FULFILMENT, COURIER ALLOCATION AND DROPSHIPPING
+// ═══════════════════════════════════════════════════════════════════════════════
+// One order, shipped in groups: our own stock, each seller, each dropship partner.
+// See docs/commerce-architecture.md.
+const { createCore } = require('./bff/commerce-core');
+const fulfilment = require('./bff/fulfilment');
+const commerceUrls = {
+  ORDER_SERVICE, LOGISTICS_SERVICE, SUPPLIER_SERVICE, SELLER_SERVICE, ITEM_SERVICE,
+};
+const commerceCore = createCore({ axios, urls: commerceUrls });
+
+/** The caller's cart lines, resolved against the catalogue so the model is the server's. */
+const cartLines = async (req, res) => {
+  const cart = await getOrCreateCart(cartOwner(req, res));
+  const lines = (await axios.get(`${CART_SERVICE}/carts/${cart.id}/items`).catch(() => ({ data: [] }))).data || [];
+  const resolved = await Promise.all(lines.map(async (line) => {
+    const item = await axios.get(`${ITEM_SERVICE}/items/${line.itemId}`).then((r) => r.data).catch(() => null);
+    if (!item) return null;
+    return {
+      productId: String(item.id), productName: item.name, quantity: line.quantity, unitPrice: item.price,
+      sellerId: item.sellerId ?? null, sellerName: item.sellerName ?? null,
+      fulfilmentModel: item.fulfilmentModel ?? null, fulfilmentPartnerCode: item.fulfilmentPartnerCode ?? null,
+    };
+  }));
+  return resolved.filter(Boolean);
+};
+
+const commerceContext = {
+  axios,
+  urls: commerceUrls,
+  core: commerceCore,
+  cartLines,
+  guards: { authenticateAdmin, authenticateAny, authenticateSeller, requireApprovedSeller },
+};
+require('./bff/shipping-routes').register(app, commerceContext);
+require('./bff/dropship-routes').register(app, commerceContext);
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // WISHLIST — customer, always scoped to the caller
@@ -1196,17 +1196,27 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
       const id = item.itemId || item.productId;
       let product = null;
       try { product = (await axios.get(`${ITEM_SERVICE}/items/${id}`)).data; }
-      catch (_) { /* fall back to what the client sent */ }
+      catch (_) { /* unresolved — rejected below */ }
+      // The client's price was previously used when this lookup failed, which let a
+      // crafted request set its own price by naming an id that does not resolve.
+      if (!product) return null;
       return {
-        productId: String(id || ''),
-        productName: product?.name || item.name || item.productName || '',
-        quantity: item.quantity || 1,
-        unitPrice: product?.price ?? item.price ?? item.unitPrice ?? 0,
-        description: product?.sku || item.sku || item.description || null,
+        productId: String(product.id),
+        productName: product.name,
+        quantity: Math.max(1, parseInt(item.quantity, 10) || 1),
+        unitPrice: product.price,
+        description: product.sku || null,
         sellerId: product?.sellerId ?? null,
         sellerName: product?.sellerName ?? null,
+        // Snapshotted so re-sourcing a product later never rewrites who shipped this line.
+        fulfilmentModel: product?.fulfilmentModel ?? null,
+        fulfilmentPartnerCode: product?.fulfilmentPartnerCode ?? null,
       };
     }));
+
+    // A line we could not resolve has no trustworthy price, seller or fulfilment route.
+    if (mappedItems.some((l) => l === null))
+      return res.status(422).json({ error: 'Some items in your basket are no longer available.' });
 
     const address = shippingAddress ? {
       fullName: shippingAddress.fullName || null,
@@ -1231,15 +1241,25 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
 
     const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(' ').trim();
 
-    // Pick the courier that serves this pincode with the shortest transit time.
-    // Chosen here rather than by the client so the promise is one we can keep.
+    // Provisional courier for the primary group (own stock, else the first seller),
+    // chosen by the allocation engine — default courier, location rules, strategy —
+    // rather than by the client, so the promise is one we can keep. Dropship-only
+    // orders ship with the partner and get none here.
     let courier = null;
-    try {
-      const partners = (await axios.get(
-        `${LOGISTICS_SERVICE}/api/delivery-partners/serviceable/${address.postalCode}`)).data || [];
-      courier = partners[0] || null;
-    } catch (e) {
-      console.warn('Delivery partner lookup failed:', e.message);
+    let assignmentReason = null;
+    const primary = fulfilment.primaryGroup(fulfilment.groupLines({ items: mappedItems }));
+    if (primary) {
+      try {
+        const decision = await commerceCore.quote({
+          fulfilmentModel: primary.model,
+          address,
+          pickupPincode: await commerceCore.pickupPincodeFor(primary),
+        });
+        courier = decision.selected;
+        assignmentReason = decision.reason;
+      } catch (e) {
+        console.warn('Courier allocation failed; the order is created without a courier:', e.message);
+      }
     }
 
     const payload = {
@@ -1253,6 +1273,7 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
       deliveryPartnerCode: courier?.code || null,
       deliveryPartnerName: courier?.name || null,
       deliveryEstimatedDays: courier?.estimatedDays || null,
+      deliveryAssignmentReason: assignmentReason,
     };
 
     const response = await axios.post(`${ORDER_SERVICE}/api/v1/orders`, payload);
@@ -1439,109 +1460,144 @@ app.get('/api/payments/razorpay/key', (req, res) => {
   res.json({ key: RAZORPAY_KEY_ID });
 });
 
-// Create Razorpay order
+const RAZORPAY_DEMO = RAZORPAY_KEY_ID === 'rzp_test_PLACEHOLDER' || RAZORPAY_KEY_ID.includes('PLACEHOLDER');
+const razorpayAuth = () =>
+  `Basic ${Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64')}`;
+
+/** Rupees → paise, without floating-point drift (₹1,299.99 must be 129999, not 129998). */
+const toPaise = (amount) => Math.round(Number(amount) * 100);
+
+/** The caller's own order, or a 404 that does not reveal whether someone else's exists. */
+const loadOwnOrder = async (orderId, user) => {
+  const order = await commerceCore.getOrder(orderId);
+  if (String(order.customerId) !== String(user.id)) {
+    const e = new Error('Order not found'); e.status = 404; throw e;
+  }
+  return order;
+};
+
+// Create Razorpay order.
+//
+// The amount is the order's server-computed total. It used to be whatever the browser
+// sent, so a crafted request could pay ₹1 for any order (CLAUDE.md rule 2).
 app.post('/api/payments/razorpay/create-order', authenticateToken, async (req, res) => {
   try {
-    const { amount, receipt } = req.body;
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Valid amount is required' });
-    }
+    const { orderId } = req.body || {};
+    if (!orderId) return res.status(400).json({ error: 'orderId is required' });
 
-    // Test/demo mode: if using placeholder keys, return a mock order
-    if (RAZORPAY_KEY_ID === 'rzp_test_PLACEHOLDER' || RAZORPAY_KEY_ID.includes('PLACEHOLDER')) {
-      console.log('[Razorpay DEMO MODE] Creating mock order for amount:', amount);
+    const order = await loadOwnOrder(orderId, req.user);
+    if (String(order.status).toUpperCase() !== 'PENDING')
+      return res.status(409).json({ error: 'This order has already been paid for or is closed.' });
+
+    const amount = toPaise(order.totalAmount);
+    if (!(amount > 0)) return res.status(422).json({ error: 'This order has nothing to pay.' });
+
+    if (RAZORPAY_DEMO) {
+      console.log(`[Razorpay DEMO MODE] Mock order for ${order.orderNumber}, ${amount} paise`);
       return res.json({
-        id: `order_demo_${Date.now()}`,
-        amount: Math.round(amount * 100),
-        currency: 'INR',
-        receipt: receipt || `order_${Date.now()}`,
-        demo: true,
+        id: `order_demo_${Date.now()}`, amount, currency: 'INR', receipt: order.orderNumber, demo: true,
       });
     }
 
-    // Production mode: Create order via Razorpay API
-    const auth = Buffer.from(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`).toString('base64');
-    const orderResponse = await axios.post(
-      'https://api.razorpay.com/v1/orders',
-      {
-        amount: Math.round(amount * 100), // Convert to paise
-        currency: 'INR',
-        receipt: receipt || `order_${Date.now()}`,
-      },
-      {
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
+    const created = (await axios.post('https://api.razorpay.com/v1/orders', {
+      amount,
+      currency: 'INR',
+      receipt: order.orderNumber,
+      // Read back at verification to prove this payment was for this order.
+      notes: { orderId: String(order.id), orderNumber: order.orderNumber },
+    }, { headers: { Authorization: razorpayAuth(), 'Content-Type': 'application/json' } })).data;
 
-    res.json({
-      id: orderResponse.data.id,
-      amount: orderResponse.data.amount,
-      currency: orderResponse.data.currency,
-      receipt: orderResponse.data.receipt,
-    });
+    res.json({ id: created.id, amount: created.amount, currency: created.currency, receipt: created.receipt });
   } catch (err) {
+    if (err.status === 404 || err.message === 'Order not found') return res.status(404).json({ error: 'Order not found' });
     console.error('Razorpay order creation failed:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to create payment order' });
   }
 });
 
-// Verify Razorpay payment signature
+/**
+ * Verifies a payment and, only then, marks the order paid and hands its dropship
+ * lines to suppliers.
+ *
+ * A valid signature proves Razorpay took a payment for *some* Razorpay order. It does
+ * not prove it was for this order or this amount — a ₹1 payment could otherwise be
+ * replayed against a ₹50,000 order. The Razorpay order is fetched and its notes and
+ * amount compared with ours.
+ */
 app.post('/api/payments/razorpay/verify', authenticateToken, async (req, res) => {
   try {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body;
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature, orderId } = req.body || {};
+    if (!orderId) return res.status(400).json({ success: false, message: 'orderId is required' });
 
-    // Demo mode: auto-verify if using placeholder keys
-    if (RAZORPAY_KEY_ID === 'rzp_test_PLACEHOLDER' || RAZORPAY_KEY_ID.includes('PLACEHOLDER')) {
-      console.log('[Razorpay DEMO MODE] Auto-verifying payment for order:', orderId);
-      return res.json({
-        success: true,
-        message: 'Payment verified successfully (demo mode)',
-        paymentId: razorpay_payment_id || `pay_demo_${Date.now()}`,
-        orderId: orderId,
-      });
+    const order = await loadOwnOrder(orderId, req.user);
+    const status = String(order.status).toUpperCase();
+    if (fulfilment.isPaid(order)) {
+      return res.json({ success: true, message: 'This order is already paid.', orderId: order.id });
+    }
+    if (status !== 'PENDING') {
+      return res.status(409).json({ success: false, message: 'This order can no longer be paid.' });
     }
 
-    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-      return res.status(400).json({ success: false, message: 'Missing payment details' });
-    }
-
-    // Verify signature
-    const body = razorpay_order_id + '|' + razorpay_payment_id;
-    const expectedSignature = crypto
-      .createHmac('sha256', RAZORPAY_KEY_SECRET)
-      .update(body)
-      .digest('hex');
-
-    if (expectedSignature === razorpay_signature) {
-      // Payment verified — update order status if orderId provided
-      if (orderId) {
-        try {
-          await axios.post(`${PAYMENT_SERVICE}/api/v1/payments`, {
-            orderId: orderId,
-            amount: 0, // Will be fetched from order
-            paymentMethod: 'RAZORPAY',
-            transactionId: razorpay_payment_id,
-            status: 'COMPLETED',
-          });
-        } catch (payErr) {
-          console.warn('Payment service update failed (non-critical):', payErr.message);
-        }
-      }
-
-      res.json({
-        success: true,
-        message: 'Payment verified successfully',
-        paymentId: razorpay_payment_id,
-        orderId: orderId,
-      });
+    let transactionId;
+    if (RAZORPAY_DEMO) {
+      console.log(`[Razorpay DEMO MODE] Auto-verifying payment for ${order.orderNumber}`);
+      transactionId = razorpay_payment_id || `pay_demo_${Date.now()}`;
     } else {
-      res.status(400).json({ success: false, message: 'Payment verification failed - invalid signature' });
+      if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature)
+        return res.status(400).json({ success: false, message: 'Missing payment details' });
+
+      const expected = crypto.createHmac('sha256', RAZORPAY_KEY_SECRET)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`).digest('hex');
+      const given = Buffer.from(String(razorpay_signature));
+      const want = Buffer.from(expected);
+      if (given.length !== want.length || !crypto.timingSafeEqual(given, want))
+        return res.status(400).json({ success: false, message: 'Payment verification failed - invalid signature' });
+
+      const rzpOrder = (await axios.get(`https://api.razorpay.com/v1/orders/${encodeURIComponent(razorpay_order_id)}`,
+        { headers: { Authorization: razorpayAuth() } })).data;
+      if (String(rzpOrder.notes?.orderId) !== String(order.id) || Number(rzpOrder.amount) !== toPaise(order.totalAmount)) {
+        console.warn(`[Razorpay] ${razorpay_order_id} does not belong to order ${order.id} or the amount differs`);
+        return res.status(400).json({ success: false, message: 'This payment does not match the order.' });
+      }
+      transactionId = razorpay_payment_id;
     }
+
+    // Mark paid first: it is the fact everything downstream depends on.
+    await axios.patch(`${ORDER_SERVICE}/api/v1/orders/${order.id}/status`, null,
+      { params: { status: 'PAYMENT_COMPLETED' } });
+
+    try {
+      await axios.post(`${PAYMENT_SERVICE}/api/v1/payments/captured`, {
+        orderId: String(order.id),
+        customerId: String(order.customerId),
+        amount: order.totalAmount,
+        gatewayPaymentId: transactionId,
+        notes: RAZORPAY_DEMO ? 'Razorpay demo mode - no money moved' : 'Razorpay',
+      });
+    } catch (payErr) {
+      console.warn(`Order ${order.id} is paid but the payment record was not written:`, payErr.response?.data || payErr.message);
+    }
+
+    // Dropship lines go to suppliers only now. supplier-service re-checks the order is
+    // paid itself; a failure here is retried from Admin → Supplier orders.
+    let dropship = null;
+    try {
+      dropship = await commerceCore.dispatchDropship(order.id);
+    } catch (e) {
+      console.error(`Order ${order.id} paid but dropship dispatch failed:`, e.response?.data || e.message);
+    }
+
+    res.json({
+      success: true,
+      message: RAZORPAY_DEMO ? 'Payment verified successfully (demo mode)' : 'Payment verified successfully',
+      paymentId: transactionId,
+      orderId: order.id,
+      demo: RAZORPAY_DEMO || undefined,
+      supplierOrdersCreated: dropship ? dropship.created : undefined,
+    });
   } catch (err) {
-    console.error('Payment verification error:', err.message);
+    if (err.status === 404 || err.message === 'Order not found') return res.status(404).json({ success: false, message: 'Order not found' });
+    console.error('Payment verification error:', err.response?.data || err.message);
     res.status(500).json({ success: false, message: 'Payment verification error' });
   }
 });

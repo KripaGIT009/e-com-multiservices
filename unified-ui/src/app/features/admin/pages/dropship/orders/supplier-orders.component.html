@@ -1,0 +1,179 @@
+<section aria-labelledby="so-heading">
+  <header class="page__head">
+    <div>
+      <h1 id="so-heading" class="page__title">Supplier orders</h1>
+      <p class="page__note">
+        One per dropship partner per customer order, created when the customer pays. Partners
+        with an API are submitted automatically; the rest wait here as "Needs placing" until an
+        operator places them on the partner's portal and records what happened.
+      </p>
+    </div>
+  </header>
+
+  <div class="tabs" role="group" aria-label="Filter supplier orders">
+    <button type="button" *ngFor="let t of tabs" [class.is-on]="tab.key === t.key" (click)="setTab(t)">{{ t.label }}</button>
+  </div>
+
+  <div class="so__filter">
+    <label for="so-partner">Partner</label>
+    <select id="so-partner" [(ngModel)]="filterPartner" (ngModelChange)="load()">
+      <option value="">All partners</option>
+      <option *ngFor="let p of partners" [value]="p.code">{{ p.name }}</option>
+    </select>
+  </div>
+
+  <p class="state" *ngIf="isLoading">Loading supplier orders…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Retry</button>
+  </div>
+  <p class="state" *ngIf="!isLoading && !loadError && orders.length === 0">
+    Nothing in this queue.
+  </p>
+
+  <div class="table-wrap" *ngIf="!isLoading && !loadError && orders.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Order</th>
+          <th scope="col">Partner</th>
+          <th scope="col">Status</th>
+          <th scope="col" class="num">Items</th>
+          <th scope="col" class="num">Cost</th>
+          <th scope="col">Placed</th>
+          <th scope="col"><span class="sr-only">Details</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let o of orders">
+          <tr>
+            <td>
+              <p class="strong">
+                <a [routerLink]="['/admin/orders', o.orderId]">{{ o.orderNumber || 'Order #' + o.orderId }}</a>
+              </p>
+              <p class="mono">Supplier order #{{ o.id }}</p>
+            </td>
+            <td>{{ partnerName(o.partnerCode, o.partnerName) }}</td>
+            <td><span class="status" [ngClass]="statusClass(o.status)">{{ statusLabels[o.status] || o.status }}</span></td>
+            <td class="num">{{ (o.lines || []).length }}</td>
+            <td class="num">₹{{ costOf(o) | number:'1.2-2' }}</td>
+            <td>{{ o.createdAt ? (o.createdAt | date:'d MMM y') : '—' }}</td>
+            <td class="table__actions">
+              <button type="button" class="btn btn--ghost btn--sm" (click)="toggle(o)"
+                      [attr.aria-expanded]="expandedId === o.id">
+                {{ expandedId === o.id ? 'Hide' : 'Open' }}
+              </button>
+            </td>
+          </tr>
+
+          <tr class="table__editor" *ngIf="expandedId === o.id">
+            <td colspan="7">
+              <div class="so__detail">
+                <div class="so__cols">
+                  <div>
+                    <h3 class="so__label">Items to order from {{ partnerName(o.partnerCode, o.partnerName) }}</h3>
+                    <table class="lines">
+                      <thead>
+                        <tr><th scope="col">Product</th><th scope="col">Partner SKU</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Unit cost</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let l of o.lines">
+                          <td>{{ l.productName }}</td>
+                          <td class="mono">{{ l.partnerSku }}</td>
+                          <td class="num">{{ l.quantity }}</td>
+                          <td class="num">₹{{ l.unitCost | number:'1.2-2' }}</td>
+                        </tr>
+                        <tr *ngIf="!o.lines || o.lines.length === 0"><td colspan="4" class="muted">No lines recorded.</td></tr>
+                      </tbody>
+                      <tfoot>
+                        <tr><td colspan="3">Cost total</td><td class="num">₹{{ costOf(o) | number:'1.2-2' }}</td></tr>
+                      </tfoot>
+                    </table>
+                  </div>
+
+                  <div>
+                    <h3 class="so__label">Ship to</h3>
+                    <p class="so__text strong">{{ o.shipToName || '—' }}</p>
+                    <p class="so__text">{{ o.shipToAddress || 'No address recorded' }}</p>
+                    <p class="so__text muted">{{ o.shipToPincode }}<span *ngIf="o.shipToPhone"> · {{ o.shipToPhone }}</span></p>
+
+                    <h3 class="so__label">Partner record</h3>
+                    <p class="so__text">Reference: <span class="mono-inline">{{ o.partnerOrderRef || '—' }}</span></p>
+                    <p class="so__text">
+                      Tracking:
+                      <a *ngIf="o.trackingUrl; else plainTrack" [href]="o.trackingUrl" target="_blank" rel="noopener">{{ o.trackingNumber || 'link' }}</a>
+                      <ng-template #plainTrack><span class="mono-inline">{{ o.trackingNumber || '—' }}</span></ng-template>
+                      <span *ngIf="o.carrierName"> · {{ o.carrierName }}</span>
+                    </p>
+                    <p class="notice notice--error" *ngIf="o.failureReason">
+                      <span class="material-icons" aria-hidden="true">error</span> {{ o.failureReason }}
+                    </p>
+                    <p class="notice" *ngIf="o.lastNote">
+                      <span class="material-icons" aria-hidden="true">notes</span> {{ o.lastNote }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="so__actions" *ngIf="!action">
+                  <button type="button" class="btn btn--ghost btn--sm" *ngIf="o.status === 'FAILED'"
+                          (click)="retry(o)" [disabled]="busyId === o.id">
+                    {{ busyId === o.id ? 'Retrying…' : 'Retry' }}
+                  </button>
+                  <ng-container *ngFor="let s of o.allowedNextStatuses">
+                    <button type="button" class="btn btn--ghost btn--sm" *ngIf="s !== 'CANCELLED'" (click)="openAction(o, s)">
+                      {{ s === 'SUBMITTED' ? 'Record as submitted' : s === 'ACCEPTED' ? 'Mark accepted' : s === 'SHIPPED' ? 'Mark shipped' : 'Mark ' + (statusLabels[s] || s).toLowerCase() }}
+                    </button>
+                    <ng-container *ngIf="s === 'CANCELLED'">
+                      <button type="button" class="btn btn--danger btn--sm" *ngIf="confirmCancelId !== o.id" (click)="confirmCancelId = o.id">Cancel order</button>
+                      <ng-container *ngIf="confirmCancelId === o.id">
+                        <span class="muted">Cancel with the partner too?</span>
+                        <button type="button" class="btn btn--ghost btn--sm" (click)="confirmCancelId = null">Keep</button>
+                        <button type="button" class="btn btn--danger btn--sm" (click)="openAction(o, 'CANCELLED')">Cancel it</button>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
+                  <p class="muted" *ngIf="(o.allowedNextStatuses || []).length === 0 && o.status !== 'FAILED'">
+                    Nothing more to do — {{ (statusLabels[o.status] || o.status).toLowerCase() }}.
+                  </p>
+                </div>
+
+                <div class="form so__form" *ngIf="action">
+                  <div class="field" *ngIf="action === 'SUBMITTED' || action === 'ACCEPTED'">
+                    <label for="so-ref">Partner order reference</label>
+                    <input id="so-ref" [(ngModel)]="partnerOrderRef" maxlength="80" placeholder="From the partner's portal" />
+                  </div>
+                  <ng-container *ngIf="action === 'SHIPPED'">
+                    <div class="field">
+                      <label for="so-awb">Tracking number</label>
+                      <input id="so-awb" [(ngModel)]="trackingNumber" maxlength="60" />
+                    </div>
+                    <div class="field">
+                      <label for="so-carrier">Carrier</label>
+                      <input id="so-carrier" [(ngModel)]="carrierName" maxlength="60" />
+                    </div>
+                    <div class="field">
+                      <label for="so-url">Tracking URL</label>
+                      <input id="so-url" [(ngModel)]="trackingUrl" maxlength="300" placeholder="https://" />
+                    </div>
+                  </ng-container>
+                  <div class="field field--wide">
+                    <label for="so-note">Note (optional)</label>
+                    <input id="so-note" [(ngModel)]="note" maxlength="300" />
+                  </div>
+                  <p class="notice notice--error field--wide" *ngIf="actionError" role="alert">
+                    <span class="material-icons" aria-hidden="true">error</span> {{ actionError }}
+                  </p>
+                  <div class="form__actions">
+                    <button type="button" class="btn btn--ghost" (click)="closeAction()">Cancel</button>
+                    <button type="button" class="btn btn--primary" (click)="submitAction(o)" [disabled]="busyId === o.id">
+                      {{ busyId === o.id ? 'Saving…' : 'Mark ' + (statusLabels[action] || action).toLowerCase() }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</section>
