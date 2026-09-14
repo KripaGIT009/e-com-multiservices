@@ -1,0 +1,21 @@
+@import '../../../../../shared/styles/variables';
+@import '../../../styles/admin-kit';
+
+.as {
+  &__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+
+  &__card {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 14px 16px; border: 1px solid var(--mis-line); border-radius: var(--mis-radius-md);
+    background: var(--mis-page-bg);
+  }
+
+  &__model { margin: 0; font-size: var(--mis-text-md); font-weight: 600; }
+  &__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: auto; }
+}
+
+.mono { margin-top: -8px; }
+
+@media (max-width: 1100px) {
+  .as__grid { grid-template-columns: 1fr; }
+}

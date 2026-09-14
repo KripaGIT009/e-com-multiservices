@@ -44,6 +44,20 @@ public class OrderItem {
     @Column(name = "seller_name", length = 160)
     private String sellerName;
 
+    /**
+     * How this line was fulfilled — FIRST_PARTY / SELLER / DROPSHIP — snapshotted from the
+     * item at checkout (rule 5), so re-classifying a listing later cannot rewrite who was
+     * responsible for shipping an existing order. A plain varchar, not {@code @Enumerated}:
+     * Hibernate 6 would add a CHECK constraint that ddl-auto can never widen. Null on
+     * lines created before M1; the DTO resolves those from {@link #sellerId}.
+     */
+    @Column(name = "fulfilment_model", length = 20)
+    private String fulfilmentModel;
+
+    /** Dropship partner code at checkout (e.g. QIKINK); null unless DROPSHIP. Snapshot. */
+    @Column(name = "fulfilment_partner_code", length = 40)
+    private String fulfilmentPartnerCode;
+
     public BigDecimal getLineTotal() {
         return unitPrice.multiply(BigDecimal.valueOf(quantity));
     }

@@ -52,6 +52,7 @@ public class OrderServiceImpl implements IOrderService {
             .expectedDelivery(request.getDeliveryEstimatedDays() != null
                 ? java.time.LocalDateTime.now().plusDays(request.getDeliveryEstimatedDays())
                 : null)
+            .deliveryAssignmentReason(request.getDeliveryAssignmentReason())
             .build();
 
         // Add order items
@@ -66,6 +67,8 @@ public class OrderServiceImpl implements IOrderService {
                     .description(itemRequest.getDescription())
                     .sellerId(itemRequest.getSellerId())
                     .sellerName(itemRequest.getSellerName())
+                    .fulfilmentModel(itemRequest.getFulfilmentModel())
+                    .fulfilmentPartnerCode(itemRequest.getFulfilmentPartnerCode())
                     .build())
                 .collect(Collectors.toList());
             order.setItems(items);
@@ -89,7 +92,7 @@ public class OrderServiceImpl implements IOrderService {
     public OrderDTO getOrderById(Long id) {
         log.info("Fetching order with id: {}", id);
         Order order = orderRepository.findByIdWithItems(id)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+            .orElseThrow(() -> OrderNotFoundException.byId(id));
         return mapToDTO(order);
     }
 
@@ -97,7 +100,7 @@ public class OrderServiceImpl implements IOrderService {
     public OrderDTO getOrderByNumber(String orderNumber) {
         log.info("Fetching order with number: {}", orderNumber);
         Order order = orderRepository.findByOrderNumber(orderNumber)
-            .orElseThrow(() -> new RuntimeException("Order not found with number: " + orderNumber));
+            .orElseThrow(() -> OrderNotFoundException.byNumber(orderNumber));
         return mapToDTO(order);
     }
 
@@ -128,7 +131,7 @@ public class OrderServiceImpl implements IOrderService {
     public OrderDTO updateOrderStatus(Long id, OrderStatus newStatus) {
         log.info("Updating order {} status to: {}", id, newStatus);
         Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+            .orElseThrow(() -> OrderNotFoundException.byId(id));
 
         OrderStatus oldStatus = order.getStatus();
         order.setStatus(newStatus);
@@ -151,7 +154,7 @@ public class OrderServiceImpl implements IOrderService {
     public OrderDTO updateDeliveryPartner(Long id, UpdateDeliveryRequest request) {
         log.info("Updating order {} delivery partner to: {}", id, request.getDeliveryPartnerCode());
         Order order = orderRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Order not found with id: " + id));
+            .orElseThrow(() -> OrderNotFoundException.byId(id));
 
         if (request.getDeliveryPartnerCode() != null) {
             order.setDeliveryPartnerCode(request.getDeliveryPartnerCode());
@@ -162,6 +165,9 @@ public class OrderServiceImpl implements IOrderService {
         if (request.getExpectedDelivery() != null) {
             order.setExpectedDelivery(request.getExpectedDelivery());
         }
+        if (request.getDeliveryAssignmentReason() != null) {
+            order.setDeliveryAssignmentReason(request.getDeliveryAssignmentReason());
+        }
 
         return mapToDTO(orderRepository.save(order));
     }
@@ -169,7 +175,7 @@ public class OrderServiceImpl implements IOrderService {
     public void deleteOrder(Long id) {
         log.info("Deleting order with id: {}", id);
         if (!orderRepository.existsById(id)) {
-            throw new RuntimeException("Order not found with id: " + id);
+            throw OrderNotFoundException.byId(id);
         }
         orderRepository.deleteById(id);
     }
@@ -221,6 +227,8 @@ public class OrderServiceImpl implements IOrderService {
                     .description(item.getDescription())
                     .sellerId(item.getSellerId())
                     .sellerName(item.getSellerName())
+                    .fulfilmentModel(resolveFulfilmentModel(item))
+                    .fulfilmentPartnerCode(item.getFulfilmentPartnerCode())
                     .build())
                 .collect(Collectors.toList()))
             .createdAt(order.getCreatedAt())
@@ -235,7 +243,19 @@ public class OrderServiceImpl implements IOrderService {
             .deliveryPartnerCode(order.getDeliveryPartnerCode())
             .deliveryPartnerName(order.getDeliveryPartnerName())
             .expectedDelivery(order.getExpectedDelivery())
+            .deliveryAssignmentReason(order.getDeliveryAssignmentReason())
             .build();
+    }
+
+    /**
+     * Lines written before M1 have no fulfilment model. At that time a line was either
+     * seller-fulfilled (sellerId set) or first-party, so the value is derived exactly.
+     */
+    static String resolveFulfilmentModel(OrderItem item) {
+        if (item.getFulfilmentModel() != null && !item.getFulfilmentModel().isBlank()) {
+            return item.getFulfilmentModel();
+        }
+        return item.getSellerId() != null ? "SELLER" : "FIRST_PARTY";
     }
 
     private com.example.entity.ShippingAddress toEmbeddedAddress(

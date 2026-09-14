@@ -4,6 +4,10 @@
 
 The browser calls **only** the BFF at `/api/*`. Service APIs are internal.
 
+Fulfilment, courier allocation and dropshipping routes are specified in
+[`commerce-architecture.md`](commerce-architecture.md) §9 (service APIs) and §10 (BFF),
+and are not repeated here.
+
 Routes below are the BFF's current surface, verified against the running system. The
 `Auth` column is what is enforced **today**, after the authorization fixes in
 `CODE_REVIEW.md`.

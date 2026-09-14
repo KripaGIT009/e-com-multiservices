@@ -27,4 +27,6 @@ public class CreateOrderRequest {
     private String deliveryPartnerCode;
     private String deliveryPartnerName;
     private Integer deliveryEstimatedDays;
+    /** Why that courier was chosen: MANUAL / RULE / DEFAULT / STRATEGY / NONE. */
+    private String deliveryAssignmentReason;
 }

@@ -1,0 +1,23 @@
+@import '../../../../../shared/styles/variables';
+@import '../../../styles/admin-kit';
+
+.panel__note a { color: var(--mis-primary-dark); }
+
+.dsc {
+  &__filter {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+
+    label { font-size: var(--mis-text-sm); font-weight: 600; color: var(--mis-ink-muted); }
+
+    select {
+      padding: 8px 10px; border: 1px solid var(--mis-line-strong); border-radius: var(--mis-radius-sm);
+      background: var(--mis-surface); font-family: inherit; font-size: var(--mis-text-sm); color: var(--mis-ink);
+    }
+  }
+
+  &__loss { color: var(--mis-error); font-weight: 600; }
+}
+
+.table__actions .muted { font-size: var(--mis-text-xs); margin-right: 4px; }
+.table__actions .btn + .btn { margin-left: 6px; }
+.table .mono { display: block; }

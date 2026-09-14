@@ -1,5 +1,6 @@
 package com.example.config;
 
+import com.example.carrier.CarrierAdapterRegistry;
 import com.example.entity.DeliveryPartner;
 import com.example.repository.DeliveryPartnerRepository;
 import jakarta.annotation.PostConstruct;
@@ -18,13 +19,17 @@ import java.util.List;
  * that an admin is expected to replace with contracted figures — they are starting
  * values, not quoted prices.
  *
- * Idempotent: seeds only when the table is empty, so an operator's edits survive
- * restarts.
+ * Idempotent: the base set is seeded only when the table is empty, and Shiprocket only
+ * when its code is missing, so an operator's edits survive restarts. Existing rows are
+ * never modified — a database from before M1 keeps DELHIVERY on MANUAL until an admin
+ * switches it (docs/commerce-architecture.md §8.1).
  */
 @Component
 public class DeliveryPartnerInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(DeliveryPartnerInitializer.class);
+    private static final String MANUAL = CarrierAdapterRegistry.MANUAL;
+
     private final DeliveryPartnerRepository repository;
 
     public DeliveryPartnerInitializer(DeliveryPartnerRepository repository) {
@@ -33,29 +38,57 @@ public class DeliveryPartnerInitializer {
 
     @PostConstruct
     public void seed() {
+        seedBaseSet();
+        seedShiprocket();
+    }
+
+    private void seedBaseSet() {
         if (repository.count() > 0) return;
 
         repository.saveAll(List.of(
-            new DeliveryPartner("DELHIVERY", "Delhivery",
+            // DELHIVERY's adapter falls back to manual booking until its credentials are set.
+            partner("DELHIVERY", "Delhivery",
                 "https://www.delhivery.com/track/package/{trackingNumber}",
-                3, new BigDecimal("55.00"), ""),
-            new DeliveryPartner("BLUEDART", "Blue Dart",
+                3, "55.00", "DELHIVERY"),
+            partner("BLUEDART", "Blue Dart",
                 "https://www.bluedart.com/web/guest/trackdartresult?trackFor=0&trackNo={trackingNumber}",
-                2, new BigDecimal("95.00"), ""),
-            new DeliveryPartner("DTDC", "DTDC",
+                2, "95.00", MANUAL),
+            partner("DTDC", "DTDC",
                 "https://www.dtdc.in/tracking/tracking_results.asp?strCnno={trackingNumber}",
-                4, new BigDecimal("60.00"), ""),
-            new DeliveryPartner("ECOMEXPRESS", "Ecom Express",
+                4, "60.00", MANUAL),
+            partner("ECOMEXPRESS", "Ecom Express",
                 "https://ecomexpress.in/tracking/?awb_field={trackingNumber}",
-                4, new BigDecimal("50.00"), ""),
-            new DeliveryPartner("XPRESSBEES", "XpressBees",
+                4, "50.00", MANUAL),
+            partner("XPRESSBEES", "XpressBees",
                 "https://www.xpressbees.com/shipment/tracking?awb={trackingNumber}",
-                4, new BigDecimal("48.00"), ""),
+                4, "48.00", MANUAL),
             // India Post reaches pincodes the private carriers often will not.
-            new DeliveryPartner("INDIAPOST", "India Post",
+            partner("INDIAPOST", "India Post",
                 "https://www.indiapost.gov.in/_layouts/15/DOP.Portal.Tracking/TrackConsignment.aspx?tn={trackingNumber}",
-                7, new BigDecimal("35.00"), "")
+                7, "35.00", MANUAL)
         ));
         log.info("Seeded {} delivery partners", repository.count());
+    }
+
+    /**
+     * Shiprocket is an aggregator: it routes parcels to many couriers itself. It is seeded
+     * INACTIVE with indicative transit and rate values — we hold no account with it, so it
+     * must not be allocated until an admin has configured the integration and enabled it.
+     */
+    private void seedShiprocket() {
+        if (repository.findByCode("SHIPROCKET").isPresent()) return;
+        DeliveryPartner shiprocket = partner("SHIPROCKET", "Shiprocket",
+            "https://shiprocket.co/tracking/{trackingNumber}", 4, "60.00", "SHIPROCKET");
+        shiprocket.setAggregator(true);
+        shiprocket.setActive(false);
+        repository.save(shiprocket);
+        log.info("Seeded Shiprocket as an inactive delivery partner");
+    }
+
+    private static DeliveryPartner partner(String code, String name, String template,
+                                           int days, String rate, String integrationType) {
+        DeliveryPartner p = new DeliveryPartner(code, name, template, days, new BigDecimal(rate), "");
+        p.setIntegrationType(integrationType);
+        return p;
     }
 }

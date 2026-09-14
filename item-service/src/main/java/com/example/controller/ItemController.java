@@ -27,6 +27,9 @@ public class ItemController {
                            request.getPrice(), request.getQuantity(), request.getItemType());
         item.setSellerId(request.getSellerId());
         item.setSellerName(request.getSellerName());
+        item.setFulfilmentModel(request.getFulfilmentModel());
+        item.setFulfilmentPartnerCode(request.getFulfilmentPartnerCode());
+        // The service validates the fulfilment combination (400 on an invalid one).
         Item created = itemService.createItem(item);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToResponse(created));
     }
@@ -34,9 +37,15 @@ public class ItemController {
     /** Everything a given seller has listed — the seller dashboard's catalogue. */
     @GetMapping("/seller/{sellerId}")
     public ResponseEntity<List<ItemResponse>> getBySeller(@PathVariable Long sellerId) {
-        List<Item> items = itemService.getAllItems().stream()
-            .filter(i -> sellerId.equals(i.getSellerId()))
-            .collect(Collectors.toList());
+        List<Item> items = itemService.getItemsBySeller(sellerId);
+        return ResponseEntity.ok(items.stream().map(this::convertToResponse).collect(Collectors.toList()));
+    }
+
+    /** Items of one fulfilment model, optionally one dropship partner. Unknown model → 400. */
+    @GetMapping("/fulfilment/{model}")
+    public ResponseEntity<List<ItemResponse>> getByFulfilment(@PathVariable String model,
+                                                              @RequestParam(required = false) String partnerCode) {
+        List<Item> items = itemService.getItemsByFulfilment(model, partnerCode);
         return ResponseEntity.ok(items.stream().map(this::convertToResponse).collect(Collectors.toList()));
     }
 
@@ -64,6 +73,8 @@ public class ItemController {
                                    request.getPrice(), request.getQuantity(), request.getItemType());
         itemDetails.setSellerId(request.getSellerId());
         itemDetails.setSellerName(request.getSellerName());
+        itemDetails.setFulfilmentModel(request.getFulfilmentModel());
+        itemDetails.setFulfilmentPartnerCode(request.getFulfilmentPartnerCode());
         Item updated = itemService.updateItem(id, itemDetails);
         return updated != null ? ResponseEntity.ok(convertToResponse(updated)) : ResponseEntity.notFound().build();
     }
@@ -80,7 +91,7 @@ public class ItemController {
     }
 
     private ItemResponse convertToResponse(Item item) {
-        return new ItemResponse(
+        ItemResponse response = new ItemResponse(
             item.getId(),
             item.getSku(),
             item.getName(),
@@ -93,5 +104,8 @@ public class ItemController {
             item.getCreatedAt(),
             item.getUpdatedAt()
         );
+        response.setFulfilmentModel(item.resolvedFulfilmentModel().name());
+        response.setFulfilmentPartnerCode(item.getFulfilmentPartnerCode());
+        return response;
     }
 }

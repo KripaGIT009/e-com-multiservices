@@ -106,6 +106,35 @@
           <p>{{ shippingForm.value.city }}, {{ shippingForm.value.state }} - {{ shippingForm.value.postalCode }}</p>
           <p>Phone: {{ shippingForm.value.phone }}</p>
         </div>
+        <div
+          class="summary-section delivery-estimate"
+          *ngIf="quoteState === 'loading' || (quoteState === 'ready' && quoteGroups.length > 0)"
+          aria-live="polite">
+          <h3 id="delivery-estimate-heading">Delivery</h3>
+          <p *ngIf="quoteState === 'loading'" class="delivery-loading" role="status">
+            Checking couriers for PIN {{ shippingForm.value.postalCode }}…
+          </p>
+          <ul
+            *ngIf="quoteState === 'ready'"
+            class="delivery-groups"
+            aria-labelledby="delivery-estimate-heading">
+            <li *ngFor="let g of quoteGroups" class="delivery-group">
+              <span class="material-icons" aria-hidden="true">local_shipping</span>
+              <div class="delivery-group__text">
+                <p class="delivery-group__label">{{ g.label }}</p>
+                <p *ngIf="isDropshipGroup(g)" class="delivery-group__detail">Shipped by our partner</p>
+                <ng-container *ngIf="!isDropshipGroup(g)">
+                  <p *ngIf="courierName(g) as courier" class="delivery-group__detail">
+                    {{ courier }}<ng-container *ngIf="estimatedDaysFor(g) as days"> · about {{ days }} day{{ days === 1 ? '' : 's' }}</ng-container>
+                  </p>
+                  <p *ngIf="!courierName(g)" class="delivery-group__detail delivery-group__detail--warn">
+                    No courier currently serves this pincode for these items — we'll contact you
+                  </p>
+                </ng-container>
+              </div>
+            </li>
+          </ul>
+        </div>
         <div class="summary-section">
           <h3>Order Items</h3>
           <div class="cart-item" *ngFor="let item of cartItems">

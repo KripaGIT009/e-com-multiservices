@@ -1,0 +1,199 @@
+<section aria-labelledby="dsc-heading">
+  <header class="page__head">
+    <div>
+      <h1 id="dsc-heading" class="page__title">Dropship catalogue</h1>
+      <p class="page__note">
+        Products we list and sell but a partner holds and ships. The cost price is what the
+        partner charges us — it is never shown to customers or sellers. Adding a listing
+        creates the catalogue item too.
+      </p>
+    </div>
+    <button type="button" class="btn btn--primary" (click)="openAdd()" *ngIf="!showAdd">Add listing</button>
+  </header>
+
+  <div class="panel" *ngIf="showAdd">
+    <h2 class="panel__title">Add a listing</h2>
+    <p class="panel__note" *ngIf="activePartners.length === 0">
+      No partner is active. Activate one in
+      <a routerLink="/admin/dropship/partners">Dropship partners</a> before listing its products.
+    </p>
+    <div class="form">
+      <div class="field">
+        <label for="l-partner">Partner</label>
+        <select id="l-partner" [(ngModel)]="draft.partnerCode" [disabled]="activePartners.length === 0">
+          <option value="" disabled>Choose a partner</option>
+          <option *ngFor="let p of activePartners" [value]="p.code">{{ p.name }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="l-psku">Partner SKU</label>
+        <input id="l-psku" [(ngModel)]="draft.partnerSku" maxlength="80" />
+      </div>
+      <div class="field">
+        <label for="l-cost">Cost price (₹)</label>
+        <input id="l-cost" type="number" min="0" step="0.01" [(ngModel)]="draft.costPrice" />
+      </div>
+      <div class="field">
+        <label for="l-sku">Our SKU</label>
+        <input id="l-sku" [(ngModel)]="draft.sku" maxlength="60" />
+      </div>
+      <div class="field">
+        <label for="l-name">Product name</label>
+        <input id="l-name" [(ngModel)]="draft.name" maxlength="160" />
+      </div>
+      <div class="field">
+        <label for="l-price">Selling price (₹)</label>
+        <input id="l-price" type="number" min="0" step="0.01" [(ngModel)]="draft.price" />
+        <p class="field__hint" *ngIf="draft.price != null && draft.costPrice != null; else noMargin"
+           [class.dsc__loss]="(previewMargin(draft.price, draft.costPrice) || 0) <= 0">
+          Margin ₹{{ previewMargin(draft.price, draft.costPrice) | number:'1.2-2' }}
+          ({{ previewMarginPercent(draft.price, draft.costPrice) | number:'1.1-1' }}%)
+        </p>
+        <ng-template #noMargin><p class="field__hint">Margin shows once cost and price are set.</p></ng-template>
+      </div>
+      <div class="field">
+        <label for="l-qty">Quantity to publish</label>
+        <input id="l-qty" type="number" min="0" [(ngModel)]="draft.quantity" />
+      </div>
+      <div class="field">
+        <label for="l-type">Category</label>
+        <select id="l-type" [(ngModel)]="draft.itemType">
+          <option value="" disabled>Choose a category</option>
+          <option *ngFor="let t of itemTypes" [value]="t">{{ t.replace('_', ' ') | titlecase }}</option>
+        </select>
+      </div>
+      <div class="field field--wide">
+        <label for="l-desc">Description</label>
+        <textarea id="l-desc" rows="2" [(ngModel)]="draft.description"></textarea>
+      </div>
+      <p class="notice notice--error field--wide" *ngIf="addError" role="alert">
+        <span class="material-icons" aria-hidden="true">error</span> {{ addError }}
+      </p>
+      <div class="form__actions">
+        <button type="button" class="btn btn--ghost" (click)="showAdd = false">Cancel</button>
+        <button type="button" class="btn btn--primary" (click)="add()" [disabled]="adding || activePartners.length === 0">
+          {{ adding ? 'Adding…' : 'Add listing' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dsc__filter">
+    <label for="dsc-partner">Partner</label>
+    <select id="dsc-partner" [(ngModel)]="filterPartner" (ngModelChange)="load()">
+      <option value="">All partners</option>
+      <option *ngFor="let p of partners" [value]="p.code">{{ p.name }}</option>
+    </select>
+  </div>
+
+  <p class="state" *ngIf="isLoading">Loading listings…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Retry</button>
+  </div>
+  <p class="state" *ngIf="!isLoading && !loadError && listings.length === 0">
+    No dropship listings{{ filterPartner ? ' for this partner' : '' }} yet.
+  </p>
+
+  <div class="table-wrap" *ngIf="!isLoading && !loadError && listings.length > 0">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Product</th>
+          <th scope="col">Partner</th>
+          <th scope="col">Partner SKU</th>
+          <th scope="col" class="num">Cost</th>
+          <th scope="col" class="num">Price</th>
+          <th scope="col" class="num">Margin</th>
+          <th scope="col" class="num">Stock</th>
+          <th scope="col">Status</th>
+          <th scope="col"><span class="sr-only">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let l of listings">
+          <tr [class.is-off]="!l.active">
+            <td>
+              <p class="strong">{{ l.name || 'Item #' + l.itemId }}</p>
+              <p class="mono">{{ l.sku || '—' }}</p>
+            </td>
+            <td>{{ partnerName(l.partnerCode) }}</td>
+            <td class="mono">{{ l.partnerSku }}</td>
+            <td class="num">₹{{ l.costPrice | number:'1.2-2' }}</td>
+            <td class="num">{{ l.price != null ? ('₹' + (l.price | number:'1.2-2')) : '—' }}</td>
+            <td class="num" [class.dsc__loss]="l.margin != null && l.margin <= 0">
+              <ng-container *ngIf="l.margin != null; else noMarginCell">
+                ₹{{ l.margin | number:'1.2-2' }}
+                <span class="muted" *ngIf="l.marginPercent != null"> ({{ l.marginPercent | number:'1.1-1' }}%)</span>
+              </ng-container>
+              <ng-template #noMarginCell>—</ng-template>
+            </td>
+            <td class="num">
+              {{ l.quantity ?? '—' }}
+              <span class="muted" *ngIf="l.partnerStock != null"> · partner {{ l.partnerStock }}</span>
+            </td>
+            <td><span class="badge" [class.badge--on]="l.active">{{ l.active ? 'Active' : 'Off' }}</span></td>
+            <td class="table__actions">
+              <ng-container *ngIf="confirmDeleteId !== l.id">
+                <button type="button" class="btn btn--ghost btn--sm" (click)="openEdit(l)" [disabled]="busyId === l.id">Edit</button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="confirmDeleteId = l.id" [disabled]="busyId === l.id">Delete</button>
+              </ng-container>
+              <ng-container *ngIf="confirmDeleteId === l.id">
+                <span class="muted">Remove listing and item?</span>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="confirmDeleteId = null">Keep</button>
+                <button type="button" class="btn btn--danger btn--sm" (click)="remove(l)" [disabled]="busyId === l.id">Delete</button>
+              </ng-container>
+            </td>
+          </tr>
+
+          <tr class="table__editor" *ngIf="editingId === l.id && edit">
+            <td colspan="9">
+              <div class="form">
+                <div class="field">
+                  <label [attr.for]="'e-name-' + l.id">Product name</label>
+                  <input [id]="'e-name-' + l.id" [(ngModel)]="edit.name" maxlength="160" />
+                </div>
+                <div class="field">
+                  <label [attr.for]="'e-psku-' + l.id">Partner SKU</label>
+                  <input [id]="'e-psku-' + l.id" [(ngModel)]="edit.partnerSku" maxlength="80" />
+                </div>
+                <div class="field">
+                  <label [attr.for]="'e-cost-' + l.id">Cost price (₹)</label>
+                  <input [id]="'e-cost-' + l.id" type="number" min="0" step="0.01" [(ngModel)]="edit.costPrice" />
+                </div>
+                <div class="field">
+                  <label [attr.for]="'e-price-' + l.id">Selling price (₹)</label>
+                  <input [id]="'e-price-' + l.id" type="number" min="0" step="0.01" [(ngModel)]="edit.price" />
+                  <p class="field__hint">
+                    Margin ₹{{ previewMargin(edit.price, edit.costPrice) | number:'1.2-2' }}
+                    ({{ previewMarginPercent(edit.price, edit.costPrice) | number:'1.1-1' }}%)
+                  </p>
+                </div>
+                <div class="field">
+                  <label [attr.for]="'e-qty-' + l.id">Quantity</label>
+                  <input [id]="'e-qty-' + l.id" type="number" min="0" [(ngModel)]="edit.quantity" />
+                </div>
+                <div class="field">
+                  <label [attr.for]="'e-pstock-' + l.id">Partner stock</label>
+                  <input [id]="'e-pstock-' + l.id" type="number" min="0" [(ngModel)]="edit.partnerStock" />
+                </div>
+                <div class="field field--check">
+                  <input [id]="'e-active-' + l.id" type="checkbox" [(ngModel)]="edit.active" />
+                  <label [attr.for]="'e-active-' + l.id">Listing active</label>
+                </div>
+                <p class="notice notice--error field--wide" *ngIf="editError" role="alert">
+                  <span class="material-icons" aria-hidden="true">error</span> {{ editError }}
+                </p>
+                <div class="form__actions">
+                  <button type="button" class="btn btn--ghost" (click)="closeEdit()">Cancel</button>
+                  <button type="button" class="btn btn--primary" (click)="saveEdit(l)" [disabled]="saving">
+                    {{ saving ? 'Saving…' : 'Save' }}
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</section>

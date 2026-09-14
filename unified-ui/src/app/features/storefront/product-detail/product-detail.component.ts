@@ -14,6 +14,9 @@ interface Product {
   imageUrl: string;
   category: string;
   sku?: string;
+  sellerName?: string;
+  /** Absent on older item-service responses; see `sellerLabel`. */
+  fulfilmentModel?: 'FIRST_PARTY' | 'SELLER' | 'DROPSHIP' | null;
 }
 
 @Component({
@@ -69,6 +72,25 @@ export class ProductDetailComponent implements OnInit {
           this.notificationService.show('Failed to add item to cart.', 'error');
         },
       });
+  }
+
+  /**
+   * "Sold by / Ships from" line (commerce-architecture §3). The dropship partner is
+   * never named to the customer. Null when there is nothing truthful to say.
+   */
+  get sellerLabel(): string | null {
+    const p = this.product;
+    if (!p) return null;
+    switch (p.fulfilmentModel) {
+      case 'FIRST_PARTY':
+        return 'Sold and shipped by MyIndianStore';
+      case 'SELLER':
+        return p.sellerName ? `Sold by ${p.sellerName}` : null;
+      case 'DROPSHIP':
+        return 'Ships from our partner warehouse';
+      default:
+        return p.sellerName ? `Sold by ${p.sellerName}` : null;
+    }
   }
 
   updateQuantity(value: number): void {

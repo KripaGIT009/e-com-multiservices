@@ -13,6 +13,9 @@ public class ItemResponse {
     private String itemType;
     private Long sellerId;
     private String sellerName;
+    /** Always the resolved model, never null (legacy rows are derived from sellerId). */
+    private String fulfilmentModel;
+    private String fulfilmentPartnerCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -63,4 +66,9 @@ public class ItemResponse {
     public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
     public String getSellerName() { return sellerName; }
     public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    public String getFulfilmentModel() { return fulfilmentModel; }
+    public void setFulfilmentModel(String fulfilmentModel) { this.fulfilmentModel = fulfilmentModel; }
+    public String getFulfilmentPartnerCode() { return fulfilmentPartnerCode; }
+    public void setFulfilmentPartnerCode(String fulfilmentPartnerCode) { this.fulfilmentPartnerCode = fulfilmentPartnerCode; }
 }

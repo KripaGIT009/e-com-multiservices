@@ -22,4 +22,6 @@ public class UpdateDeliveryRequest {
     private String deliveryPartnerCode;
     private String deliveryPartnerName;
     private LocalDateTime expectedDelivery;
+    /** MANUAL / RULE / DEFAULT / STRATEGY / NONE. Changed only when supplied. */
+    private String deliveryAssignmentReason;
 }

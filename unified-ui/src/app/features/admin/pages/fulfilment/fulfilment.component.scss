@@ -1,0 +1,21 @@
+@import '../../../../shared/styles/variables';
+@import '../../styles/admin-kit';
+
+.page__note a { color: var(--mis-primary-dark); }
+
+.ff {
+  &__list { display: flex; flex-direction: column; gap: 14px; }
+
+  &__booked {
+    display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; padding: 12px 14px;
+    border: 1px solid #B7DFC1; border-radius: var(--mis-radius-md); background: #F1FAF3;
+
+    > .material-icons { color: #1B5E20; }
+    p { margin: 0 0 2px; font-size: var(--mis-text-sm); }
+    a { color: var(--mis-primary-dark); }
+  }
+
+  &__booked-body { flex: 1; min-width: 0; }
+}
+
+.mono-inline { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }

@@ -29,6 +29,81 @@
           <span class="order-total">₹{{ order.totalAmount | number:'1.2-2' }}</span>
         </div>
       </div>
+
+      <button
+        type="button"
+        class="btn-track"
+        (click)="toggle(order)"
+        [attr.aria-expanded]="expanded === '' + order.id"
+        [attr.aria-controls]="'delivery-' + order.id">
+        <span class="material-icons" aria-hidden="true">
+          {{ expanded === '' + order.id ? 'expand_less' : 'local_shipping' }}
+        </span>
+        {{ expanded === '' + order.id ? 'Hide delivery progress' : 'Track delivery' }}
+      </button>
+
+      <div
+        *ngIf="expanded === '' + order.id"
+        class="delivery"
+        [id]="'delivery-' + order.id"
+        aria-live="polite">
+        <ng-container *ngIf="fulfilment['' + order.id] as f">
+          <p *ngIf="f.state === 'loading'" class="delivery__state" role="status">Loading delivery progress…</p>
+
+          <p *ngIf="f.state === 'error'" class="delivery__state">
+            Delivery progress is not available right now.
+            <button type="button" class="btn-link" (click)="loadFulfilment('' + order.id)">Try again</button>
+          </p>
+
+          <ng-container *ngIf="f.state === 'ready'">
+            <p *ngIf="f.data.groups.length === 0" class="delivery__state">No delivery details for this order yet.</p>
+
+            <ul class="delivery__groups" *ngIf="f.data.groups.length > 0" aria-label="Delivery progress by package">
+              <li *ngFor="let g of f.data.groups" class="group">
+                <div class="group__head">
+                  <p class="group__label">{{ g.label }}</p>
+                  <span class="group__status" [class.is-shipped]="g.shipped">
+                    {{ g.shipped ? 'Shipped' : 'Preparing' }}
+                  </span>
+                </div>
+
+                <p class="group__lines" *ngIf="g.lines.length > 0">
+                  <ng-container *ngFor="let l of g.lines; let last = last">
+                    {{ l.productName }}<ng-container *ngIf="l.quantity"> × {{ l.quantity }}</ng-container><ng-container *ngIf="!last">, </ng-container>
+                  </ng-container>
+                </p>
+
+                <ng-container *ngIf="tracking(g) as t">
+                  <dl class="group__tracking" *ngIf="t.carrier || t.trackingNumber">
+                    <ng-container *ngIf="t.carrier">
+                      <dt>Courier</dt>
+                      <dd>{{ t.carrier }}</dd>
+                    </ng-container>
+                    <ng-container *ngIf="t.trackingNumber">
+                      <dt>Tracking number</dt>
+                      <dd>
+                        <span class="mono">{{ t.trackingNumber }}</span>
+                        <a
+                          *ngIf="t.trackingUrl"
+                          class="group__link"
+                          [href]="t.trackingUrl"
+                          target="_blank"
+                          rel="noopener noreferrer">
+                          Track on courier site
+                          <span class="visually-hidden">(opens in a new tab)</span>
+                        </a>
+                      </dd>
+                    </ng-container>
+                  </dl>
+                  <p class="group__note" *ngIf="t.trackingNumber && t.trackingGenerated">
+                    This tracking number was issued by MyIndianStore and may not work on the courier's website.
+                  </p>
+                </ng-container>
+              </li>
+            </ul>
+          </ng-container>
+        </ng-container>
+      </div>
     </article>
   </div>
 </section>

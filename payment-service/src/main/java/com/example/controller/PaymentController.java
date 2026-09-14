@@ -23,6 +23,13 @@ public class PaymentController {
         return ResponseEntity.ok(payment);
     }
 
+    /** A payment the gateway has captured and the BFF has verified. Never simulated. */
+    @PostMapping("/captured")
+    public ResponseEntity<PaymentDTO> recordCaptured(
+            @jakarta.validation.Valid @RequestBody com.example.dto.RecordCapturedPaymentRequest request) {
+        return ResponseEntity.ok(paymentService.recordCapturedPayment(request));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<PaymentDTO> getPaymentById(@PathVariable Long id) {
         PaymentDTO payment = paymentService.getPaymentById(id);

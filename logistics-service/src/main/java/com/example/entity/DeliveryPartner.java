@@ -44,8 +44,29 @@ public class DeliveryPartner {
     @Column(length = 500)
     private String servicePincodePrefixes;
 
+    /*
+     * The M1 columns below are nullable wrappers on purpose: ddl-auto update adds them to
+     * an existing table, where every row already present gets NULL. Each getter-with-a-
+     * default states what NULL means, so a pre-M1 row behaves exactly as it did before.
+     */
+
+    /** Key of the CarrierAdapter that books with this partner. NULL means MANUAL. */
+    @Column(length = 30)
+    private String integrationType;
+
+    /** True for aggregators (Shiprocket) that route parcels to many couriers themselves. */
+    private Boolean aggregator;
+
+    /** Rank for the PRIORITY allocation strategy, lower first. NULL means 100. */
+    private Integer priority;
+
+    /** Whether the partner collects cash on delivery. NULL means yes, as before M1. */
+    private Boolean codSupported;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public static final int DEFAULT_PRIORITY = 100;
 
     @PrePersist
     void onCreate() { createdAt = LocalDateTime.now(); }
@@ -94,4 +115,23 @@ public class DeliveryPartner {
     public String getServicePincodePrefixes() { return servicePincodePrefixes; }
     public void setServicePincodePrefixes(String v) { this.servicePincodePrefixes = v; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public String getIntegrationType() { return integrationType; }
+    public void setIntegrationType(String v) { this.integrationType = v; }
+    public Boolean getAggregator() { return aggregator; }
+    public void setAggregator(Boolean v) { this.aggregator = v; }
+    public Integer getPriority() { return priority; }
+    public void setPriority(Integer v) { this.priority = v; }
+    public Boolean getCodSupported() { return codSupported; }
+    public void setCodSupported(Boolean v) { this.codSupported = v; }
+
+    public String effectiveIntegrationType() {
+        return integrationType == null || integrationType.isBlank() ? "MANUAL" : integrationType;
+    }
+
+    public boolean isAggregatorPartner() { return Boolean.TRUE.equals(aggregator); }
+
+    public int effectivePriority() { return priority == null ? DEFAULT_PRIORITY : priority; }
+
+    public boolean supportsCod() { return codSupported == null || codSupported; }
 }

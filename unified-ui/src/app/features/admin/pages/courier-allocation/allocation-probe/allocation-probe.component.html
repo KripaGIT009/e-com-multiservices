@@ -1,0 +1,73 @@
+<section class="panel" aria-labelledby="ap-heading">
+  <h2 id="ap-heading" class="panel__title">Try an address</h2>
+  <p class="panel__note">Preview which courier an order would get. Nothing is booked.</p>
+
+  <form class="form ap__form" (ngSubmit)="run()">
+    <div class="field">
+      <label for="ap-model">Fulfilment model</label>
+      <select id="ap-model" name="model" [(ngModel)]="model">
+        <option *ngFor="let m of models" [value]="m">{{ modelLabels[m] }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ap-pin">Delivery pincode</label>
+      <input id="ap-pin" name="pincode" [(ngModel)]="pincode" maxlength="6" inputmode="numeric" placeholder="560038" />
+    </div>
+    <div class="field">
+      <label for="ap-state">Delivery state</label>
+      <select id="ap-state" name="state" [(ngModel)]="state">
+        <option value="">Not given</option>
+        <option *ngFor="let s of states" [value]="s">{{ s }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="ap-pref">Manual courier pick</label>
+      <select id="ap-pref" name="preferred" [(ngModel)]="preferred">
+        <option value="">None</option>
+        <option *ngFor="let p of partners" [value]="p.code">{{ p.name }}{{ p.active ? '' : ' (disabled)' }}</option>
+      </select>
+    </div>
+    <div class="field field--check">
+      <input id="ap-cod" name="cod" type="checkbox" [(ngModel)]="cod" />
+      <label for="ap-cod">Cash on delivery</label>
+    </div>
+    <div class="form__actions">
+      <button type="submit" class="btn btn--primary" [disabled]="checking">{{ checking ? 'Checking…' : 'Check' }}</button>
+    </div>
+  </form>
+
+  <p class="notice notice--error" *ngIf="error" role="alert">
+    <span class="material-icons" aria-hidden="true">error</span> {{ error }}
+  </p>
+
+  <div class="ap__result" *ngIf="result" aria-live="polite">
+    <p class="notice notice--warn" *ngIf="result.manualOverrideRejected">
+      <span class="material-icons" aria-hidden="true">warning</span>
+      Manual pick not used: {{ result.manualOverrideRejected }}
+    </p>
+
+    <div class="ap__selected">
+      <ng-container *ngIf="result.selected; else none">
+        <p class="strong">{{ result.selected.name }}</p>
+        <p class="muted">
+          {{ result.selected.estimatedDays }} days · ₹{{ result.selected.baseRate | number:'1.2-2' }}
+          · {{ result.selected.integrationType || 'MANUAL' }}
+        </p>
+      </ng-container>
+      <ng-template #none><p class="strong">No courier serves this address</p></ng-template>
+      <app-allocation-reason [reason]="result.reason" [ruleName]="result.ruleName"></app-allocation-reason>
+    </div>
+    <p class="muted ap__explain">{{ result.explanation }}</p>
+
+    <h3 class="ap__sub">Candidates ({{ result.candidates.length }})</h3>
+    <p class="muted" *ngIf="result.candidates.length === 0">
+      No active partner covers this pincode{{ cod ? ' with cash on delivery' : '' }}.
+    </p>
+    <ul class="ap__candidates" *ngIf="result.candidates.length > 0">
+      <li *ngFor="let c of result.candidates" [class.is-picked]="result.selected?.code === c.code">
+        <span>{{ c.name }} <span class="mono">{{ c.code }}</span></span>
+        <span class="muted">{{ c.estimatedDays }} days · ₹{{ c.baseRate | number:'1.2-2' }}</span>
+      </li>
+    </ul>
+  </div>
+</section>

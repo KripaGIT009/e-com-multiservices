@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface IPaymentService {
     PaymentDTO processPayment(ProcessPaymentRequest request);
+    PaymentDTO recordCapturedPayment(com.example.dto.RecordCapturedPaymentRequest request);
     PaymentDTO getPaymentById(Long id);
     PaymentDTO getPaymentByPaymentId(String paymentId);
     List<PaymentDTO> getPaymentsByOrderId(String orderId);

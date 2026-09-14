@@ -17,4 +17,8 @@ public class CreateOrderItemRequest {
     private String description;
     private Long sellerId;
     private String sellerName;
+    /** FIRST_PARTY / SELLER / DROPSHIP, as resolved from item-service by the caller. */
+    private String fulfilmentModel;
+    /** Dropship partner code; null unless DROPSHIP. */
+    private String fulfilmentPartnerCode;
 }

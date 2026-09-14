@@ -1,0 +1,34 @@
+@import '../../../../../shared/styles/variables';
+@import '../../../styles/admin-kit';
+
+.ap {
+  &__form { grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: end; }
+
+  &__result { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--mis-line); }
+
+  &__selected {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    .muted { margin: 0; font-size: var(--mis-text-sm); }
+  }
+
+  &__explain { margin: 6px 0 12px; font-size: var(--mis-text-sm); }
+  &__sub { margin: 0 0 6px; font-size: var(--mis-text-sm); font-weight: 600; }
+
+  &__candidates {
+    margin: 0; padding: 0; list-style: none;
+    li {
+      display: flex; justify-content: space-between; gap: 12px; padding: 7px 10px;
+      border-bottom: 1px solid var(--mis-line); font-size: var(--mis-text-sm);
+      &.is-picked { background: var(--mis-chrome-tint); font-weight: 600; }
+    }
+  }
+}
+
+.mono { display: inline; margin-left: 6px; }
+
+@media (max-width: 1100px) {
+  .ap__form { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .ap__form { grid-template-columns: 1fr; }
+}

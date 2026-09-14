@@ -1,0 +1,57 @@
+@import '../../../../../shared/styles/variables';
+@import '../../../styles/admin-kit';
+
+.so {
+  &__filter {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+    label { font-size: var(--mis-text-sm); font-weight: 600; color: var(--mis-ink-muted); }
+    select {
+      padding: 8px 10px; border: 1px solid var(--mis-line-strong); border-radius: var(--mis-radius-sm);
+      background: var(--mis-surface); font-family: inherit; font-size: var(--mis-text-sm); color: var(--mis-ink);
+    }
+  }
+
+  &__detail { padding: 6px 0; }
+  &__cols { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+
+  &__label {
+    margin: 0 0 6px; font-size: var(--mis-text-xs); font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.03em; color: var(--mis-ink-muted);
+  }
+
+  &__text { margin: 2px 0; font-size: var(--mis-text-sm); overflow-wrap: anywhere; a { color: var(--mis-primary-dark); } }
+
+  &__actions {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--mis-line);
+    .muted { font-size: var(--mis-text-sm); }
+  }
+
+  &__form { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--mis-line); }
+}
+
+.lines {
+  width: 100%; border-collapse: collapse; font-size: var(--mis-text-sm);
+  th { text-align: left; font-size: var(--mis-text-xs); color: var(--mis-ink-muted); font-weight: 600; }
+  th, td { padding: 5px 8px 5px 0; border-bottom: 1px solid var(--mis-line); }
+  .num { text-align: right; white-space: nowrap; }
+  tfoot td { border-bottom: 0; font-weight: 600; }
+}
+
+.status {
+  display: inline-block; padding: 3px 10px; border-radius: var(--mis-radius-pill);
+  font-size: var(--mis-text-xs); font-weight: 600; white-space: nowrap;
+
+  &.is-waiting { background: #FEF3C7; color: #92700E; }
+  &.is-failed { background: #FDE7EF; color: #9F1239; }
+  &.is-progress { background: #E3F2FD; color: #1565C0; }
+  &.is-done { background: #E6F4EA; color: #1B5E20; }
+  &.is-off { background: var(--mis-line); color: var(--mis-ink-muted); }
+}
+
+.mono-inline { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.table .mono { display: block; }
+
+@media (max-width: 1000px) {
+  .so__cols { grid-template-columns: 1fr; }
+}

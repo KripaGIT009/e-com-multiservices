@@ -1,0 +1,156 @@
+<section aria-labelledby="dsp-heading">
+  <header class="page__head">
+    <div>
+      <h1 id="dsp-heading" class="page__title">Dropship partners</h1>
+      <p class="page__note">
+        Suppliers who hold the stock and ship to the customer for us. A partner with no API
+        is handled manually: its supplier orders sit in
+        <a routerLink="/admin/dropship/orders">Supplier orders</a> as "Needs placing" until an
+        operator places them on the partner's own portal and records the reference here.
+        Only active partners can be linked to new listings.
+      </p>
+    </div>
+    <div class="dsp__head-actions">
+      <span class="badge badge--info">{{ activeCount }} of {{ partners.length }} active</span>
+      <button type="button" class="btn btn--primary" (click)="openNew()" *ngIf="editing !== 'new'">Add partner</button>
+    </div>
+  </header>
+
+  <ng-template #partnerForm let-isNew="isNew">
+    <div class="form">
+      <ng-container *ngIf="isNew">
+        <div class="field">
+          <label for="dsp-code">Code</label>
+          <input id="dsp-code" [(ngModel)]="draft.code" maxlength="30" placeholder="QIKINK" />
+        </div>
+        <div class="field">
+          <label for="dsp-name">Name</label>
+          <input id="dsp-name" [(ngModel)]="draft.name" maxlength="120" />
+        </div>
+        <div class="field">
+          <label for="dsp-best">Best for</label>
+          <input id="dsp-best" [(ngModel)]="draft.bestFor" maxlength="200" placeholder="Print-on-demand, apparel" />
+        </div>
+        <div class="field">
+          <label for="dsp-pot">Assessment</label>
+          <input id="dsp-pot" [(ngModel)]="draft.integrationPotential" maxlength="80" />
+          <p class="field__hint">Your own note on integration potential. Not verified by the platform.</p>
+        </div>
+      </ng-container>
+
+      <div class="field">
+        <label for="dsp-int">Integration</label>
+        <select id="dsp-int" [(ngModel)]="draft.integrationType">
+          <option *ngIf="integrations.length === 0" value="MANUAL">Manual</option>
+          <option *ngFor="let i of integrations" [value]="i.key">{{ i.label }}{{ i.configured ? '' : ' (not configured)' }}</option>
+        </select>
+        <p class="field__hint" *ngIf="integration(draft.integrationType) as info">
+          <ng-container *ngIf="!info.configured && info.requiredEnvironment.length">
+            Needs {{ info.requiredEnvironment.join(', ') }} on supplier-service. Until then orders are placed by hand.
+          </ng-container>
+        </p>
+      </div>
+      <div class="field">
+        <label for="dsp-status">Onboarding</label>
+        <select id="dsp-status" [(ngModel)]="draft.onboardingStatus">
+          <option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="dsp-pin">Warehouse pincode</label>
+        <input id="dsp-pin" [(ngModel)]="draft.warehousePincode" maxlength="6" inputmode="numeric" />
+      </div>
+      <div class="field">
+        <label for="dsp-site">Website</label>
+        <input id="dsp-site" [(ngModel)]="draft.website" maxlength="200" placeholder="https://" />
+      </div>
+      <div class="field">
+        <label for="dsp-mail">Contact email</label>
+        <input id="dsp-mail" [(ngModel)]="draft.contactEmail" type="email" maxlength="160" />
+      </div>
+      <div class="field field--check">
+        <input id="dsp-own" type="checkbox" [(ngModel)]="draft.shipsWithOwnLogistics" />
+        <label for="dsp-own">Ships with its own logistics</label>
+      </div>
+      <div class="field field--check">
+        <input id="dsp-active" type="checkbox" [(ngModel)]="draft.active" />
+        <label for="dsp-active">Active</label>
+      </div>
+      <div class="field field--wide">
+        <label for="dsp-notes">Notes</label>
+        <textarea id="dsp-notes" rows="2" [(ngModel)]="draft.notes" maxlength="1000"></textarea>
+      </div>
+      <p class="notice notice--error field--wide" *ngIf="formError" role="alert">
+        <span class="material-icons" aria-hidden="true">error</span> {{ formError }}
+      </p>
+      <div class="form__actions">
+        <button type="button" class="btn btn--ghost" (click)="close()">Cancel</button>
+        <button type="button" class="btn btn--primary" (click)="save()" [disabled]="saving">
+          {{ saving ? 'Saving…' : (isNew ? 'Add partner' : 'Save') }}
+        </button>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="panel" *ngIf="editing === 'new'">
+    <h2 class="panel__title">Add a dropship partner</h2>
+    <ng-container *ngTemplateOutlet="partnerForm; context: { isNew: true }"></ng-container>
+  </div>
+
+  <p class="state" *ngIf="isLoading">Loading partners…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Retry</button>
+  </div>
+  <p class="state" *ngIf="!isLoading && !loadError && partners.length === 0">No dropship partners yet.</p>
+
+  <div class="dsp__cards" *ngIf="!isLoading && !loadError && partners.length > 0">
+    <article class="dsp__card" *ngFor="let p of partners" [class.is-off]="!p.active">
+      <header class="dsp__card-top">
+        <div>
+          <h2 class="dsp__name">{{ p.name }}</h2>
+          <p class="mono">{{ p.code }}</p>
+        </div>
+        <span class="badge" [class.badge--on]="p.active">{{ p.active ? 'Active' : 'Inactive' }}</span>
+      </header>
+
+      <dl class="dsp__facts">
+        <div><dt>Best for</dt><dd>{{ p.bestFor || '—' }}</dd></div>
+        <div><dt>Assessment</dt><dd>{{ p.integrationPotential || '—' }}</dd></div>
+        <div><dt>Onboarding</dt><dd>{{ statusLabel(p.onboardingStatus) }}</dd></div>
+        <div><dt>Ships itself</dt><dd>{{ p.shipsWithOwnLogistics === false ? 'No — we arrange a courier' : 'Yes' }}</dd></div>
+        <div><dt>Warehouse</dt><dd>{{ p.warehousePincode || '—' }}</dd></div>
+        <div>
+          <dt>Website</dt>
+          <dd><a *ngIf="p.website; else noSite" [href]="p.website" target="_blank" rel="noopener">{{ p.website }}</a>
+            <ng-template #noSite>—</ng-template>
+          </dd>
+        </div>
+      </dl>
+
+      <p class="dsp__badges">
+        <span class="badge badge--info">{{ integration(p.integrationType)?.label || p.integrationType }}</span>
+        <span class="badge badge--info" *ngIf="isManual(p)">Orders placed by hand</span>
+        <span class="badge badge--on" *ngIf="!isManual(p) && integration(p.integrationType)?.configured">Configured</span>
+        <span class="badge badge--warn" *ngIf="!isManual(p) && !integration(p.integrationType)?.configured">
+          Not configured — orders placed by hand
+        </span>
+      </p>
+      <p class="muted dsp__note" *ngIf="p.notes">{{ p.notes }}</p>
+      <p class="muted dsp__note" *ngIf="p.contactEmail">{{ p.contactEmail }}</p>
+
+      <div class="dsp__actions" *ngIf="editing !== p.code">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="openEdit(p)">Edit</button>
+      </div>
+
+      <div class="dsp__edit" *ngIf="editing === p.code">
+        <ng-container *ngTemplateOutlet="partnerForm; context: { isNew: false }"></ng-container>
+      </div>
+    </article>
+  </div>
+
+  <p class="page__footnote">
+    "Assessment" is the note recorded when the partner was added — what their integration
+    might allow. Nothing here has been verified against a live account, and MyIndianStore
+    holds no contract or credentials with a partner until you configure one.
+  </p>
+</section>

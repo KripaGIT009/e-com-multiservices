@@ -1,0 +1,63 @@
+<section class="panel" aria-labelledby="as-heading">
+  <h2 id="as-heading" class="panel__title">Default courier by fulfilment model</h2>
+  <p class="panel__note">
+    Used when no location rule matches. If the default does not cover the pincode, is
+    disabled, or there is none, the fallback strategy picks from the partners that do.
+  </p>
+
+  <p class="state" *ngIf="isLoading">Loading settings…</p>
+  <div class="state state--error" *ngIf="!isLoading && loadError" role="alert">
+    {{ loadError }} <button type="button" class="btn btn--ghost btn--sm" (click)="load()">Retry</button>
+  </div>
+  <p class="state" *ngIf="!isLoading && !loadError && drafts.length === 0">
+    No settings rows yet — logistics-service creates them on first start.
+  </p>
+
+  <div class="as__grid" *ngIf="!isLoading && !loadError && drafts.length > 0">
+    <article class="as__card" *ngFor="let d of drafts">
+      <h3 class="as__model">{{ modelLabels[d.fulfilmentModel] || d.fulfilmentModel }}</h3>
+      <p class="mono">{{ d.fulfilmentModel }}</p>
+
+      <div class="field">
+        <label [attr.for]="'def-' + d.fulfilmentModel">Default courier</label>
+        <select [id]="'def-' + d.fulfilmentModel" [(ngModel)]="d.defaultPartnerCode">
+          <option value="">No default</option>
+          <option *ngFor="let p of activePartners" [value]="p.code">{{ p.name }}</option>
+          <option *ngIf="inactiveDefault(d) as off" [value]="off.code">{{ off.name }} (disabled)</option>
+        </select>
+      </div>
+      <p class="notice notice--warn" *ngIf="inactiveDefault(d) as off">
+        <span class="material-icons" aria-hidden="true">warning</span>
+        {{ off.name }} is disabled, so this default is skipped until it is enabled.
+      </p>
+
+      <div class="field">
+        <label [attr.for]="'strat-' + d.fulfilmentModel">Fallback strategy</label>
+        <select [id]="'strat-' + d.fulfilmentModel" [(ngModel)]="d.fallbackStrategy">
+          <option *ngFor="let s of strategies" [value]="s.value">{{ s.label }}</option>
+        </select>
+        <p class="field__hint">{{ strategyHelp(d.fallbackStrategy) }}</p>
+      </div>
+
+      <div class="field field--check">
+        <input [id]="'man-' + d.fulfilmentModel" type="checkbox" [(ngModel)]="d.allowManualOverride" />
+        <label [attr.for]="'man-' + d.fulfilmentModel">Allow a manual courier pick</label>
+      </div>
+      <p class="field__hint">
+        {{ d.fulfilmentModel === 'SELLER' ? 'Sellers may choose a different courier when shipping.' : 'Admins may choose a different courier when shipping.' }}
+      </p>
+
+      <p class="notice notice--error" *ngIf="errors[d.fulfilmentModel]" role="alert">
+        <span class="material-icons" aria-hidden="true">error</span> {{ errors[d.fulfilmentModel] }}
+      </p>
+
+      <div class="as__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="reset(d)" [disabled]="!isDirty(d)">Discard</button>
+        <button type="button" class="btn btn--primary btn--sm" (click)="save(d)"
+                [disabled]="!isDirty(d) || savingModel === d.fulfilmentModel">
+          {{ savingModel === d.fulfilmentModel ? 'Saving…' : 'Save' }}
+        </button>
+      </div>
+    </article>
+  </div>
+</section>

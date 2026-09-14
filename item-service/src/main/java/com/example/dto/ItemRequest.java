@@ -11,6 +11,8 @@ public class ItemRequest {
     private String itemType;
     private Long sellerId;
     private String sellerName;
+    private String fulfilmentModel;
+    private String fulfilmentPartnerCode;
 
     public ItemRequest() {}
 
@@ -53,4 +55,11 @@ public class ItemRequest {
     public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
     public String getSellerName() { return sellerName; }
     public void setSellerName(String sellerName) { this.sellerName = sellerName; }
+
+    /** FIRST_PARTY / SELLER / DROPSHIP. Optional — derived from sellerId when absent. */
+    public String getFulfilmentModel() { return fulfilmentModel; }
+    public void setFulfilmentModel(String fulfilmentModel) { this.fulfilmentModel = fulfilmentModel; }
+    /** Required for DROPSHIP, must be absent otherwise. */
+    public String getFulfilmentPartnerCode() { return fulfilmentPartnerCode; }
+    public void setFulfilmentPartnerCode(String fulfilmentPartnerCode) { this.fulfilmentPartnerCode = fulfilmentPartnerCode; }
 }

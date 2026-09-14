@@ -15,7 +15,10 @@ public interface IShipmentService {
     Shipment createShipment(CreateShipmentRequest request);
     Shipment createFromOrderEvent(SagaEvent event);
     Optional<Shipment> getShipment(Long id);
+    /** The most recent shipment for the order. An order can have one per fulfilment group. */
     Optional<Shipment> getShipmentByOrder(String orderId);
+    /** Every shipment for the order, newest first. */
+    List<Shipment> getShipmentsByOrder(String orderId);
     Optional<Shipment> getShipmentByShipmentNumber(String shipmentNumber);
     Optional<Shipment> getShipmentByTrackingNumber(String trackingNumber);
     Shipment updateStatus(Long id, UpdateShipmentStatusRequest request);
