@@ -28,6 +28,15 @@ export class SellerAuthComponent {
   ) {
     this.mode = this.route.snapshot.data['mode'] === 'register' ? 'register' : 'login';
     this.form = this.buildForm();
+
+    // The interceptor sends sellers here when their session ends. Saying so beats
+    // presenting a bare form to someone who thought they were already signed in.
+    if (
+      this.mode === 'login' &&
+      this.route.snapshot.queryParamMap.get('reason') === 'session_expired'
+    ) {
+      this.submitError = 'Your session has expired. Please sign in again.';
+    }
   }
 
   private buildForm(): FormGroup {

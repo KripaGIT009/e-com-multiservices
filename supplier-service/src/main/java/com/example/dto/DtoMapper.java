@@ -47,7 +47,7 @@ public final class DtoMapper {
             status == null ? null : status.name(),
             o.getPartnerOrderRef(), o.getTrackingNumber(), o.getCarrierName(), o.getTrackingUrl(),
             o.getShipToName(), o.getShipToLine1(), o.getShipToLine2(), o.getShipToCity(),
-            o.getShipToState(), o.getShipToPostalCode(), o.getShipToPhone(),
+            o.getShipToState(), o.getShipToPostalCode(), o.getShipToPhone(), o.getShipToEmail(),
             o.getCostTotal(), o.getFailureReason(), o.getLastNote(), o.getAttempts(),
             o.getSubmittedAt(), o.getShippedAt(), o.getDeliveredAt(), o.getCreatedAt(), o.getUpdatedAt(),
             lines, next);

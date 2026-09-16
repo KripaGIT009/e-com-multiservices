@@ -416,6 +416,12 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       # Reads orders to decide what to place with suppliers; it never trusts the caller.
       ORDER_SERVICE_URL: http://order-service:8080
+      # Qikink API credentials. Blank = adapter reports "not configured" and Qikink
+      # supplier orders fall back to manual placement.
+      QIKINK_CLIENT_ID: ${QIKINK_CLIENT_ID:-}
+      QIKINK_CLIENT_SECRET: ${QIKINK_CLIENT_SECRET:-}
+      QIKINK_BASE_URL: ${QIKINK_BASE_URL:-https://sandbox.qikink.com}
+      QIKINK_SEARCH_FROM_MY_PRODUCTS: ${QIKINK_SEARCH_FROM_MY_PRODUCTS:-1}
 
   supplier_postgres:
     image: postgres:16-alpine

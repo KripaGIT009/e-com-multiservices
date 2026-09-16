@@ -100,7 +100,12 @@
           <ng-container *ngFor="let order of paginatedOrders">
             <tr class="active-orders__row" [class.active-orders__row--expanded]="isExpanded(order.orderId)">
               <td class="active-orders__td">
-                <span class="active-orders__order-id">{{ order.orderId }}</span>
+                <a *ngIf="order.id != null; else plainOrderId"
+                   class="active-orders__order-id"
+                   [routerLink]="['/admin/orders', order.id]">{{ order.orderId }}</a>
+                <ng-template #plainOrderId>
+                  <span class="active-orders__order-id">{{ order.orderId }}</span>
+                </ng-template>
               </td>
               <td class="active-orders__td active-orders__td--product">
                 <div class="active-orders__product-cell">

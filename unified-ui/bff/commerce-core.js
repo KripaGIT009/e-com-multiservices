@@ -63,7 +63,7 @@ const createCore = ({ axios, urls }) => {
       getShipments(order.id),
       getSupplierOrders(order.id),
     ]);
-    const groups = f.attachProgress(f.groupLines(order), shipments, supplierOrders);
+    const groups = f.attachProgress(f.groupLines(order), shipments, supplierOrders, order.status);
     return { order, groups, allShipped: f.allShipped(groups) };
   };
 

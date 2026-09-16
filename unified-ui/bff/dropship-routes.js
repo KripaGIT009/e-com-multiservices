@@ -32,13 +32,29 @@ const register = (app, { axios, urls, guards, core }) => {
     proxy('get', () => '/api/dropship/integrations', 'Could not load integrations'));
 
   // ── Listings: a catalogue item plus its private supplier link ───────────────
-  const withMargin = (listing, item) => {
+  /** Partner code → display name, for pages that list many rows. Empty on failure. */
+  const partnerNames = async () => {
+    try {
+      const partners = (await axios.get(`${SUPPLIER_SERVICE}/api/dropship/partners`)).data || [];
+      return Object.fromEntries(partners.map((p) => [p.code, p.name]));
+    } catch (_) { return {}; }
+  };
+
+  /** A listing with its catalogue item flattened in, and the margin the item earns. */
+  const withMargin = (listing, item, names = {}) => {
     const price = item ? Number(item.price) : null;
     const cost = Number(listing.costPrice);
     const margin = price != null ? Math.round((price - cost) * 100) / 100 : null;
     return {
       ...listing,
+      partnerName: names[listing.partnerCode] || null,
       item,
+      sku: item?.sku ?? null,
+      name: item?.name ?? null,
+      description: item?.description ?? null,
+      price,
+      quantity: item?.quantity ?? null,
+      itemType: item?.itemType ?? null,
       margin,
       marginPercent: price ? Math.round((margin / price) * 1000) / 10 : null,
     };
@@ -46,10 +62,13 @@ const register = (app, { axios, urls, guards, core }) => {
 
   app.get('/api/admin/dropship/listings', authenticateAdmin, async (req, res) => {
     try {
-      const listings = (await axios.get(`${SUPPLIER_SERVICE}/api/dropship/listings`, { params: req.query })).data || [];
+      const [listings, names] = await Promise.all([
+        axios.get(`${SUPPLIER_SERVICE}/api/dropship/listings`, { params: req.query }).then((r) => r.data || []),
+        partnerNames(),
+      ]);
       const joined = await Promise.all(listings.map(async (l) => {
         const item = await axios.get(`${ITEM_SERVICE}/items/${l.itemId}`).then((r) => r.data).catch(() => null);
-        return withMargin(l, item);
+        return withMargin(l, item, names);
       }));
       res.json(joined);
     } catch (e) { sendError(res, e, 'Could not load dropship listings'); }
@@ -149,8 +168,31 @@ const register = (app, { axios, urls, guards, core }) => {
   });
 
   // ── Supplier orders ─────────────────────────────────────────────────────────
-  app.get('/api/admin/supplier-orders', authenticateAdmin,
-    proxy('get', () => '/api/supplier-orders', 'Could not load supplier orders'));
+  /** Address fields joined for tables; the structured fields stay on the row. */
+  const presentSupplierOrder = (so, names) => ({
+    ...so,
+    partnerName: names[so.partnerCode] || null,
+    shipToAddress: [so.shipToLine1, so.shipToLine2, so.shipToCity, so.shipToState]
+      .filter(Boolean).join(', ') || null,
+    shipToPincode: so.shipToPostalCode || null,
+  });
+
+  app.get('/api/admin/supplier-orders', authenticateAdmin, async (req, res) => {
+    try {
+      // The UI groups tabs like "In progress" as several statuses; supplier-service
+      // filters by one, so a comma-separated list is applied here.
+      const statuses = String(req.query.status || '').split(',').map((s) => s.trim()).filter(Boolean);
+      const params = { ...req.query };
+      delete params.status;
+      if (statuses.length === 1) params.status = statuses[0];
+      const [rows, names] = await Promise.all([
+        axios.get(`${SUPPLIER_SERVICE}/api/supplier-orders`, { params }).then((r) => r.data || []),
+        partnerNames(),
+      ]);
+      const filtered = statuses.length > 1 ? rows.filter((so) => statuses.includes(so.status)) : rows;
+      res.json(filtered.map((so) => presentSupplierOrder(so, names)));
+    } catch (e) { sendError(res, e, 'Could not load supplier orders'); }
+  });
 
   app.put('/api/admin/supplier-orders/:id/status', authenticateAdmin, async (req, res) => {
     try {
@@ -161,7 +203,7 @@ const register = (app, { axios, urls, guards, core }) => {
         await core.syncShippedStatus(updated.orderId).catch((e) =>
           console.error(`[dropship] order ${updated.orderId} status not re-evaluated:`, e.message));
       }
-      res.json(updated);
+      res.json(presentSupplierOrder(updated, await partnerNames()));
     } catch (e) { sendError(res, e, 'Could not update the supplier order'); }
   });
 

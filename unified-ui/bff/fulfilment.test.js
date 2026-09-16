@@ -66,6 +66,15 @@ test('a shipment from before fulfilment keys covers the courier-shipped groups',
   assert.equal(progress.find((g) => g.model === 'DROPSHIP').shipped, false);
 });
 
+test('an order shipped before per-group shipments existed counts as shipped', () => {
+  const groups = f.groupLines(mixedOrder);
+  const progress = f.attachProgress(groups, [], [], 'DELIVERED');
+  assert.equal(f.allShipped(progress), true);
+  // But a live supplier order that is still open is believed over the order status.
+  const partial = f.attachProgress(groups, [], [{ partnerCode: 'QIKINK', status: 'SUBMITTED' }], 'SHIPPED');
+  assert.equal(partial.find((g) => g.model === 'DROPSHIP').shipped, false);
+});
+
 test('paid statuses', () => {
   assert.equal(f.isPaid({ status: 'PENDING' }), false);
   assert.equal(f.isPaid({ status: 'PAYMENT_COMPLETED' }), true);

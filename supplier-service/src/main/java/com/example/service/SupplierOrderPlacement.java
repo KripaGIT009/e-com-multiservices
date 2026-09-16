@@ -64,6 +64,7 @@ public class SupplierOrderPlacement {
         so.setStatus(SupplierOrderStatus.CREATED);
         so.setAttempts(1);
         snapshotAddress(so, order.shippingAddress());
+        so.setShipToEmail(truncate(order.customerEmail(), 160));
         for (OrderView.Item item : items) {
             SupplierOrderLine line = new SupplierOrderLine();
             line.setItemId(parseItemId(item.productId()));

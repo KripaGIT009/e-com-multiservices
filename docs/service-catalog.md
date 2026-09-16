@@ -22,7 +22,7 @@ Status is **verified against the running stack**, not aspirational.
 | wishlist-service | 8016 | wishlist_service (5443) | built | Saved items, price-drop detection, move-to-cart |
 | seller-service | 8021 | seller_service (5444) | built | Seller accounts, GSTIN, admin approval workflow |
 | logistics-service | 8009→8088 | logistics_service (5440) | partial | Shipments per fulfilment group, delivery partners, courier allocation (default / location rules / manual), carrier adapters. Delhivery and Shiprocket adapters **unverified against live accounts** |
-| supplier-service | 8027 | supplier_service (5445) | partial | Dropship partners, private SKU/cost listings, supplier orders with idempotent dispatch. Manual adapter only — no partner API integrated |
+| supplier-service | 8027 | supplier_service (5445) | partial | Dropship partners, private SKU/cost listings, supplier orders with idempotent dispatch. Adapters: `MANUAL`, and `QIKINK` against Qikink's published API (**unverified against a Qikink account**; order submission only). The other five partners publish no API |
 | notification-service | 8010 | notification_service (5441) | partial | Kafka consumer. No real email/SMS transport |
 | admin-service | 8011 | admin_db (5442) | built | Admin users, management proxy, audit log, dashboard analytics |
 
@@ -40,9 +40,10 @@ Status is **verified against the running stack**, not aspirational.
   are generated locally, so a link resolves only for a consignment that really exists.
 - **checkout-service** — persists a checkout row; it does not orchestrate
   inventory/payment/order with compensation.
-- **supplier-service** — all six dropship partners are seeded inactive with no API
-  adapter; supplier orders for them wait for an operator to place them on the partner's
-  portal. Dispatch is triggered by the BFF after payment verification (M2 moves it to an
+- **supplier-service** — all six dropship partners are seeded inactive and `MANUAL`;
+  supplier orders for them wait for an operator to place them on the partner's portal.
+  Qikink can be switched to the `QIKINK` adapter once `QIKINK_CLIENT_ID` /
+  `QIKINK_CLIENT_SECRET` are set; unconfigured, it falls back to manual, labelled. Dispatch is triggered by the BFF after payment verification (M2 moves it to an
   `OrderPaid` event). See [commerce-architecture](commerce-architecture.md) §7–§9.
 - **payment-service** — `POST /api/v1/payments` still *simulates* processing and
   declines one payment in ten at random. Verified Razorpay payments are recorded through
