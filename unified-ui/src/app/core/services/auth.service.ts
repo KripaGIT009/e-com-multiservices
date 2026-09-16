@@ -16,6 +16,27 @@ const TOKEN_KEY = 'mis_token';
 const REFRESH_TOKEN_KEY = 'mis_refresh_token';
 const USER_KEY = 'mis_user';
 
+/**
+ * True when a JWT's own `exp` claim has already passed.
+ *
+ * This is a usability check, never a security one — the signature is verified by the
+ * BFF on every request. It exists so a stored-but-dead token does not satisfy the
+ * route guards and drop the user on a shell whose every call then fails. A token we
+ * cannot parse counts as expired: an unreadable session is not one to act on.
+ */
+function isExpired(token: string): boolean {
+  try {
+    const payload = token.split('.')[1];
+    if (!payload) return true;
+    const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    const { exp } = JSON.parse(json) as { exp?: number };
+    if (typeof exp !== 'number') return false; // no expiry claim — let the BFF decide
+    return exp * 1000 <= Date.now();
+  } catch {
+    return true;
+  }
+}
+
 const initialState: AuthState = {
   token: null,
   refreshToken: null,
@@ -81,6 +102,13 @@ export class AuthService {
     const userJson = localStorage.getItem(USER_KEY);
 
     if (token && userJson) {
+      // An expired access token with nothing to refresh it is a finished session.
+      // Restoring it would satisfy AuthGuard and RoleGuard and land the user on a
+      // dashboard whose every request fails; staying signed out sends them to login.
+      if (isExpired(token) && !refreshToken) {
+        this.logout();
+        return;
+      }
       try {
         const user: AuthUser = JSON.parse(userJson);
         this.state$.next({

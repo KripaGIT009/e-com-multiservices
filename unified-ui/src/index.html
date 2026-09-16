@@ -10,7 +10,36 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="preload" href="/assets/fonts/material-icons.woff2" as="font" type="font/woff2" crossorigin>
+  <!--
+    Material Icons is a ligature font: every icon span holds the literal word
+    ("storefront"), which the face redraws as a glyph. The shell is just <app-root>,
+    so critical-CSS inlining never sees a .material-icons element and defers the rule
+    to the main stylesheet - which loads with media="print". That leaves a window
+    where the raw words are painted, so the face is declared here instead, applying
+    from first paint. font-display: block keeps the span blank until the glyphs land
+    rather than flashing a fallback face. Self-hosted so no third party can break it.
+  -->
+  <style>
+    @font-face {
+      font-family: 'Material Icons';
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url('/assets/fonts/material-icons.woff2') format('woff2');
+    }
+    .material-icons {
+      font-family: 'Material Icons';
+      display: inline-block;
+      line-height: 1;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: 'liga';
+      font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+  </style>
 </head>
 <body>
   <app-root></app-root>

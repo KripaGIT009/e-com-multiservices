@@ -54,7 +54,10 @@ img {
   max-width: 100%;
 }
 
-// Material Icons ship as a ligature font; keep them from inheriting text styling.
+// The Material Icons @font-face and the few rules needed to render a glyph rather
+// than the raw ligature word live in index.html, because this stylesheet is deferred
+// and would otherwise paint those words first. What follows is the non-critical
+// remainder: sizing and text styling the icons must not inherit.
 .material-icons {
   font-family: 'Material Icons';
   font-weight: normal;
@@ -66,6 +69,7 @@ img {
   white-space: nowrap;
   direction: ltr;
   -webkit-font-feature-settings: 'liga';
+  font-feature-settings: 'liga';
   -webkit-font-smoothing: antialiased;
 }
 

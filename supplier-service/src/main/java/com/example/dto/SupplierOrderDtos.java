@@ -53,6 +53,7 @@ public final class SupplierOrderDtos {
         String shipToState,
         String shipToPostalCode,
         String shipToPhone,
+        String shipToEmail,
         BigDecimal costTotal,
         String failureReason,
         String lastNote,

@@ -37,7 +37,8 @@ class DropshipPartnerInitializerTest {
             assertThat(p.getIntegrationType()).isEqualTo("MANUAL");
             assertThat(p.getOnboardingStatus()).isEqualTo(OnboardingStatus.NOT_STARTED);
             assertThat(p.getShipsWithOwnLogistics()).isTrue();
-            assertThat(p.getWebsite()).isNull();
+            assertThat(p.getWebsite()).startsWith("https://");
+            assertThat(p.getNotes()).isNotBlank();
             assertThat(p.getBestFor()).isNotBlank();
             assertThat(p.getIntegrationPotential()).isNotBlank();
         });

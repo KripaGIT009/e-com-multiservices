@@ -72,8 +72,11 @@ const primaryGroup = (groups) =>
  * A shipment recorded before fulfilment keys existed has none; it was created for the
  * whole order, so it counts for every courier-shipped group.
  */
-const attachProgress = (groups, shipments = [], supplierOrders = []) => {
+const attachProgress = (groups, shipments = [], supplierOrders = [], orderStatus = null) => {
   const legacy = shipments.find((s) => !s.fulfilmentKey) || null;
+  // Orders marked shipped or delivered before shipments were recorded per group have
+  // no rows to point at; their status is the only evidence, and it is enough.
+  const legacyDone = ['SHIPPED', 'DELIVERED'].includes(String(orderStatus || '').toUpperCase());
   return groups.map((g) => {
     if (g.model === 'DROPSHIP') {
       const supplierOrder = supplierOrders.find(
@@ -83,11 +86,11 @@ const attachProgress = (groups, shipments = [], supplierOrders = []) => {
         ...g,
         shipment: null,
         supplierOrder,
-        shipped: !!supplierOrder && SUPPLIER_SHIPPED.includes(supplierOrder.status),
+        shipped: (!!supplierOrder && SUPPLIER_SHIPPED.includes(supplierOrder.status)) || (!supplierOrder && legacyDone),
       };
     }
     const shipment = shipments.find((s) => s.fulfilmentKey === g.fulfilmentKey) || legacy;
-    return { ...g, shipment, supplierOrder: null, shipped: !!shipment };
+    return { ...g, shipment, supplierOrder: null, shipped: !!shipment || legacyDone };
   });
 };
 

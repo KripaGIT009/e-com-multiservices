@@ -19,8 +19,15 @@
     </div>
   </section>
 
+  <!-- Loading and error states -->
+  <p *ngIf="isLoading" class="closed-orders__state">Loading closed orders…</p>
+  <div *ngIf="hasError && !isLoading" class="closed-orders__state closed-orders__state--error" role="alert">
+    <p>{{ errorMessage }}</p>
+    <button type="button" (click)="retry()">Retry</button>
+  </div>
+
   <!-- Delivered Orders Section -->
-  <section class="closed-orders__section" aria-labelledby="delivered-heading">
+  <section class="closed-orders__section" aria-labelledby="delivered-heading" *ngIf="!isLoading && !hasError">
     <h2 id="delivered-heading" class="closed-orders__section-title">Delivered Orders</h2>
 
     <div class="closed-orders__table-container">
@@ -45,7 +52,12 @@
             <ng-container *ngFor="let order of deliveredPaginated">
               <tr class="closed-orders__row">
                 <td class="closed-orders__td">
-                  <span class="closed-orders__order-id">{{ order.orderId }}</span>
+                  <a *ngIf="order.id != null; else plainId"
+                     class="closed-orders__order-id"
+                     [routerLink]="['/admin/orders', order.id]">{{ order.orderId }}</a>
+                  <ng-template #plainId>
+                    <span class="closed-orders__order-id">{{ order.orderId }}</span>
+                  </ng-template>
                 </td>
                 <td class="closed-orders__td closed-orders__td--product">
                   <div class="closed-orders__product-cell">
@@ -171,7 +183,7 @@
   </section>
 
   <!-- Cancelled Orders Section -->
-  <section class="closed-orders__section" aria-labelledby="cancelled-heading">
+  <section class="closed-orders__section" aria-labelledby="cancelled-heading" *ngIf="!isLoading && !hasError">
     <h2 id="cancelled-heading" class="closed-orders__section-title">Cancelled Orders</h2>
 
     <div class="closed-orders__table-container">
@@ -196,7 +208,12 @@
             <ng-container *ngFor="let order of cancelledPaginated">
               <tr class="closed-orders__row">
                 <td class="closed-orders__td">
-                  <span class="closed-orders__order-id">{{ order.orderId }}</span>
+                  <a *ngIf="order.id != null; else plainIdCancelled"
+                     class="closed-orders__order-id"
+                     [routerLink]="['/admin/orders', order.id]">{{ order.orderId }}</a>
+                  <ng-template #plainIdCancelled>
+                    <span class="closed-orders__order-id">{{ order.orderId }}</span>
+                  </ng-template>
                 </td>
                 <td class="closed-orders__td closed-orders__td--product">
                   <div class="closed-orders__product-cell">

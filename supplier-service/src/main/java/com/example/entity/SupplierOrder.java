@@ -47,6 +47,8 @@ public class SupplierOrder {
     @Column(length = 100) private String shipToState;
     @Column(length = 10)  private String shipToPostalCode;
     @Column(length = 20)  private String shipToPhone;
+    /** Partners send delivery notifications here; snapshotted like the rest of the address. */
+    @Column(length = 160) private String shipToEmail;
 
     @Column(precision = 12, scale = 2)
     private BigDecimal costTotal;
@@ -117,6 +119,8 @@ public class SupplierOrder {
     public void setShipToPostalCode(String v) { this.shipToPostalCode = v; }
     public String getShipToPhone() { return shipToPhone; }
     public void setShipToPhone(String v) { this.shipToPhone = v; }
+    public String getShipToEmail() { return shipToEmail; }
+    public void setShipToEmail(String v) { this.shipToEmail = v; }
     public BigDecimal getCostTotal() { return costTotal; }
     public void setCostTotal(BigDecimal costTotal) { this.costTotal = costTotal; }
     public String getFailureReason() { return failureReason; }

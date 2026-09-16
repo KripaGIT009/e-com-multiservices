@@ -84,7 +84,10 @@ const authenticateToken = (req, res, next) => {
   const token = (req.headers['authorization'] || '').split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Access token required' });
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid token' });
+    // An expired or unverifiable token is 401, not 403: the caller is unauthenticated,
+    // not forbidden. 403 made the client show "you don't have permission" and stay put
+    // instead of refreshing the session or sending the user to sign in again.
+    if (err) return res.status(401).json({ error: 'Session expired. Please sign in again.' });
     req.user = user;
     next();
   });
@@ -118,7 +121,8 @@ const authenticateAdmin = (req, res, next) => {
   if (!(req.headers['authorization'] || '').split(' ')[1])
     return res.status(401).json({ error: 'Access token required' });
   const user = resolveUser(req);
-  if (!user) return res.status(403).json({ error: 'Invalid token' });
+  // Unauthenticated, not forbidden — see authenticateToken above.
+  if (!user) return res.status(401).json({ error: 'Session expired. Please sign in again.' });
   if (!user.isAdmin) return res.status(403).json({ error: 'Administrator privileges required' });
   req.user = user;
   next();
@@ -129,7 +133,8 @@ const authenticateAny = (req, res, next) => {
   if (!(req.headers['authorization'] || '').split(' ')[1])
     return res.status(401).json({ error: 'Access token required' });
   const user = resolveUser(req);
-  if (!user) return res.status(403).json({ error: 'Invalid token' });
+  // Unauthenticated, not forbidden — see authenticateToken above.
+  if (!user) return res.status(401).json({ error: 'Session expired. Please sign in again.' });
   req.user = user;
   next();
 };
@@ -703,7 +708,8 @@ const authenticateSeller = (req, res, next) => {
   if (!(req.headers['authorization'] || '').split(' ')[1])
     return res.status(401).json({ error: 'Access token required' });
   const user = resolveUser(req);
-  if (!user) return res.status(403).json({ error: 'Invalid token' });
+  // Unauthenticated, not forbidden — see authenticateToken above.
+  if (!user) return res.status(401).json({ error: 'Session expired. Please sign in again.' });
   if (user.role !== 'SELLER' || !user.sellerId)
     return res.status(403).json({ error: 'Seller account required' });
   req.seller = user;

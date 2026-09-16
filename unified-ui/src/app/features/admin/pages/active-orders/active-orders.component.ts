@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { StatusBadgeComponent, StatusVariant } from '../../components/status-badge/status-badge.component';
 
 /**
@@ -13,6 +14,8 @@ export type OrderStatus = 'pending' | 'confirmed' | 'shipped' | 'out-for-deliver
  * Represents an order item in the active orders table.
  */
 export interface ActiveOrder {
+  /** order-service id, used to link to the order detail page. */
+  id: number | null;
   orderId: string;
   productName: string;
   productImage: string;
@@ -47,7 +50,7 @@ interface KpiCard {
 @Component({
   selector: 'app-active-orders',
   standalone: true,
-  imports: [CommonModule, FormsModule, StatusBadgeComponent],
+  imports: [CommonModule, FormsModule, RouterModule, StatusBadgeComponent],
   templateUrl: './active-orders.component.html',
   styleUrls: ['./active-orders.component.scss'],
 })
@@ -127,11 +130,13 @@ export class ActiveOrdersComponent implements OnInit {
         this.applyFilters();
         this.isLoading = false;
       },
-      error: () => {
-        // Fallback to mock data if API fails
-        this.orders = this.getMockOrders();
+      error: (err) => {
+        // No fallback data: fabricated orders read as real ones (CODE_REVIEW.md §3.1).
+        this.orders = [];
         this.applyFilters();
         this.isLoading = false;
+        this.hasError = true;
+        this.errorMessage = err?.error?.error || 'Could not load orders. Try again.';
       },
     });
   }
@@ -139,6 +144,7 @@ export class ActiveOrdersComponent implements OnInit {
   private mapBackendOrder(o: any): ActiveOrder {
     const firstItem = o.items?.[0];
     return {
+      id: o.id ?? null,
       orderId: o.orderNumber || `ORD-${o.id}`,
       productName: firstItem?.productName || 'Unknown Product',
       productImage: 'assets/images/placeholder-product.png',
@@ -342,106 +348,4 @@ export class ActiveOrdersComponent implements OnInit {
     this.loadOrders();
   }
 
-  // ─── Mock Data ───────────────────────────────────────────────────────────────
-
-  private getMockOrders(): ActiveOrder[] {
-    return [
-      {
-        orderId: 'ORD-2024-001',
-        productName: 'Organic Turmeric Powder',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'TUR-500G',
-        quantity: 2,
-        customerName: 'Rahul Sharma',
-        customerPhone: '+91 98765 43210',
-        customerEmail: 'rahul.sharma@email.com',
-        amount: 599,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-15',
-        status: 'pending',
-        deliveryAddress: '42, MG Road, Bangalore, Karnataka 560001',
-        expectedDelivery: '2024-01-20',
-      },
-      {
-        orderId: 'ORD-2024-002',
-        productName: 'Basmati Rice Premium',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'RIC-5KG',
-        quantity: 1,
-        customerName: 'Priya Patel',
-        customerPhone: '+91 87654 32109',
-        customerEmail: 'priya.patel@email.com',
-        amount: 1249,
-        paymentMethod: 'Credit Card',
-        orderDate: '2024-01-14',
-        status: 'confirmed',
-        deliveryAddress: '15, Nehru Nagar, Mumbai, Maharashtra 400001',
-        expectedDelivery: '2024-01-19',
-      },
-      {
-        orderId: 'ORD-2024-003',
-        productName: 'Assam Tea Collection',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'TEA-250G',
-        quantity: 3,
-        customerName: 'Amit Kumar',
-        customerPhone: '+91 76543 21098',
-        customerEmail: 'amit.kumar@email.com',
-        amount: 899,
-        paymentMethod: 'COD',
-        orderDate: '2024-01-13',
-        status: 'shipped',
-        deliveryAddress: '7, Civil Lines, Delhi 110001',
-        expectedDelivery: '2024-01-18',
-      },
-      {
-        orderId: 'ORD-2024-004',
-        productName: 'Kashmiri Saffron',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SAF-10G',
-        quantity: 1,
-        customerName: 'Sneha Reddy',
-        customerPhone: '+91 65432 10987',
-        customerEmail: 'sneha.reddy@email.com',
-        amount: 2499,
-        paymentMethod: 'Debit Card',
-        orderDate: '2024-01-12',
-        status: 'pending',
-        deliveryAddress: '23, Jubilee Hills, Hyderabad, Telangana 500033',
-        expectedDelivery: '2024-01-17',
-      },
-      {
-        orderId: 'ORD-2024-005',
-        productName: 'Coconut Oil Cold Pressed',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'OIL-1L',
-        quantity: 2,
-        customerName: 'Vijay Nair',
-        customerPhone: '+91 54321 09876',
-        customerEmail: 'vijay.nair@email.com',
-        amount: 749,
-        paymentMethod: 'Net Banking',
-        orderDate: '2024-01-11',
-        status: 'confirmed',
-        deliveryAddress: '8, Marine Drive, Kochi, Kerala 682001',
-        expectedDelivery: '2024-01-16',
-      },
-      {
-        orderId: 'ORD-2024-006',
-        productName: 'Darjeeling Green Tea',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'GRN-100G',
-        quantity: 4,
-        customerName: 'Ananya Gupta',
-        customerPhone: '+91 43210 98765',
-        customerEmail: 'ananya.gupta@email.com',
-        amount: 1199,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-10',
-        status: 'shipped',
-        deliveryAddress: '56, Park Street, Kolkata, West Bengal 700016',
-        expectedDelivery: '2024-01-15',
-      },
-    ];
-  }
 }

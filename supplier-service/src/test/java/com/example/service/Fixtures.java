@@ -30,7 +30,7 @@ final class Fixtures {
     }
 
     static OrderView order(Long id, String status, List<OrderView.Item> items) {
-        return new OrderView(id, "ORD-" + id, status, items, address());
+        return new OrderView(id, "ORD-" + id, status, items, address(), "asha@example.com");
     }
 
     static DropshipPartner partner(String code, String name, boolean active) {

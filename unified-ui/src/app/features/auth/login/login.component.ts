@@ -31,6 +31,12 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(8)]],
     });
+
+    // The interceptor sends people here when their session ends. Saying so beats
+    // presenting a bare form to someone who thought they were already signed in.
+    if (this.route.snapshot.queryParamMap.get('reason') === 'session_expired') {
+      this.submitError = 'Your session has expired. Please sign in again.';
+    }
   }
 
   togglePasswordVisibility(): void {

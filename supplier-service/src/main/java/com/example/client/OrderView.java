@@ -14,7 +14,8 @@ public record OrderView(Long id,
                         String orderNumber,
                         String status,
                         List<Item> items,
-                        Address shippingAddress) {
+                        Address shippingAddress,
+                        String customerEmail) {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record Item(Long id,

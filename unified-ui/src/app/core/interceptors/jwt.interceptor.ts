@@ -20,7 +20,8 @@ import { NotificationService } from '../services/notification.service';
  * Requirements: 8.2, 8.5, 13.1, 13.6
  *
  * Error handling:
- * - 401: Attempt token refresh once; on failure logout and redirect to /login?reason=session_expired
+ * - 401: Refresh once when a refresh token exists; otherwise (or on refresh
+ *   failure) end the session and redirect to the matching sign-in page.
  * - 403: Notification "You don't have permission to perform this action."
  * - 404: Notification "The requested resource was not found."
  * - 5xx: Notification "Something went wrong. Please try again later."
@@ -73,8 +74,17 @@ export class JwtInterceptor implements HttpInterceptor {
             '/api/auth/reset-password',
           ].some((p) => authReq.url.startsWith(p));
 
-          // Nothing to refresh with — surface the error instead of forcing a logout.
-          if (isAuthEndpoint || !this.authService.getRefreshToken()) {
+          // Bad credentials on an auth endpoint are the server's answer to what
+          // the user just typed, not an expired session. Surface them untouched.
+          if (isAuthEndpoint) {
+            return throwError(() => error);
+          }
+
+          // Nothing to refresh with — seller sessions are never issued a refresh
+          // token — so the session is simply over. End it and send the user to sign
+          // in, rather than stranding them on a shell whose every request fails.
+          if (!this.authService.getRefreshToken()) {
+            this.endSession();
             return throwError(() => error);
           }
           return this.handle401Error(authReq, next);
@@ -126,10 +136,7 @@ export class JwtInterceptor implements HttpInterceptor {
         }),
         catchError((refreshError) => {
           this.isRefreshing = false;
-          this.authService.logout();
-          this.router.navigate(['/login'], {
-            queryParams: { reason: 'session_expired' },
-          });
+          this.endSession();
           return throwError(() => refreshError);
         })
       );
@@ -144,6 +151,19 @@ export class JwtInterceptor implements HttpInterceptor {
         return next.handle(this.addTokenToRequest(req, token!));
       })
     );
+  }
+
+  /**
+   * Ends a session that cannot be refreshed, returning the user to the sign-in page
+   * that matches where they are. A seller dropped on the customer login would have to
+   * find their own way back to the portal.
+   */
+  private endSession(): void {
+    const inSellerPortal = this.router.url.startsWith('/seller');
+    this.authService.logout();
+    this.router.navigate([inSellerPortal ? '/seller/login' : '/login'], {
+      queryParams: { reason: 'session_expired' },
+    });
   }
 
   private addTokenToRequest(

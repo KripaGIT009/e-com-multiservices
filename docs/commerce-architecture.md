@@ -318,13 +318,27 @@ public interface DropshipAdapter {
 }
 ```
 
-Only `MANUAL` is built. Its `submit` puts the supplier order in
-`AWAITING_MANUAL_PLACEMENT`: an operator places it on the partner's portal and records
-the partner reference and tracking number in Admin → Supplier orders.
+| Adapter key | Status | Needs |
+|---|---|---|
+| `MANUAL` | built | nothing — `submit` puts the supplier order in `AWAITING_MANUAL_PLACEMENT`; an operator places it on the partner's portal and records the reference and tracking number in Admin → Supplier orders |
+| `QIKINK` | built against Qikink's published API, **not exercised against a Qikink account** | `QIKINK_CLIENT_ID`, `QIKINK_CLIENT_SECRET`, `QIKINK_BASE_URL` (sandbox by default), `QIKINK_SEARCH_FROM_MY_PRODUCTS` |
 
-**No partner-specific API client is written until the partner has signed us up and
-supplied API documentation and sandbox credentials.** Writing one from marketing pages
-would produce code that looks integrated and is not (P6).
+The Qikink adapter (`com.example.dropship.qikink`) does a form-encoded token exchange
+at `POST /api/token` (`ClientId`, `client_secret` → `Accesstoken`, `expires_in`), caches
+the token, and submits `POST /api/order/create` with `ClientId` / `Accesstoken` headers.
+Documented constraints it enforces: `order_number` ≤ 15 characters; `quantity`, `price`
+and `total_order_value` are JSON strings; `gateway` is `Prepaid` (checkout is
+Razorpay-only); `qikink_shipping = "1"` so Qikink ships. A retry after a failed
+placement suffixes the order number (`ORD-464E6912-2`) so a first attempt that did reach
+Qikink is distinguishable. Qikink documents **no** order-status, tracking or webhook
+endpoint, so the adapter claims only `ORDER_SUBMISSION`; the AWB is recorded from the
+Qikink dashboard like a manual partner's. Sandbox and live do not share a product
+catalogue, and live API access is enabled per account from Qikink's dashboard.
+
+**No other partner-specific client is written**, because none of the other five
+publishes an API (§8.2). One is written only once a partner supplies documentation and
+sandbox credentials; code written from marketing pages would look integrated and not
+be (P6).
 
 ### 7.3 Adding a partner
 
@@ -373,20 +387,27 @@ figures, as before.
 ### 8.2 Dropship partners — `supplier-service`
 
 All six are seeded **inactive**, `onboardingStatus = NOT_STARTED`, integration
-`MANUAL`. We hold no contract or credentials with any of them; activating one is an
-admin decision. "Integration potential" is the assessment supplied with the
-requirement, not something this codebase has verified.
+`MANUAL`. We hold no contract or credentials with any of them; activating one — and
+switching Qikink to its API adapter — is an admin decision. "Integration potential" is
+the assessment supplied with the requirement; "What we found" is what a search for
+each partner's *public* API turned up on 2026-09-14, and is also stored in the partner
+row's `notes`.
 
-| Code | Name | Best for | Integration potential |
-|---|---|---|---|
-| `QIKINK` | Qikink | Print-on-demand, apparel, custom products | Strong |
-| `EKOMN` | eKomn | Indian wholesale + dropship sourcing | Potentially useful |
-| `BHARAT_DROPSHIP` | Bharat Dropship | Multi-supplier dropshipping | API + webhooks advertised |
-| `DROPSETU` | DropSetu | Connecting Indian suppliers with resellers | Shopify/WooCommerce + supplier network |
-| `DROPBARTER` | Dropbarter | Indian suppliers/artisans | Marketplace-style dropshipping |
-| `ALI_SHIPPING` | Ali Shipping | Indian dropshipping + shipping ecosystem | Seller/supplier workflows |
+| Code | Name | Best for | Integration potential | What we found |
+|---|---|---|---|---|
+| `QIKINK` | Qikink | Print-on-demand, apparel, custom products | Strong | **Public REST API** — token exchange and order create; no status/tracking/webhook endpoint. Adapter `QIKINK` built (§7.2) |
+| `EKOMN` | eKomn | Indian wholesale + dropship sourcing | Potentially useful | No public API: Amazon/Shopify CSV templates and a WooCommerce plugin |
+| `BHARAT_DROPSHIP` | Bharat Dropship | Multi-supplier dropshipping | API + webhooks advertised | Presents as a Shopify B2B2C marketplace; no API or webhook documentation found |
+| `DROPSETU` | DropSetu | Connecting Indian suppliers with resellers | Shopify/WooCommerce + supplier network | Waitlist-only; Shopify/WooCommerce plugin and dashboard ordering, no public API |
+| `DROPBARTER` | Dropbarter | Indian suppliers/artisans | Marketplace-style dropshipping | Marketplace-channel sync only; no API or developer documentation |
+| `ALI_SHIPPING` | Ali Shipping | Indian dropshipping + shipping ecosystem | Seller/supplier workflows | A managed fulfilment service (runs Amazon SP-API for the seller); no reseller API |
 
-Websites are left blank for the admin to fill in rather than guessed.
+Sources: Qikink's API reference on Postman (since removed) and an independent
+integration write-up, [dev.to/anupamswe](https://dev.to/anupamswe/i-hit-these-issues-integrating-qikink-into-pinnaclewear-4ic9)
+with its [full post](https://anupamkushwaha.me/blog/integrating-qikink-pod-api-with-nodejs);
+[ekomn.com/integration](https://www.ekomn.com/integration); [bharatdropship.com](https://www.bharatdropship.com/);
+[dropsetu.com](https://dropsetu.com/); [dropbarter.com](https://dropbarter.com/);
+[alishipping.in](https://alishipping.in/). Re-check before onboarding — these sites change.
 
 ---
 

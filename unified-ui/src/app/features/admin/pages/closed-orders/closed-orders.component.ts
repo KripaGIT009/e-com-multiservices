@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { StatusBadgeComponent, StatusVariant } from '../../components/status-badge/status-badge.component';
 
 export interface ClosedOrder {
+  /** order-service id, used to link to the order detail page. */
+  id: number | null;
   orderId: string;
   productName: string;
   productImage: string;
@@ -35,12 +39,11 @@ interface KpiCard {
 @Component({
   selector: 'app-closed-orders',
   standalone: true,
-  imports: [CommonModule, StatusBadgeComponent],
+  imports: [CommonModule, RouterModule, StatusBadgeComponent],
   templateUrl: './closed-orders.component.html',
   styleUrls: ['./closed-orders.component.scss'],
 })
 export class ClosedOrdersComponent implements OnInit {
-  // Mock data
   allOrders: ClosedOrder[] = [];
   deliveredOrders: ClosedOrder[] = [];
   cancelledOrders: ClosedOrder[] = [];
@@ -60,11 +63,14 @@ export class ClosedOrdersComponent implements OnInit {
   // Expandable details
   expandedOrderId: string | null = null;
 
+  isLoading = true;
+  hasError = false;
+  errorMessage = '';
+
+  constructor(private http: HttpClient) {}
+
   ngOnInit(): void {
-    this.loadMockData();
-    this.splitOrders();
-    this.updateDeliveredPagination();
-    this.updateCancelledPagination();
+    this.loadOrders();
   }
 
   // ─── KPI Cards ───────────────────────────────────────────────────────────────
@@ -81,177 +87,60 @@ export class ClosedOrdersComponent implements OnInit {
 
   // ─── Data Loading ────────────────────────────────────────────────────────────
 
-  private loadMockData(): void {
-    this.allOrders = [
-      {
-        orderId: 'ORD-1001',
-        productName: 'Basmati Rice 5kg',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-BR-001',
-        quantity: 2,
-        customerName: 'Rahul Sharma',
-        customerPhone: '+91 98765 43210',
-        amount: 1250,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-15',
-        status: 'delivered',
-        deliveryDate: '2024-01-18',
+  loadOrders(): void {
+    this.isLoading = true;
+    this.hasError = false;
+    this.errorMessage = '';
+
+    this.http.get<any[]>('/api/orders').subscribe({
+      next: (backendOrders) => {
+        this.allOrders = (backendOrders || [])
+          .filter((o) => o.status === 'DELIVERED' || o.status === 'CANCELLED')
+          .map((o) => this.mapBackendOrder(o))
+          .sort((a, b) => (b.orderDate || '').localeCompare(a.orderDate || ''));
+        this.afterLoad();
+        this.isLoading = false;
       },
-      {
-        orderId: 'ORD-1002',
-        productName: 'Masala Chai Pack',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-MC-002',
-        quantity: 3,
-        customerName: 'Priya Patel',
-        customerPhone: '+91 87654 32109',
-        amount: 450,
-        paymentMethod: 'Card',
-        orderDate: '2024-01-14',
-        status: 'delivered',
-        deliveryDate: '2024-01-17',
+      error: (err) => {
+        // No sample rows on failure: invented orders read as real ones.
+        this.allOrders = [];
+        this.afterLoad();
+        this.isLoading = false;
+        this.hasError = true;
+        this.errorMessage = err?.error?.error || 'Could not load closed orders. Try again.';
       },
-      {
-        orderId: 'ORD-1003',
-        productName: 'Organic Turmeric Powder',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-OT-003',
-        quantity: 1,
-        customerName: 'Amit Kumar',
-        customerPhone: '+91 76543 21098',
-        amount: 320,
-        paymentMethod: 'COD',
-        orderDate: '2024-01-13',
-        status: 'cancelled',
-        cancelReason: 'Customer requested cancellation',
-      },
-      {
-        orderId: 'ORD-1004',
-        productName: 'Ghee Premium 1L',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-GP-004',
-        quantity: 1,
-        customerName: 'Sneha Reddy',
-        customerPhone: '+91 65432 10987',
-        amount: 890,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-12',
-        status: 'delivered',
-        deliveryDate: '2024-01-15',
-      },
-      {
-        orderId: 'ORD-1005',
-        productName: 'Dry Fruits Mix 500g',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-DF-005',
-        quantity: 2,
-        customerName: 'Vikram Singh',
-        customerPhone: '+91 54321 09876',
-        amount: 1680,
-        paymentMethod: 'Card',
-        orderDate: '2024-01-11',
-        status: 'delivered',
-        deliveryDate: '2024-01-14',
-      },
-      {
-        orderId: 'ORD-1006',
-        productName: 'Saffron 1g Pack',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-SF-006',
-        quantity: 1,
-        customerName: 'Neha Gupta',
-        customerPhone: '+91 43210 98765',
-        amount: 550,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-10',
-        status: 'cancelled',
-        cancelReason: 'Item out of stock',
-      },
-      {
-        orderId: 'ORD-1007',
-        productName: 'Pickle Variety Pack',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-PV-007',
-        quantity: 1,
-        customerName: 'Arjun Nair',
-        customerPhone: '+91 32109 87654',
-        amount: 420,
-        paymentMethod: 'COD',
-        orderDate: '2024-01-09',
-        status: 'delivered',
-        deliveryDate: '2024-01-12',
-      },
-      {
-        orderId: 'ORD-1008',
-        productName: 'Rose Water 200ml',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-RW-008',
-        quantity: 4,
-        customerName: 'Kavitha Menon',
-        customerPhone: '+91 21098 76543',
-        amount: 360,
-        paymentMethod: 'Card',
-        orderDate: '2024-01-08',
-        status: 'cancelled',
-        cancelReason: 'Payment failed',
-      },
-      {
-        orderId: 'ORD-1009',
-        productName: 'Cardamom Pods 100g',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-CP-009',
-        quantity: 2,
-        customerName: 'Deepak Joshi',
-        customerPhone: '+91 10987 65432',
-        amount: 780,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-07',
-        status: 'delivered',
-        deliveryDate: '2024-01-10',
-      },
-      {
-        orderId: 'ORD-1010',
-        productName: 'Coconut Oil 500ml',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-CO-010',
-        quantity: 1,
-        customerName: 'Lakshmi Iyer',
-        customerPhone: '+91 09876 54321',
-        amount: 290,
-        paymentMethod: 'COD',
-        orderDate: '2024-01-06',
-        status: 'delivered',
-        deliveryDate: '2024-01-09',
-      },
-      {
-        orderId: 'ORD-1011',
-        productName: 'Jaggery Block 1kg',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-JB-011',
-        quantity: 3,
-        customerName: 'Suresh Rao',
-        customerPhone: '+91 98712 34567',
-        amount: 510,
-        paymentMethod: 'UPI',
-        orderDate: '2024-01-05',
-        status: 'delivered',
-        deliveryDate: '2024-01-08',
-      },
-      {
-        orderId: 'ORD-1012',
-        productName: 'Herbal Tea Set',
-        productImage: 'assets/images/placeholder-product.png',
-        productSku: 'SKU-HT-012',
-        quantity: 1,
-        customerName: 'Meera Das',
-        customerPhone: '+91 87612 34567',
-        amount: 640,
-        paymentMethod: 'Card',
-        orderDate: '2024-01-04',
-        status: 'cancelled',
-        cancelReason: 'Wrong address provided',
-      },
-    ];
+    });
+  }
+
+  retry(): void {
+    this.loadOrders();
+  }
+
+  private afterLoad(): void {
+    this.splitOrders();
+    this.updateDeliveredPagination();
+    this.updateCancelledPagination();
+  }
+
+  private mapBackendOrder(o: any): ClosedOrder {
+    const firstItem = o.items?.[0];
+    return {
+      id: o.id ?? null,
+      orderId: o.orderNumber || ('ORD-' + o.id),
+      productName: firstItem?.productName || 'Unknown product',
+      productImage: 'assets/images/placeholder-product.png',
+      productSku: firstItem?.description || ('SKU-' + (firstItem?.productId || '?')),
+      quantity: firstItem?.quantity || 1,
+      customerName: o.customerName || ('Customer #' + o.customerId),
+      customerPhone: o.customerPhone || '',
+      amount: o.totalAmount || 0,
+      // The order model does not record how the customer paid yet.
+      paymentMethod: 'Online',
+      orderDate: o.createdAt ? o.createdAt.split('T')[0] : '',
+      status: o.status === 'CANCELLED' ? 'cancelled' : 'delivered',
+      deliveryDate: o.status === 'DELIVERED' && o.updatedAt ? o.updatedAt.split('T')[0] : undefined,
+      cancelReason: o.notes || undefined,
+    };
   }
 
   private splitOrders(): void {

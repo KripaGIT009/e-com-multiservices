@@ -207,10 +207,12 @@ Courier with API      → logistics-service/src/main/java/com/example/carrier/<N
                         partner's integration type.
 Dropship without API  → no code. Admin → Dropshipping → Partners → activate / add,
                         integration MANUAL. Supplier orders wait in "Needs placing".
-Dropship with API     → supplier-service/src/main/java/com/example/dropship/<Name>DropshipAdapter.java
+Dropship with API     → supplier-service/src/main/java/com/example/dropship/<name>/<Name>DropshipAdapter.java
                         implementing submit / fetchStatus / fetchStock / parseWebhook
                         (verify the partner's signature over the RAW bytes); same test,
-                        env and documentation steps.
+                        env and documentation steps. QikinkDropshipAdapter is the
+                        worked example: token cache, one 401 retry, partner errors in
+                        the partner's words, no capability claimed that is undocumented.
 Never: a new table per partner, a switch statement on partner code outside the adapter,
 or partner credentials in the database.
 

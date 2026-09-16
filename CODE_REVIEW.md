@@ -952,3 +952,177 @@ from before the broker went unreachable — the failure was latent, not new.
   events in the meantime.
 - Tracking numbers are still generated locally — no carrier API is integrated,
   so a tracking link will not resolve on the courier's own site.
+
+---
+
+# Appendix J — One commerce core: marketplace + dropshipping + pluggable couriers
+
+Design in [`docs/commerce-architecture.md`](docs/commerce-architecture.md); decisions in
+ADR-0005 and ADR-0006. This appendix records what was built and, separately, what was
+actually exercised against the running stack on 2026-09-14.
+
+## What changed
+
+| Area | Change |
+|---|---|
+| item-service | `fulfilmentModel` / `fulfilmentPartnerCode` on items, validated; legacy rows resolve from `sellerId`; `GET /items/fulfilment/{model}` |
+| order-service | Both fields snapshotted on order lines; `deliveryAssignmentReason` on orders; unknown ids are 404 not 500 |
+| logistics-service | Carrier adapter SPI (`MANUAL`, `DELHIVERY`, `SHIPROCKET`); courier allocation (manual → location rule → default → strategy) with rules and per-model settings; shipments keyed by fulfilment group with idempotent booking; Shiprocket seeded **inactive**; Dockerfile aligned with the other services |
+| supplier-service (**new**, 8027) | Dropship partners (the six named ones, seeded inactive), private SKU/cost listings, supplier orders with a status machine, idempotent dispatch that refuses unpaid orders, manual adapter |
+| payment-service | `POST /api/v1/payments/captured` records a gateway-captured payment idempotently; it never runs the random-decline simulation |
+| BFF | `bff/fulfilment.js` (group derivation, pure, unit-tested), `bff/commerce-core.js`, `bff/shipping-routes.js`, `bff/dropship-routes.js`; Razorpay amount from the order and verification bound to `notes.orderId`; order lines that fail to resolve are rejected instead of priced from the client |
+| Admin console | Fulfilment queue, Courier allocation (settings, rules, probe), Delivery partners (add, integration status), Dropshipping (partners, catalogue, supplier orders), real order details (the mock page is gone), mock fallbacks removed from active/closed orders |
+| Seller Central | Courier suggested by allocation with its reason; manual override checked server-side; own tracking number; per-seller shipment on closed orders; unpaid orders cannot be shipped |
+| Storefront / checkout | "Sold by / ships from" label; per-group delivery estimate before payment; per-group tracking in order history |
+
+## Two payment defects fixed on the way — **VERIFIED**
+
+1. `POST /api/payments/razorpay/create-order` took `amount` from the browser. A request
+   with `amount: 1` for a ₹10,348 order now gets a Razorpay order for **1,034,800 paise**:
+   the amount is read from order-service and the client value is ignored.
+2. `verify` checked the HMAC but never *which* order the payment was for. It now fetches
+   the Razorpay order and requires `notes.orderId` and `amount` to match ours. Demo mode
+   (no keys) still refuses another customer's order and an already-paid one.
+
+A third: order lines whose catalogue lookup failed were priced from the request body.
+They are now rejected with 422.
+
+## Verified against the running stack
+
+Full stack rebuilt (`mvn package` for every changed service, `docker compose up -d
+--build`), seeded through the APIs, then a scripted run of 54 checks through the BFF at
+`http://localhost:4200` with real customer, seller and admin tokens. First run 53/54; the
+one failure was the script assuming a fresh database (Delhivery's row keeps `MANUAL` on an
+existing database until an admin switches it, exactly as §8.1 says). The check was
+corrected to switch the row first. After the queue fix below and a UI rebuild the script
+passed **54/54** — once its seller tracking number was made unique per run, because
+`shipments.tracking_number` is unique and the service rightly refused the repeat with 409.
+
+Unit tests: logistics 61, supplier 90, item 21, order 5, BFF 9 — all passing.
+
+| Check | Seen |
+|---|---|
+| Allocation: rule `56,60,50 → Blue Dart`, default `Delhivery`, manual `XpressBees` | 560038 → `BLUEDART RULE`; 110001 → `DELHIVERY DEFAULT`; manual → `XPRESSBEES MANUAL`; SELLER model → `STRATEGY` |
+| Rule with unknown partner | 400 |
+| Customer on any `/api/admin/**` route | 403 |
+| Six dropship partners | seeded, all inactive; Qikink activated via the API |
+| Listing priced at or below cost | 400 |
+| Dropship listing | catalogue item created as `DROPSHIP`, margin ₹349 reported |
+| Mixed basket (own + seller + dropship), client prices `1` | order total **10,348** from the catalogue; courier `BLUEDART` reason `RULE`; every line carries its model |
+| Razorpay create-order with client `amount: 1` | 1,034,800 paise |
+| Verify (demo) | order → `PAYMENT_COMPLETED`; payment row `10348.00 COMPLETED` keyed by the gateway id; **1 supplier order** created at cost 350.00, `AWAITING_MANUAL_PLACEMENT` |
+| Pay a paid order | 409 |
+| Customer fulfilment view | 3 groups, none shipped; response contains no `QIKINK` and no `costPrice` |
+| Admin ships own group with DTDC | 201, `bookingMode MANUAL`, `trackingGenerated true`; repeat → 200 `alreadyBooked`; order courier updated to DTDC; order **still** `PAYMENT_COMPLETED` |
+| Seller: another seller ships this order | 404 |
+| Seller: manual pick of the inactive Shiprocket | quote says "Shiprocket is disabled"; ship with it → 422 |
+| Seller ships with own AWB `MYAWB123` | 201, `trackingGenerated false` |
+| Supplier order: `SHIPPED` without tracking | 400; illegal transition → 409; dispatch again → `created 0 existing 1` |
+| Supplier order shipped | order becomes **`SHIPPED` only now**, after all three groups |
+| Unpaid order: ship / dispatch | 409 / 409 |
+| Unconfigured Delhivery API adapter | booking degrades to `MANUAL` with the note "Delhivery integration not configured (DELHIVERY_API_TOKEN, DELHIVERY_BASE_URL, DELHIVERY_PICKUP_LOCATION) — booked manually" |
+
+Database rows read back with `psql`: `shipments` rows `FIRST_PARTY / DTDC / MANUAL /
+generated` and `SELLER:1 / BLUEDART / MANUAL / not generated`; `supplier_orders`
+`QIKINK SHIPPED QK-1 QKTRACK1 350.00`; `order_items` carry `FIRST_PARTY`, `SELLER` and
+`DROPSHIP QIKINK`; `allocation_settings` `FIRST_PARTY DELHIVERY CHEAPEST`.
+
+### Found and fixed during verification
+
+The admin fulfilment queue listed orders that were `SHIPPED`/`DELIVERED` before shipments
+were recorded per group as still open. Groups on such orders now count as shipped from
+the order status (`bff/fulfilment.js`, with a test), while a live supplier order that is
+still open is believed over the status.
+
+## Not verified — say so before relying on it
+
+- **Delhivery and Shiprocket adapters** are checked only against a mock HTTP server (23
+  tests). No sandbox account was available; request shapes follow the carriers' published
+  APIs. Known gaps (M2): no city/state/dimensions in `BookingRequest`, no idempotent
+  lookup of a half-finished booking, no label retrieval.
+- **No dropship partner API is integrated.** All six run through the manual adapter by
+  design; none has supplied documentation or credentials.
+- **The Angular pages were built (`ng build`, no errors) but not opened in a browser** in
+  this session. Layout at 390 px is unchecked.
+- The Razorpay flow ran in demo mode (no keys). The signature and order-binding checks are
+  not exercised against Razorpay itself.
+
+## Still open
+
+- `GET /api/items/:id` returns `fulfilmentPartnerCode` publicly. It is a code, not a
+  name, and the storefront never renders it, but the field should be stripped from public
+  catalogue responses in the BFF.
+- Dispatch to suppliers is a REST call from the BFF after verification (idempotent,
+  server-guarded). M2 replaces it with an `OrderPaid` event via an outbox.
+- The `payment.captured` webhook still only logs; a browser that closes before `verify`
+  leaves the order `PENDING` until the customer retries.
+- Order status has no `PARTIALLY_SHIPPED` value (enum CHECK constraint under
+  `ddl-auto: update`); partial progress is visible per group instead.
+- `/api/seller/stats` counts open orders by order status, not by whether this seller's
+  own group has shipped.
+- Settlement, commission, GST/TCS are not modelled (M3).
+
+---
+
+# Appendix K — Dropship partner APIs: what exists, and the Qikink adapter
+
+Asked to "write dropship partner APIs" for the six partners. The honest first step was
+to find out which of them *have* one. Findings (2026-09-14, sources in
+[`docs/commerce-architecture.md`](docs/commerce-architecture.md) §8.2):
+
+| Partner | Public API? | Result |
+|---|---|---|
+| Qikink | **Yes** — token exchange + order create; no status, tracking or webhook endpoint documented | `QikinkDropshipAdapter` written against it |
+| eKomn | No — CSV templates and a WooCommerce plugin | stays `MANUAL` |
+| Bharat Dropship | No documentation found despite "API + webhooks advertised" | stays `MANUAL`; ask them |
+| DropSetu | No — waitlist-only, Shopify/WooCommerce plugin | stays `MANUAL` |
+| Dropbarter | No | stays `MANUAL` |
+| Ali Shipping | No — a managed service, not a platform | stays `MANUAL` |
+
+Writing clients for the other five would have meant inventing endpoints. Each partner
+row now carries this finding in `notes`, with its website, so an operator sees *why* a
+partner is manual.
+
+## Qikink adapter
+
+`supplier-service/src/main/java/com/example/dropship/qikink/` — adapter, payload
+builder, token cache; 13 unit tests with `MockRestServiceServer`. Env:
+`QIKINK_CLIENT_ID`, `QIKINK_CLIENT_SECRET`, `QIKINK_BASE_URL` (sandbox default),
+`QIKINK_SEARCH_FROM_MY_PRODUCTS`. Supplier orders now snapshot the customer's email,
+which Qikink's shipping address carries.
+
+Rules from the published API that the code enforces: `order_number` ≤ 15 characters;
+`quantity`, `price`, `total_order_value` as strings; form-encoded token exchange; one
+re-login on 401; partner errors reported in the partner's words. It claims only
+`ORDER_SUBMISSION`, because nothing else is documented.
+
+## Verified — against a stand-in, not Qikink
+
+Qikink's Postman reference has been taken down and no account credentials exist here,
+so the adapter was exercised end to end through the BFF against a local server shaped
+like Qikink's documented responses (`QIKINK_BASE_URL` pointed at it). That proves our
+side of the conversation, not Qikink's. 21/21:
+
+| Check | Seen |
+|---|---|
+| Integration list | `QIKINK configured=true capabilities=[ORDER_SUBMISSION]` |
+| Paid dropship order | supplier order `SUBMITTED`, `partnerOrderRef 90004`, note names the Qikink dashboard for tracking |
+| Token call | `POST /api/token`, form-encoded `ClientId=…&client_secret=…` |
+| Order call | `POST /api/order/create` with `ClientId` + `Accesstoken` headers; `order_number ORD-C8B539A8`, `gateway Prepaid`, `qikink_shipping "1"`, `quantity "1"`, `price "699"`, address with `zip`, `province`, `country_code IN`, customer email |
+| Cost price | never present in the partner payload |
+| Second order | token reused, no second login |
+| SKU Qikink rejects | supplier order `FAILED` with *"Qikink did not accept the order: Invalid SKU"*; the customer's payment unaffected |
+| Operator fixes SKU, retries | `SUBMITTED`, `attempts 2`, `order_number ORD-B590D4B5-2` |
+| Credentials removed, service restarted | integration `configured=false`; new Qikink order → `AWAITING_MANUAL_PLACEMENT`, note *"Qikink API integration is not configured (missing QIKINK_CLIENT_ID, …); handled manually"* |
+
+Unit tests: supplier-service 103 (was 90), all passing.
+
+## Still open
+
+- **Unverified against Qikink itself.** Request live/sandbox credentials from
+  Qikink's dashboard (Integration → Custom API), set the four variables, place a
+  sandbox order, and record the outcome here. Sandbox needs
+  `QIKINK_SEARCH_FROM_MY_PRODUCTS=0` and Qikink's own test SKUs.
+- Qikink tracking stays manual (dashboard → Admin → Supplier orders) until Qikink
+  documents a status or webhook endpoint.
+- Bharat Dropship's advertised API: nothing public; an adapter needs their docs.
